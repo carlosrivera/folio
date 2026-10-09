@@ -12,15 +12,18 @@ permissions:
   pages: write
   id-token: write
 
-# Allow one concurrent deployment
+# Allow one deployment at a time without breaking in-flight locks
 concurrency:
   group: 'pages'
-  cancel-in-progress: true
+  cancel-in-progress: false
+
+env:
+  ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: "node20"
 
 jobs:
   build:
     name: Build Astro Site
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -35,7 +38,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --filter folio-landing... --frozen-lockfile
 
       - name: Build Astro landing page
         run: pnpm landing:build
@@ -48,7 +51,7 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

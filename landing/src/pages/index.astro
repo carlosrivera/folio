@@ -676,6 +676,13 @@ $$</code></pre>
     <!-- Closing CTA -->
     <section class="closing-section">
       <div class="container closing-inner">
+        <!-- Floating Animated App Icon -->
+        <div class="closing-app-icon-wrap" aria-hidden="true">
+          <div class="closing-app-icon">
+            <img src={`${base}/icon.svg`} alt="Folio App Icon" width="80" height="80" class="closing-icon-img" />
+          </div>
+        </div>
+
         <h2 class="closing-title">Write in Markdown.<br>Publish for the boardroom.</h2>
         <p class="closing-lede">Download Folio for macOS. Free, open source, and built for local-first craftsmanship.</p>
         <div class="closing-cta">
@@ -1128,13 +1135,13 @@ $$</code></pre>
     gap: 10px;
     padding: 13px 20px 13px 26px;
     background: var(--accent);
-    color: #fff;
+    color: var(--accent-fg, #ffffff);
     border-top-left-radius: 999px;
     border-bottom-left-radius: 999px;
     font-size: 1.05rem;
     font-weight: 600;
     text-decoration: none;
-    transition: background 0.15s ease;
+    transition: background 0.15s ease, color 0.15s ease;
   }
 
   .cta-pill-main:hover {
@@ -1144,8 +1151,9 @@ $$</code></pre>
   .cta-arch-badge {
     display: inline-flex;
     align-items: center;
-    background: rgba(0, 0, 0, 0.22);
-    color: #ffffff;
+    background: rgba(0, 0, 0, 0.16);
+    color: inherit;
+    border: 1px solid rgba(0, 0, 0, 0.12);
     font-size: 0.74rem;
     font-weight: 700;
     letter-spacing: 0.03em;
@@ -1159,13 +1167,13 @@ $$</code></pre>
     justify-content: center;
     padding: 0 16px;
     background: var(--accent);
-    color: #fff;
+    color: var(--accent-fg, #ffffff);
     border: none;
-    border-left: 1px solid rgba(255, 255, 255, 0.28);
+    border-left: 1px solid rgba(127, 127, 127, 0.32);
     border-top-right-radius: 999px;
     border-bottom-right-radius: 999px;
     cursor: pointer;
-    transition: background 0.15s ease;
+    transition: background 0.15s ease, color 0.15s ease;
   }
 
   .cta-dropdown-btn:hover,
@@ -1189,15 +1197,15 @@ $$</code></pre>
     transform: translateX(-50%) translateY(6px);
     width: 320px;
     max-width: 90vw;
-    background: #ffffff;
+    background: var(--surface, #ffffff);
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 8px;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.32), 0 2px 6px rgba(0, 0, 0, 0.12);
     z-index: 100;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.18s ease, transform 0.18s var(--spring);
+    transition: opacity 0.18s ease, transform 0.18s var(--spring), background-color 0.4s ease, border-color 0.4s ease;
     text-align: left;
   }
 
@@ -1229,11 +1237,11 @@ $$</code></pre>
   }
 
   .menu-item:hover {
-    background: #f7f5ef;
+    background: var(--accent-light, rgba(255, 255, 255, 0.08));
   }
 
   .menu-item.is-selected {
-    background: rgba(210, 92, 58, 0.07);
+    background: var(--accent-light, rgba(210, 92, 58, 0.12));
   }
 
   .menu-item-info {
@@ -1254,7 +1262,7 @@ $$</code></pre>
   .rec-badge {
     font-size: 0.65rem;
     background: var(--accent);
-    color: #fff;
+    color: var(--accent-fg, #ffffff);
     padding: 1px 6px;
     border-radius: 999px;
     font-weight: 700;
@@ -1264,7 +1272,7 @@ $$</code></pre>
 
   .menu-item-desc {
     font-size: 0.78rem;
-    color: var(--text-faint);
+    color: var(--text-2);
   }
 
   .check-mark {
@@ -1286,7 +1294,7 @@ $$</code></pre>
     gap: 10px;
     padding: 6px 8px 4px;
     font-size: 0.78rem;
-    color: var(--text-faint);
+    color: var(--text-2);
   }
 
   .sub-link {
@@ -1311,12 +1319,12 @@ $$</code></pre>
     gap: 8px;
     padding: 13px 28px;
     background: var(--accent);
-    color: #fff;
+    color: var(--accent-fg, #ffffff);
     border-radius: 999px;
     font-size: 1.05rem;
     font-weight: 600;
-    box-shadow: 0 4px 16px rgba(210, 92, 58, 0.28);
-    transition: transform 0.2s var(--spring), box-shadow 0.2s ease, background 0.15s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s var(--spring), box-shadow 0.2s ease, background 0.15s ease, color 0.15s ease;
   }
 
   .cta-pill:hover {
@@ -2705,13 +2713,82 @@ $$</code></pre>
     z-index: 20;
     padding: 5rem 0 6rem;
     text-align: center;
-    border-top: 1px solid var(--border);
   }
 
   .closing-inner {
     position: relative;
     z-index: 25;
     max-width: 640px;
+  }
+
+  /* Animated Floating App Icon */
+  .closing-app-icon-wrap {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1.6rem;
+    position: relative;
+  }
+
+  .closing-app-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 22px;
+    animation: floatAppIcon 4s ease-in-out infinite;
+    cursor: default;
+    transition: transform 0.3s var(--spring);
+  }
+
+  .closing-app-icon::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 28px;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+    opacity: 0.3;
+    filter: blur(14px);
+    z-index: -1;
+    animation: iconGlowPulse 4s ease-in-out infinite;
+  }
+
+  .closing-app-icon:hover {
+    transform: translateY(-8px) scale(1.08) rotate(-1.5deg);
+    animation-play-state: paused;
+  }
+
+  .closing-icon-img {
+    display: block;
+    width: 76px;
+    height: 76px;
+    border-radius: 18px;
+    filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.22));
+    transition: filter 0.3s ease;
+  }
+
+  .closing-app-icon:hover .closing-icon-img {
+    filter: drop-shadow(0 20px 36px rgba(0, 0, 0, 0.32));
+  }
+
+  @keyframes floatAppIcon {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-10px) rotate(1.2deg);
+    }
+  }
+
+  @keyframes iconGlowPulse {
+    0%, 100% {
+      opacity: 0.2;
+      transform: scale(0.95);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.1);
+    }
   }
 
   .closing-title {
