@@ -4,6 +4,7 @@ import katex from 'katex'
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '')
 const githubRepo = 'https://github.com/carlosrivera/folio'
+const releasesUrl = `${githubRepo}/releases`
 const version = '0.1.0'
 const downloadSilicon = `https://github.com/carlosrivera/folio/releases/download/v${version}/Folio-${version}-arm64.dmg`
 const downloadIntel = `https://github.com/carlosrivera/folio/releases/download/v${version}/Folio-${version}.dmg`
@@ -52,7 +53,13 @@ const themes = [
             <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
           </svg>
         </a>
-        <a href={downloadSilicon} class="btn-pill" id="nav-dl-btn" download>Download .dmg →</a>
+        <a href={releasesUrl} target="_blank" rel="noopener noreferrer" class="btn-secondary" id="nav-releases-btn">
+          <span>Releases</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="7" y1="17" x2="17" y2="7"></line>
+            <polyline points="7 7 17 7 17 17"></polyline>
+          </svg>
+        </a>
       </div>
     </div>
   </header>
@@ -950,19 +957,36 @@ $$</code></pre>
     color: var(--text);
   }
 
-  .btn-pill {
-    padding: 7px 16px;
-    background: var(--accent);
-    color: var(--accent-fg, #fff);
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
     border-radius: 999px;
-    font-size: 0.88rem;
+    font-size: 0.86rem;
     font-weight: 600;
-    transition: transform 0.2s var(--spring), background-color 0.4s ease, color 0.4s ease;
+    text-decoration: none;
+    transition: all 0.2s var(--ease-out);
   }
 
-  .btn-pill:hover {
+  .btn-secondary:hover {
+    background: var(--surface);
+    border-color: var(--text-2);
+    color: var(--text);
     transform: translateY(-1px);
-    background: var(--accent-hover);
+  }
+
+  .btn-secondary svg {
+    opacity: 0.65;
+    transition: transform 0.2s var(--ease-out), opacity 0.2s ease;
+  }
+
+  .btn-secondary:hover svg {
+    opacity: 1;
+    transform: translate(1px, -1px);
   }
 
   /* Hero Section */
@@ -2375,45 +2399,124 @@ $$</code></pre>
 
   .latex-pane-render {
     background: #ffffff;
-    padding: 24px;
+    color: #09090b;
+    padding: 26px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    transition: background-color 0.3s ease;
   }
 
   .latex-pane-render .pane-tag {
-    color: var(--accent);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #ba4e31;
+    margin-bottom: 14px;
+    transition: color 0.3s ease;
   }
+
+  /* High-contrast theme-specific colors for pane-tag on white paper */
+  html[data-theme="voltage"] .latex-pane-render .pane-tag { color: #4d6600; }
+  html[data-theme="editorial"] .latex-pane-render .pane-tag { color: #ba4e31; }
+  html[data-theme="slate"] .latex-pane-render .pane-tag { color: #0284c7; }
+  html[data-theme="scientific"] .latex-pane-render .pane-tag { color: #1d4ed8; }
+  html[data-theme="contrast"] .latex-pane-render .pane-tag { color: #09090b; }
+  html[data-theme="graphite"] .latex-pane-render .pane-tag { color: #3f6212; }
+  html[data-theme="nocturne"] .latex-pane-render .pane-tag { color: #86198f; }
 
   .latex-rendered-math {
     position: relative;
-    padding: 20px 10px;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 18px 16px;
+    background: #fafaf9;
+    border: 1px solid #e7e5e4;
+    border-left: 4px solid #ba4e31;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+  }
+
+  /* Theme-specific calibrated equation card styling */
+  html[data-theme="voltage"] .latex-rendered-math {
+    background: #fafdf2;
+    border-color: #d9f99d;
+    border-left: 4px solid #84cc16;
+  }
+  html[data-theme="editorial"] .latex-rendered-math {
+    background: #fdfaf6;
+    border-color: #ebdcd3;
+    border-left: 4px solid #ba4e31;
+  }
+  html[data-theme="slate"] .latex-rendered-math {
+    background: #f8fafc;
+    border-color: #bae6fd;
+    border-left: 4px solid #0284c7;
+  }
+  html[data-theme="scientific"] .latex-rendered-math {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    border-left: 4px solid #2563eb;
+  }
+  html[data-theme="contrast"] .latex-rendered-math {
+    background: #ffffff;
+    border-color: #09090b;
+    border-left: 4px solid #09090b;
+  }
+  html[data-theme="graphite"] .latex-rendered-math {
+    background: #fcfcf9;
+    border-color: #d9f99d;
+    border-left: 4px solid #65a30d;
+  }
+  html[data-theme="nocturne"] .latex-rendered-math {
+    background: #faf5ff;
+    border-color: #fbcfe8;
+    border-left: 4px solid #d946ef;
+  }
+
+  /* CRITICAL: KaTeX math glyphs MUST ALWAYS be deep black ink for maximum paper contrast */
+  .latex-rendered-math .math-content,
+  .latex-rendered-math .math-content *,
+  .latex-rendered-math .katex,
+  .latex-rendered-math .katex *,
+  .latex-rendered-math .katex-html,
+  .latex-rendered-math .katex-html * {
+    color: #09090b !important;
   }
 
   .latex-rendered-math .math-content {
-    font-size: 1.15rem;
+    flex: 1;
+    min-width: 0;
+    font-size: 0.98rem;
+    overflow-x: auto;
+    text-align: center;
+    padding: 2px 4px;
   }
 
   .eq-badge {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
+    flex-shrink: 0;
     font-size: 0.82rem;
     font-family: "JetBrains Mono", monospace;
-    color: var(--text-faint);
+    font-weight: 600;
+    color: #4b5563 !important;
   }
 
   .latex-render-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
-    font-size: 0.78rem;
+    gap: 16px;
+    font-size: 0.8rem;
     font-weight: 600;
-    color: var(--text-2);
-    border-top: 1px solid #f0ece3;
+    color: #374151;
+    border-top: 1px solid #e5e7eb;
     padding-top: 14px;
+  }
+
+  .latex-render-meta span {
+    color: #374151 !important;
   }
 
   /* Engine Grid */
