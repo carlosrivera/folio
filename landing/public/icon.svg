@@ -2,71 +2,54 @@
   <defs>
     <!-- Background squircle gradient -->
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#242428" />
-      <stop offset="100%" stop-color="#141416" />
+      <stop offset="0%" stop-color="#24252a" />
+      <stop offset="100%" stop-color="#131416" />
     </linearGradient>
 
     <!-- Squircle border highlight -->
     <linearGradient id="borderGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#4a4a52" stop-opacity="0.6" />
-      <stop offset="100%" stop-color="#2a2a30" stop-opacity="0.2" />
+      <stop offset="0%" stop-color="#4a4d56" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#222327" stop-opacity="0.3" />
     </linearGradient>
 
-    <!-- Terracotta accent gradient -->
+    <!-- Terracotta accent -->
     <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#dd6948" />
-      <stop offset="100%" stop-color="#b84729" />
+      <stop offset="0%" stop-color="#c85433" />
+      <stop offset="100%" stop-color="#ba4e31" />
     </linearGradient>
 
     <!-- Page drop shadows -->
-    <filter id="pageShadow" x="-20%" y="-20%" width="150%" height="150%">
-      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.45" />
-    </filter>
     <filter id="tileShadow" x="-20%" y="-20%" width="150%" height="150%">
-      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000000" flood-opacity="0.35" />
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000000" flood-opacity="0.45" />
+    </filter>
+    <filter id="sheetShadow" x="-20%" y="-20%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.3" />
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#ba4e31" flood-opacity="0.2" />
     </filter>
   </defs>
 
-  <!-- Outer squircle tile with macOS proportions (Apple continuous squircle approximation) -->
+  <!-- Outer squircle tile with macOS proportions (continuous squircle approximation) -->
   <g filter="url(#tileShadow)">
-    <rect x="32" y="32" width="448" height="448" rx="100" ry="100" fill="url(#bgGrad)" stroke="url(#borderGrad)" stroke-width="2.5" />
+    <rect x="36" y="36" width="440" height="440" rx="98" ry="98" fill="url(#bgGrad)" stroke="url(#borderGrad)" stroke-width="2.5" />
   </g>
 
-  <!-- Stacked sheets -->
-  <g filter="url(#pageShadow)">
-    <!-- Back sheet (tilted left -5deg) -->
-    <rect x="135" y="70" width="240" height="340" rx="18" fill="#eae8e2" transform="rotate(-6 255 240)" opacity="0.65" />
+  <!-- Stacked sheets matching Folio macOS App icon -->
+  <!-- Back sheet (tilted right) -->
+  <rect x="156" y="105" width="220" height="305" rx="14" fill="#eae7df" transform="rotate(8.5 266 257)" opacity="0.9" />
 
-    <!-- Middle sheet (tilted right +3deg) -->
-    <rect x="135" y="70" width="240" height="340" rx="18" fill="#f4f3ee" transform="rotate(3 255 240)" opacity="0.85" />
+  <!-- Middle sheet (tilted slight right) -->
+  <rect x="156" y="105" width="220" height="305" rx="14" fill="#f5f4ef" transform="rotate(3 266 257)" opacity="0.95" />
 
-    <!-- Front sheet (slightly tilted -1deg) -->
-    <g transform="rotate(-1.5 255 240)">
-      <rect x="135" y="70" width="240" height="340" rx="18" fill="#fdfcf9" />
-
-      <!-- Subtle document margin & layout guide lines -->
-      <line x1="165" y1="100" x2="165" y2="380" stroke="#eae7df" stroke-width="1.5" stroke-dasharray="3 3" />
-      <line x1="345" y1="100" x2="345" y2="380" stroke="#eae7df" stroke-width="1.5" stroke-dasharray="3 3" />
-      <line x1="165" y1="100" x2="345" y2="100" stroke="#eae7df" stroke-width="1.5" />
-      <line x1="165" y1="380" x2="345" y2="380" stroke="#eae7df" stroke-width="1.5" />
-
-      <!-- Signature terracotta 'F/' mark -->
-      <text x="255" y="260"
-            font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif"
-            font-size="112"
-            font-weight="800"
-            letter-spacing="-4"
-            fill="url(#accentGrad)"
-            text-anchor="middle"
-            dominant-baseline="central">F/</text>
-
-      <!-- Document pagination indicator cue '01' -->
-      <text x="330" y="365"
-            font-family="-apple-system, BlinkMacSystemFont, 'JetBrains Mono', monospace"
-            font-size="13"
-            font-weight="600"
-            fill="#a6a49c"
-            text-anchor="end">01</text>
+  <!-- Front sheet with signature terracotta F/ mark (tilted left) -->
+  <g transform="rotate(-6.5 266 257)" filter="url(#sheetShadow)">
+    <rect x="156" y="105" width="220" height="305" rx="14" fill="#ffffff" />
+    
+    <!-- Bold Terracotta F/ Mark centered on the sheet -->
+    <g transform="translate(202, 192) scale(0.58)">
+      <!-- F -->
+      <path d="M 4 4 L 128 4 L 128 39 L 39 39 L 39 70 L 92 70 L 92 105 L 39 105 L 39 179 L 4 179 Z" fill="#ba4e31" />
+      <!-- / with rounded terminals -->
+      <path d="M 185 4 C 205 4 218 16 214 30 L 163 174 C 160 181 152 184 144 184 C 130 184 124 173 128 160 L 175 14 C 177 7 180 4 185 4 Z" fill="#ba4e31" />
     </g>
   </g>
 </svg>

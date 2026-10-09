@@ -415,135 +415,31 @@ const themes = [
           </p>
         </div>
 
-        <div class="themes-split-layout">
-          <!-- Left: Theme Selector Cards -->
-          <div class="themes-selector-pane">
-            <div class="theme-grid">
-              {themes.map((t, idx) => (
-                <button 
-                  type="button" 
-                  class={`theme-card ${idx === 0 ? 'is-active' : ''}`} 
-                  data-theme-id={t.id}
-                  data-theme-name={t.name}
-                  data-theme-swatch={t.swatch}
-                  data-theme-bg={t.bg}
-                >
-                  <div class="theme-card-head">
-                    <span class="theme-swatch-chip" style={`background: ${t.swatch}; border-color: ${t.id === 'contrast' || t.id === 'scientific' ? '#ccc' : 'transparent'};`}></span>
-                    <strong class="theme-name">{t.name}</strong>
-                    <span class="theme-check-radio">✓</span>
-                  </div>
-                  <div class="theme-fonts">{t.fonts}</div>
-                  <p class="theme-desc">{t.desc}</p>
-                </button>
-              ))}
-            </div>
-
-            <div class="themes-reset-row">
-              <span class="theme-status-text">Active Theme: <strong id="active-theme-label">Voltage</strong></span>
-              <button type="button" class="btn-reset-theme" id="btn-reset-cream">Reset page to warm cream ↺</button>
-            </div>
-          </div>
-
-          <!-- Right: Live Synchronized Document Sheet Viewport -->
-          <div class="themes-preview-pane">
-            <div class="themes-preview-container">
-              <div class="themes-preview-header">
-                <div class="preview-doc-meta">
-                  <span class="doc-file-tag">specification.md</span>
-                  <span class="preview-theme-tag" id="themes-preview-tag">Voltage</span>
-                </div>
-                <div class="preview-tab-pills">
-                  <button type="button" class="tab-pill" id="themes-tab-cover">Cover Sheet</button>
-                  <button type="button" class="tab-pill is-active" id="themes-tab-body">Page 2: Spec</button>
-                </div>
+        <!-- Full-Width Curated Theme Selector Grid -->
+        <div class="theme-grid">
+          {themes.map((t, idx) => (
+            <button 
+              type="button" 
+              class={`theme-card ${idx === 0 ? 'is-active' : ''}`} 
+              data-theme-id={t.id}
+              data-theme-name={t.name}
+              data-theme-swatch={t.swatch}
+              data-theme-bg={t.bg}
+            >
+              <div class="theme-card-head">
+                <span class="theme-swatch-chip" style={`background: ${t.swatch}; border-color: ${t.id === 'contrast' || t.id === 'scientific' ? '#ccc' : 'transparent'};`}></span>
+                <strong class="theme-name">{t.name}</strong>
+                <span class="theme-check-radio">✓</span>
               </div>
+              <div class="theme-fonts">{t.fonts}</div>
+              <p class="theme-desc">{t.desc}</p>
+            </button>
+          ))}
+        </div>
 
-              <div class="themes-preview-sheet-wrap">
-                <!-- Page 2 View -->
-                <div class="doc-page-sheet theme-voltage" id="themes-body-sheet">
-                  <div class="sheet-running-header">
-                    <span class="hdr-left">FOLIO / APEX ROBOTICS</span>
-                    <span class="hdr-center">§ 2.4 STATE ESTIMATION &amp; BOUNDS</span>
-                    <span class="hdr-right">SPEC-2026-09</span>
-                  </div>
-                  <div class="sheet-body-content">
-                    <h2 class="sheet-h2">2. Deterministic State Estimation</h2>
-                    <p class="sheet-lead">
-                      The core trajectory planner executes deterministic state estimation over a 200 Hz boundary. System stability is proven through the Lyapunov function <span class="sheet-math-inline" set:html={inlineP} />:
-                    </p>
-                    <div class="sheet-equation-card">
-                      <div class="sheet-equation-math" set:html={eqLyapunov} />
-                      <span class="sheet-eq-num">(2.1)</span>
-                    </div>
-                    <blockquote class="sheet-blockquote">
-                      <p>"Deterministic convergence is mathematically guaranteed within 14 ms for all initial state perturbations bounded by the stability envelope."</p>
-                    </blockquote>
-                    <div class="sheet-table-section">
-                      <div class="sheet-table-kicker">// MILESTONE DELIVERABLES &amp; LATENCY BUDGET</div>
-                      <table class="sheet-table">
-                        <thead>
-                          <tr>
-                            <th>Module</th>
-                            <th>Latency</th>
-                            <th>Determinism</th>
-                            <th>Target SLA</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td><strong>State Estimator</strong></td>
-                            <td>&lt; 2.4 ms</td>
-                            <td>Hard Real-Time</td>
-                            <td>99.99%</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Trajectory QP</strong></td>
-                            <td>&lt; 8.1 ms</td>
-                            <td>Bounded Loop</td>
-                            <td>99.95%</td>
-                          </tr>
-                          <tr>
-                            <td><strong>CAN Bus Link</strong></td>
-                            <td>&lt; 0.8 ms</td>
-                            <td>Deterministic</td>
-                            <td>99.99%</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                  <div class="sheet-running-footer">
-                    <span class="ftr-left">Confidential · Apex Robotics Lab</span>
-                    <span class="ftr-right">Page 2 of 4</span>
-                  </div>
-                </div>
-
-                <!-- Cover Page View -->
-                <div class="doc-cover-sheet theme-voltage" id="themes-cover-sheet" style="display: none;">
-                  <div class="cover-kicker-line">TECHNICAL SPECIFICATION · SPEC-2026-09</div>
-                  <h1 class="cover-title">Autonomous Systems Specification</h1>
-                  <p class="cover-client-line">Prepared for Apex Robotics Lab · Autonomous Fleet Division</p>
-                  <div class="cover-rule-divider"></div>
-                  <div class="cover-grid-details">
-                    <div class="cov-col">
-                      <span class="cov-lbl">Prepared For</span>
-                      <strong class="cov-val">Apex Robotics Lab</strong>
-                    </div>
-                    <div class="cov-col">
-                      <span class="cov-lbl">Issued</span>
-                      <strong class="cov-val">October 2026</strong>
-                    </div>
-                  </div>
-                  <div class="cover-accent-rings">
-                    <span class="ring-1"></span>
-                    <span class="ring-2"></span>
-                    <span class="ring-3"></span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="themes-reset-row">
+          <span class="theme-status-text">Active Theme: <strong id="active-theme-label">Voltage</strong></span>
+          <button type="button" class="btn-reset-theme" id="btn-reset-cream">Reset page to warm cream ↺</button>
         </div>
       </div>
     </section>
@@ -676,10 +572,22 @@ $$</code></pre>
     <!-- Closing CTA -->
     <section class="closing-section">
       <div class="container closing-inner">
-        <!-- Floating Animated App Icon -->
-        <div class="closing-app-icon-wrap" aria-hidden="true">
-          <div class="closing-app-icon">
-            <img src={`${base}/icon.svg`} alt="Folio App Icon" width="80" height="80" class="closing-icon-img" />
+        <!-- Native macOS Folio App Squircle with Animated Pages -->
+        <div class="closing-app-icon-wrap" id="closing-app-icon" aria-label="Folio macOS App Icon">
+          <div class="icon-squircle-base">
+            <div class="icon-sheets-stack">
+              <!-- Back Sheet (tilted right) -->
+              <div class="icon-sheet sheet-back"></div>
+              <!-- Middle Sheet (tilted slight right) -->
+              <div class="icon-sheet sheet-mid"></div>
+              <!-- Front Sheet with bold signature terracotta F/ mark (tilted left) -->
+              <div class="icon-sheet sheet-front">
+                <svg class="front-sheet-mark" viewBox="0 0 220 180" width="36" height="30" aria-hidden="true">
+                  <path d="M 4 4 L 128 4 L 128 39 L 39 39 L 39 70 L 92 70 L 92 105 L 39 105 L 39 179 L 4 179 Z" fill="#ba4e31" />
+                  <path d="M 185 4 C 205 4 218 16 214 30 L 163 174 C 160 181 152 184 144 184 C 130 184 124 173 128 160 L 175 14 C 177 7 180 4 185 4 Z" fill="#ba4e31" />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -774,13 +682,8 @@ $$</code></pre>
   const btnNextPage = document.getElementById('btn-next-page')
   const pgStatusNum = document.getElementById('pg-status-num')
 
-  // Themes Section Synchronized Sheet
-  const themesBodySheet = document.getElementById('themes-body-sheet')
-  const themesCoverSheet = document.getElementById('themes-cover-sheet')
-  const themesTabCover = document.getElementById('themes-tab-cover')
-  const themesTabBody = document.getElementById('themes-tab-body')
+  // Themes Section Controls
   const activeThemeLabel = document.getElementById('active-theme-label')
-  const themesPreviewTag = document.getElementById('themes-preview-tag')
   const btnResetCream = document.getElementById('btn-reset-cream')
 
   // Hero Titlebar Theme Dropdown
@@ -792,7 +695,6 @@ $$</code></pre>
   let currentThemeName = 'Voltage'
   let currentThemeSwatch = '#d4ff2b'
   let currentHeroPage = 2 // 1 = Cover, 2 = Body/Spec
-  let currentThemesSecPage = 2 // 1 = Cover, 2 = Body/Spec
 
   function updateHeroView(page: number) {
     currentHeroPage = page
@@ -810,21 +712,6 @@ $$</code></pre>
       if (tabBodyView) tabBodyView.classList.add('is-active')
       if (pgStatusNum) pgStatusNum.textContent = '2 / 4'
       if (previewMetaBadge) previewMetaBadge.textContent = `SPEC · ${currentThemeName} · Page 2 of 4`
-    }
-  }
-
-  function updateThemesSecView(page: number) {
-    currentThemesSecPage = page
-    if (page === 1) {
-      if (themesCoverSheet) themesCoverSheet.style.display = 'flex'
-      if (themesBodySheet) themesBodySheet.style.display = 'none'
-      if (themesTabCover) themesTabCover.classList.add('is-active')
-      if (themesTabBody) themesTabBody.classList.remove('is-active')
-    } else {
-      if (themesCoverSheet) themesCoverSheet.style.display = 'none'
-      if (themesBodySheet) themesBodySheet.style.display = 'flex'
-      if (themesTabCover) themesTabCover.classList.remove('is-active')
-      if (themesTabBody) themesTabBody.classList.add('is-active')
     }
   }
 
@@ -850,14 +737,13 @@ $$</code></pre>
     if (appThemeName) appThemeName.textContent = themeName
     if (appThemeSwatch) (appThemeSwatch as HTMLElement).style.background = themeSwatch
 
-    // 5. Update labels & badges
+    // 5. Update active theme label
     if (activeThemeLabel) activeThemeLabel.textContent = themeName
-    if (themesPreviewTag) themesPreviewTag.textContent = themeName
 
-    // 6. Update sheet classes on all preview sheets
+    // 6. Update sheet classes on hero preview sheets
     const allThemeClasses = ['theme-voltage', 'theme-editorial', 'theme-slate', 'theme-scientific', 'theme-contrast', 'theme-graphite', 'theme-nocturne']
     
-    const targets = [activeBodyPage, activeCoverPage, themesBodySheet, themesCoverSheet]
+    const targets = [activeBodyPage, activeCoverPage]
     targets.forEach((sheet) => {
       if (!sheet) return
       allThemeClasses.forEach((cls) => sheet.classList.remove(cls))
@@ -865,7 +751,6 @@ $$</code></pre>
     })
 
     updateHeroView(currentHeroPage)
-    updateThemesSecView(currentThemesSecPage)
   }
 
   // Click on theme cards in #themes
@@ -906,9 +791,25 @@ $$</code></pre>
   btnPrevPage?.addEventListener('click', () => updateHeroView(1))
   btnNextPage?.addEventListener('click', () => updateHeroView(2))
 
-  // Themes Section View tabs
-  themesTabCover?.addEventListener('click', () => updateThemesSecView(1))
-  themesTabBody?.addEventListener('click', () => updateThemesSecView(2))
+  // Animate pages when bottom CTA icon enters viewport
+  const closingAppIcon = document.getElementById('closing-app-icon')
+  if (closingAppIcon) {
+    if ('IntersectionObserver' in window) {
+      const iconObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              closingAppIcon.classList.add('is-in-view')
+            }
+          })
+        },
+        { threshold: 0.25 }
+      )
+      iconObserver.observe(closingAppIcon)
+    } else {
+      closingAppIcon.classList.add('is-in-view')
+    }
+  }
 
   // Architecture Dropdown Menus (Hero and Closing)
   function setupDropdown(toggleId: string, menuId: string) {
@@ -2316,37 +2217,19 @@ $$</code></pre>
     font-size: 0.9em;
   }
 
-  /* Interactive Themes Showcase: Split Selector + Live Preview */
-  .themes-split-layout {
-    display: grid;
-    grid-template-columns: 1fr 450px;
-    gap: 2.5rem;
-    align-items: start;
-  }
-
-  @media (max-width: 980px) {
-    .themes-split-layout {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .themes-selector-pane {
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
-  }
-
+  /* Interactive Themes Showcase */
   .theme-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 1.5rem;
   }
 
   .themes-reset-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 16px;
+    padding: 12px 18px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -2376,85 +2259,6 @@ $$</code></pre>
 
   .btn-reset-theme:hover {
     color: var(--accent);
-  }
-
-  .themes-preview-pane {
-    position: sticky;
-    top: 84px;
-  }
-
-  .themes-preview-container {
-    background: #141518;
-    border: 1px solid #2a2d35;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
-  }
-
-  .themes-preview-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 9px 16px;
-    background: #101113;
-    border-bottom: 1px solid #22252c;
-  }
-
-  .preview-doc-meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .doc-file-tag {
-    color: #94949e;
-    font-family: "JetBrains Mono", monospace;
-    font-size: 11px;
-    font-weight: 500;
-  }
-
-  .preview-theme-tag {
-    background: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 999px;
-    letter-spacing: 0.03em;
-  }
-
-  .preview-tab-pills {
-    display: flex;
-    gap: 4px;
-  }
-
-  .tab-pill {
-    padding: 4px 10px;
-    background: #1f2127;
-    color: #8a8d96;
-    border: none;
-    border-radius: 5px;
-    font-size: 10.5px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-
-  .tab-pill:hover {
-    color: #ffffff;
-  }
-
-  .tab-pill.is-active {
-    background: #31353f;
-    color: #ffffff;
-  }
-
-  .themes-preview-sheet-wrap {
-    padding: 24px 16px;
-    background: #141518;
-    display: flex;
-    justify-content: center;
-    overflow-x: auto;
   }
 
   .theme-card {
@@ -2721,73 +2525,128 @@ $$</code></pre>
     max-width: 640px;
   }
 
-  /* Animated Floating App Icon */
+  /* Native macOS App Squircle + Animated Pages */
   .closing-app-icon-wrap {
     display: inline-flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 1.6rem;
+    margin-bottom: 1.8rem;
     position: relative;
+    cursor: pointer;
   }
 
-  .closing-app-icon {
+  /* Grounded static macOS squircle base */
+  .icon-squircle-base {
     position: relative;
-    display: inline-flex;
+    width: 96px;
+    height: 96px;
+    border-radius: 22px;
+    background: linear-gradient(180deg, #24252a 0%, #131416 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 
+      0 18px 40px rgba(0, 0, 0, 0.42),
+      0 4px 12px rgba(0, 0, 0, 0.28),
+      inset 0 1px 1px rgba(255, 255, 255, 0.18);
+    display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 22px;
-    animation: floatAppIcon 4s ease-in-out infinite;
-    cursor: default;
-    transition: transform 0.3s var(--spring);
+    transition: box-shadow 0.3s ease;
   }
 
-  .closing-app-icon::before {
-    content: '';
+  .closing-app-icon-wrap:hover .icon-squircle-base {
+    box-shadow: 
+      0 24px 48px rgba(0, 0, 0, 0.5),
+      0 6px 16px rgba(0, 0, 0, 0.32),
+      inset 0 1px 1px rgba(255, 255, 255, 0.22);
+  }
+
+  /* Stack of paper sheets inside squircle */
+  .icon-sheets-stack {
+    position: relative;
+    width: 48px;
+    height: 66px;
+  }
+
+  /* Paper sheet shared styling */
+  .icon-sheet {
     position: absolute;
-    inset: -6px;
-    border-radius: 28px;
-    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
-    opacity: 0.3;
-    filter: blur(14px);
-    z-index: -1;
-    animation: iconGlowPulse 4s ease-in-out infinite;
+    inset: 0;
+    border-radius: 4px;
+    transform-origin: 50% 88%;
+    transition: transform 0.8s cubic-bezier(0.18, 1.4, 0.32, 1);
+    will-change: transform;
   }
 
-  .closing-app-icon:hover {
-    transform: translateY(-8px) scale(1.08) rotate(-1.5deg);
+  /* Sheet 3: Back Sheet (tilted right) */
+  .sheet-back {
+    background: #eae7df;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transform: rotate(0deg) translate(0, 0);
+    z-index: 1;
+  }
+
+  /* Sheet 2: Middle Sheet (tilted slight right) */
+  .sheet-mid {
+    background: #f5f4ef;
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.22);
+    transform: rotate(0deg) translate(0, 0);
+    z-index: 2;
+  }
+
+  /* Sheet 1: Front Sheet with Terracotta F/ Mark (tilted left) */
+  .sheet-front {
+    background: #ffffff;
+    box-shadow: 
+      0 8px 18px rgba(186, 78, 49, 0.28),
+      0 3px 10px rgba(0, 0, 0, 0.32);
+    transform: rotate(0deg) translate(0, 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+  }
+
+  .front-sheet-mark {
+    display: block;
+    width: 32px;
+    height: 26px;
+  }
+
+  /* When scrolled into viewport: the pages fan out! */
+  .closing-app-icon-wrap.is-in-view .sheet-back {
+    transform: rotate(8.5deg) translate(5px, 2px);
+  }
+
+  .closing-app-icon-wrap.is-in-view .sheet-mid {
+    transform: rotate(3deg) translate(2px, 1px);
+  }
+
+  .closing-app-icon-wrap.is-in-view .sheet-front {
+    transform: rotate(-6.5deg) translate(-2.5px, -1.5px);
+    animation: frontSheetBreathe 4s ease-in-out infinite 0.8s;
+  }
+
+  /* Interactive hover: pages fan out even wider */
+  .closing-app-icon-wrap:hover .sheet-back {
+    transform: rotate(14deg) translate(8px, 3px);
+  }
+
+  .closing-app-icon-wrap:hover .sheet-mid {
+    transform: rotate(5.5deg) translate(3px, 1.5px);
+  }
+
+  .closing-app-icon-wrap:hover .sheet-front {
+    transform: rotate(-10deg) translate(-5px, -3px) scale(1.04);
     animation-play-state: paused;
   }
 
-  .closing-icon-img {
-    display: block;
-    width: 76px;
-    height: 76px;
-    border-radius: 18px;
-    filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.22));
-    transition: filter 0.3s ease;
-  }
-
-  .closing-app-icon:hover .closing-icon-img {
-    filter: drop-shadow(0 20px 36px rgba(0, 0, 0, 0.32));
-  }
-
-  @keyframes floatAppIcon {
+  /* Subtle breathing float on front sheet */
+  @keyframes frontSheetBreathe {
     0%, 100% {
-      transform: translateY(0px) rotate(0deg);
+      transform: rotate(-6.5deg) translate(-2.5px, -1.5px);
     }
     50% {
-      transform: translateY(-10px) rotate(1.2deg);
-    }
-  }
-
-  @keyframes iconGlowPulse {
-    0%, 100% {
-      opacity: 0.2;
-      transform: scale(0.95);
-    }
-    50% {
-      opacity: 0.5;
-      transform: scale(1.1);
+      transform: rotate(-5deg) translate(-2.5px, -4px);
     }
   }
 
