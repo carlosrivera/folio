@@ -237,6 +237,15 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '')
     color-scheme: dark;
   }
 
+  html[data-theme="voltage"],
+  html[data-theme="editorial"],
+  html[data-theme="slate"],
+  html[data-theme="contrast"],
+  html[data-theme="graphite"],
+  html[data-theme="nocturne"] {
+    --healthy: #34d399;
+  }
+
   html, body {
     transition: background-color 0.4s ease, color 0.4s ease;
   }
