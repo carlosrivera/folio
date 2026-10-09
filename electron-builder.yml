@@ -1,0 +1,48 @@
+appId: im.carlosrivera.folio
+productName: Folio
+copyright: Copyright © 2026 Carlos Rivera
+
+directories:
+  output: dist-packaged
+  buildResources: build
+
+files:
+  - dist/**
+  - dist-electron/**
+  - package.json
+
+publish:
+  provider: github
+  owner: carlosrivera
+  repo: folio
+  releaseType: release
+
+mac:
+  category: public.app-category.productivity
+  icon: build/icon.icns
+  electronLanguages:
+    - en
+    - es
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+    - target: zip
+      arch:
+        - arm64
+        - x64
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+
+dmg:
+  sign: false
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications

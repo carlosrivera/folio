@@ -1,0 +1,10 @@
+packages:
+  - '.'
+  - 'landing'
+
+allowBuilds:
+  core-js: false
+  electron: true
+  electron-winstaller: false
+  es5-ext: false
+  esbuild: true

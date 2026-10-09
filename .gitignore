@@ -1,0 +1,12 @@
+node_modules
+dist
+dist-electron
+dist-packaged
+landing/dist
+.astro
+.DS_Store
+*.log
+*.tsbuildinfo
+tests/render/__output__
+test.js
+test-*.js

@@ -1,0 +1,90 @@
+{
+  "pageCount": 3,
+  "diagramErrors": 0,
+  "palette": {
+    "coverBackground": "rgb(74, 29, 92)",
+    "coverTitle": "rgb(255, 250, 241)",
+    "coverTitleFont": "Barlow, Inter, sans-serif",
+    "coverTitleWeight": "400",
+    "coverKicker": "rgb(221, 121, 90)",
+    "coverKickerFont": "-apple-system, \"system-ui\", \"Helvetica Neue\", sans-serif",
+    "coverClient": "rgb(199, 210, 205)",
+    "coverRule": "rgba(218, 230, 225, 0.28)",
+    "coverDt": "rgb(143, 165, 157)",
+    "coverDd": "rgb(238, 242, 238)",
+    "coverRingBorder": "rgba(229, 108, 71, 0.34)",
+    "bodyText": "rgb(43, 36, 48)",
+    "bodyFont": "-apple-system, \"system-ui\", \"Helvetica Neue\", sans-serif",
+    "kicker": null,
+    "heading": "rgb(123, 45, 143)",
+    "headingFont": "Barlow, Inter, sans-serif",
+    "headingWeight": "600",
+    "subheading": null,
+    "subheadingFont": null,
+    "subheadingTransform": null,
+    "quoteBorder": "rgb(223, 107, 72)",
+    "quoteBackground": "rgb(237, 242, 239)",
+    "quoteText": "rgb(33, 65, 58)",
+    "quoteFont": "Georgia, \"Times New Roman\", serif",
+    "tableHeadBorder": "rgb(38, 65, 59)",
+    "tableHeadText": "rgb(38, 65, 59)",
+    "tableHeadFont": "-apple-system, \"system-ui\", \"Helvetica Neue\", sans-serif",
+    "tableBorder": "rgb(216, 215, 208)",
+    "link": "rgb(138, 63, 160)",
+    "figureBorder": null,
+    "figureBackground": null,
+    "figureRadius": null,
+    "runningChrome": "rgb(140, 137, 128)",
+    "tocHeading": "rgb(123, 45, 143)"
+  },
+  "pages": [
+    {
+      "index": 1,
+      "classes": [
+        "folio-cover-sheet",
+        "pagedjs_cover_first_page",
+        "pagedjs_cover_page",
+        "pagedjs_first_page",
+        "pagedjs_named_page",
+        "pagedjs_right_page",
+        "theme-editorial"
+      ],
+      "orientation": "portrait",
+      "header": null,
+      "footer": null,
+      "outline": [
+        "h1 Template Override Fixture"
+      ]
+    },
+    {
+      "index": 2,
+      "classes": [
+        "folio-toc-sheet",
+        "pagedjs_left_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-002",
+      "footer": "Fixture CoPágina 2 de 3",
+      "outline": [
+        "h2 Índice de Contenido"
+      ]
+    },
+    {
+      "index": 3,
+      "classes": [
+        "pagedjs_right_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-002",
+      "footer": "Fixture CoPágina 3 de 3",
+      "outline": [
+        "h2 01 — Sección con Overrides",
+        "blockquote Cita para verificar que los tokens no sobrescrit",
+        "table"
+      ]
+    }
+  ],
+  "index": [
+    "01 — Sección con Overrides → #section-01-seccion-con-overrides"
+  ]
+}

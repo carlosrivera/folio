@@ -1,0 +1,202 @@
+{
+  "pageCount": 11,
+  "diagramErrors": 1,
+  "palette": {
+    "coverBackground": "rgb(0, 0, 0)",
+    "coverTitle": "rgb(255, 255, 255)",
+    "coverTitleFont": "\"Space Grotesk\", Inter, sans-serif",
+    "coverTitleWeight": "700",
+    "coverKicker": "rgb(212, 255, 43)",
+    "coverKickerFont": "\"JetBrains Mono\", Menlo, monospace",
+    "coverClient": "rgb(148, 148, 148)",
+    "coverRule": "rgba(255, 255, 255, 0.15)",
+    "coverDt": "rgb(148, 148, 148)",
+    "coverDd": "rgb(255, 255, 255)",
+    "coverRingBorder": "rgba(212, 255, 43, 0.3)",
+    "bodyText": "rgb(17, 17, 17)",
+    "bodyFont": "Inter, -apple-system, sans-serif",
+    "kicker": "rgb(0, 0, 0)",
+    "heading": "rgb(0, 0, 0)",
+    "headingFont": "\"Space Grotesk\", Inter, sans-serif",
+    "headingWeight": "700",
+    "subheading": "rgb(51, 51, 51)",
+    "subheadingFont": "\"JetBrains Mono\", monospace",
+    "subheadingTransform": "uppercase",
+    "quoteBorder": "rgb(212, 255, 43)",
+    "quoteBackground": "rgb(244, 247, 234)",
+    "quoteText": "rgb(0, 0, 0)",
+    "quoteFont": "Inter, sans-serif",
+    "tableHeadBorder": "rgb(0, 0, 0)",
+    "tableHeadText": "rgb(0, 0, 0)",
+    "tableHeadFont": "\"JetBrains Mono\", monospace",
+    "tableBorder": "rgb(216, 215, 208)",
+    "link": "rgb(72, 97, 0)",
+    "figureBorder": "rgb(212, 212, 212)",
+    "figureBackground": "rgb(250, 250, 250)",
+    "figureRadius": "7.55906px",
+    "runningChrome": "rgb(140, 137, 128)",
+    "tocHeading": "rgb(0, 0, 0)"
+  },
+  "pages": [
+    {
+      "index": 1,
+      "classes": [
+        "folio-cover-sheet",
+        "pagedjs_cover_first_page",
+        "pagedjs_cover_page",
+        "pagedjs_first_page",
+        "pagedjs_named_page",
+        "pagedjs_right_page",
+        "theme-voltage"
+      ],
+      "orientation": "portrait",
+      "header": null,
+      "footer": null,
+      "outline": [
+        "h1 Kitchen Sink Regression Fixture"
+      ]
+    },
+    {
+      "index": 2,
+      "classes": [
+        "folio-toc-sheet",
+        "pagedjs_left_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 2 de 11",
+      "outline": [
+        "h2 Índice de Contenido"
+      ]
+    },
+    {
+      "index": 3,
+      "classes": [
+        "pagedjs_right_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 3 de 11",
+      "outline": [
+        "h1 Portada del Cuerpo",
+        "blockquote Cita destacada: este bloque verifica el estilo d"
+      ]
+    },
+    {
+      "index": 4,
+      "classes": [
+        "pagedjs_left_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 4 de 11",
+      "outline": [
+        "h2 01 — Encabezado que Inicia con Dígitos"
+      ]
+    },
+    {
+      "index": 5,
+      "classes": [
+        "pagedjs_right_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 5 de 11",
+      "outline": [
+        "h2 02 — Saltos y Tablas",
+        "table"
+      ]
+    },
+    {
+      "index": 6,
+      "classes": [
+        "pagedjs_left_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 6 de 11",
+      "outline": [
+        "h2 03 — Diagrama Alto"
+      ]
+    },
+    {
+      "index": 7,
+      "classes": [
+        "pagedjs_right_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 7 de 11",
+      "outline": [
+        "figure.mermaid-figure"
+      ]
+    },
+    {
+      "index": 8,
+      "classes": [
+        "pagedjs_left_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 8 de 11",
+      "outline": [
+        "h2 04 — Diagrama Corto",
+        "figure.mermaid-figure"
+      ]
+    },
+    {
+      "index": 9,
+      "classes": [
+        "pagedjs_landscape_first_page",
+        "pagedjs_landscape_page",
+        "pagedjs_named_page",
+        "pagedjs_right_page"
+      ],
+      "orientation": "landscape",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 9 de 11",
+      "outline": [
+        "h3 Sección Apaisada",
+        "figure.mermaid-figure"
+      ]
+    },
+    {
+      "index": 10,
+      "classes": [
+        "pagedjs_left_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 10 de 11",
+      "outline": [
+        "h2 05 — Diagrama Inválido",
+        "figure.mermaid-figure",
+        "h2 06 — Bloque de Código",
+        "pre const total = items.reduce((sum, item) => sum + ",
+        "h2 07 — Cierre",
+        "h3 Subsección de Tercer Nivel"
+      ]
+    },
+    {
+      "index": 11,
+      "classes": [
+        "pagedjs_right_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 11 de 11",
+      "outline": []
+    }
+  ],
+  "index": [
+    "01 — Encabezado que Inicia con Dígitos → #section-01-encabezado-que-inicia-con-digitos",
+    "02 — Saltos y Tablas → #section-02-saltos-y-tablas",
+    "03 — Diagrama Alto → #section-03-diagrama-alto",
+    "04 — Diagrama Corto → #section-04-diagrama-corto",
+    "Sección Apaisada → #seccion-apaisada",
+    "05 — Diagrama Inválido → #section-05-diagrama-invalido",
+    "06 — Bloque de Código → #section-06-bloque-de-codigo",
+    "07 — Cierre → #section-07-cierre",
+    "Subsección de Tercer Nivel → #subseccion-de-tercer-nivel"
+  ]
+}

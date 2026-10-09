@@ -1,0 +1,1993 @@
+---
+import Layout from '../layouts/Layout.astro'
+import katex from 'katex'
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+const githubRepo = 'https://github.com/carlosrivera/folio'
+const downloadUrl = `${githubRepo}/releases/latest`
+
+// Pre-render KaTeX equations for the preview document at build time
+const eqLyapunov = katex.renderToString('V(x) = \\frac{1}{2} x^T P x + \\int_0^t \\gamma \\|u(\\tau)\\|^2 d\\tau', { displayMode: true, throwOnError: false })
+const eqRiccati = katex.renderToString('A^T P + P A - P B R^{-1} B^T P + Q = 0', { displayMode: true, throwOnError: false })
+const inlineP = katex.renderToString('P \\succ 0', { displayMode: false })
+const inlineOmega = katex.renderToString('\\Omega \\subset \\mathbb{R}^n', { displayMode: false })
+
+// Pre-render KaTeX showcase equation
+const eqShowcase = katex.renderToString('\\mathcal{L}_{\\text{total}}(\\theta) = \\mathbb{E}_{x \\sim p_{\\text{data}}}\\left[ -\\log p_\\theta(x) \\right] + \\beta \\cdot D_{\\text{KL}}\\left( q_\\phi(z|x) \\,\\parallel\\, p(z) \\right)', { displayMode: true, throwOnError: false })
+
+const themes = [
+  { id: 'voltage', name: 'Voltage', swatch: '#d4ff2b', bg: '#000000', fonts: 'Space Grotesk · JetBrains Mono', desc: 'Pure pitch black, acid lime accents, sharp monospace details.' },
+  { id: 'editorial', name: 'Editorial', swatch: '#e56c47', bg: '#172d29', fonts: 'Georgia Serif · Humanist Body', desc: 'Deep British racing green cover, terracotta rules, classical serif type.' },
+  { id: 'slate', name: 'Slate', swatch: '#38bdf8', bg: '#0f172a', fonts: 'Inter · Executive Sans', desc: 'Midnight slate navy, electric sky blue accents, corporate engineering.' },
+  { id: 'scientific', name: 'Scientific', swatch: '#47657a', bg: '#ffffff', fonts: 'Computer Modern · Academic Serif', desc: 'Paper white, formal steel navy, numbered sections, spacious equations.' },
+  { id: 'contrast', name: 'Contrast', swatch: '#ffffff', bg: '#000000', fonts: 'Inter Display · Stark Mono', desc: 'Brutalist monochrome black & white, heavy rules, zero fluff.' },
+  { id: 'graphite', name: 'Graphite', swatch: '#a3e635', bg: '#101113', fonts: 'Barlow · Swiss Grid', desc: 'Graphite charcoal, technical lime accents, engineer\'s drafting aesthetic.' },
+  { id: 'nocturne', name: 'Nocturne', swatch: '#ff79c6', bg: '#282a36', fonts: 'Space Grotesk · Cyber Mono', desc: 'Deep plum cover, cyberpunk violet & neon pink accents.' },
+]
+---
+
+<Layout>
+  <!-- Navigation -->
+  <header class="nav-wrap">
+    <div class="container nav-inner">
+      <a href={`${base}/`} class="brand" aria-label="Folio home">
+        <span class="brand-badge">F/</span>
+        <span class="brand-text">folio.</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#themes">Themes</a>
+        <a href="#latex">LaTeX Math</a>
+        <a href="#engine">Print Engine</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href={githubRepo} target="_blank" rel="noopener noreferrer" class="icon-link" aria-label="GitHub Repository">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+        </a>
+        <a href={downloadUrl} class="btn-pill">Download →</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container hero-content">
+        <p class="eyebrow">macOS Native Markdown Publisher</p>
+        <h1>Plain Markdown.<br>Boardroom-ready pages.</h1>
+        <p class="hero-lede">
+          Folio turns plain text Markdown into print-shop quality PDFs with real-time A4 pagination, cover sheets, LaTeX math, and zero cloud lock-in. Built for documents destined for paper.
+        </p>
+
+        <div class="hero-cta-wrap">
+          <a href={downloadUrl} class="cta-pill">
+            <span>Download for macOS</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14"></path>
+              <path d="m12 5 7 7-7 7"></path>
+            </svg>
+          </a>
+          <p class="cta-meta">Universal DMG · Apple Silicon & Intel · macOS 12+</p>
+        </div>
+      </div>
+
+      <!-- App Window Mockup: Desktop layout, fixed proportions, never squashed -->
+      <div class="container window-container">
+        <div class="app-window" id="app-window">
+          <!-- macOS Native Titlebar -->
+          <div class="app-titlebar">
+            <div class="titlebar-left">
+              <div class="traffic-lights" aria-hidden="true">
+                <span class="tl-close"></span>
+                <span class="tl-min"></span>
+                <span class="tl-max"></span>
+              </div>
+              <div class="app-brand-mark">
+                <span class="app-icon-squircle">F/</span>
+                <span class="app-window-name">Folio</span>
+              </div>
+              <div class="doc-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                <span>specification.md</span>
+              </div>
+            </div>
+
+            <!-- Toolbar Pills -->
+            <div class="titlebar-center">
+              <div class="pill-select" title="Document Layout">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
+                <span>Spec</span>
+                <span class="arrow">⌵</span>
+              </div>
+              
+              <!-- Dynamic Theme Selector Pill -->
+              <div class="pill-select is-theme" id="app-theme-pill" title="Theme Selector">
+                <span class="swatch-square" id="app-theme-swatch" style="background: #d4ff2b;"></span>
+                <span id="app-theme-name">Voltage</span>
+                <span class="arrow">⌵</span>
+              </div>
+
+              <div class="pill-select" title="Language">
+                <span>EN</span>
+                <span class="arrow">⌵</span>
+              </div>
+            </div>
+
+            <div class="titlebar-right">
+              <div class="theme-icon-toggle">
+                <span>🖥</span><span>☼</span><span>☾</span>
+              </div>
+              <button class="win-btn win-btn-subtle">+ New</button>
+              <button class="win-btn win-btn-subtle">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                Open
+              </button>
+              <button class="win-btn win-btn-subtle">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                Save
+              </button>
+              <button class="win-btn win-btn-export">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Export PDF
+              </button>
+            </div>
+          </div>
+
+          <!-- Subtoolbars Row -->
+          <div class="app-subbars">
+            <div class="editor-subbar">
+              <div class="subbar-left-group">
+                <div class="subbar-label">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+                  <span>Markdown</span>
+                </div>
+                <div class="editor-formatting-tools">
+                  <span>H2</span>
+                  <span>B</span>
+                  <span>I</span>
+                  <span>Link</span>
+                  <span>List</span>
+                  <span>Quote</span>
+                  <span>Code</span>
+                  <span>Table</span>
+                </div>
+              </div>
+              <div class="editor-tools-right">
+                <span class="active-badge">123</span>
+                <span>Fold</span>
+                <span class="badge-issues">✓ No issues</span>
+              </div>
+            </div>
+
+            <div class="preview-subbar">
+              <div class="subbar-label">
+                <span>Preview</span>
+              </div>
+              <div class="preview-page-controls">
+                <button class="pg-arrow" id="btn-prev-page" title="Previous page">‹</button>
+                <span class="pg-status" id="pg-status-num">2 / 4</span>
+                <button class="pg-arrow" id="btn-next-page" title="Next page">›</button>
+                <div class="page-view-tabs">
+                  <button class="view-tab" id="tab-cover-view">Cover</button>
+                  <button class="view-tab is-active" id="tab-body-view">Page 2: Math & Spec</button>
+                </div>
+              </div>
+              <div class="preview-status-right">
+                <span class="zoom-level">100%</span>
+                <span class="preview-meta" id="preview-meta-badge">Voltage</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main App Split: CodeMirror Editor (Left) & Rendered Document Sheet (Right) -->
+          <div class="app-body">
+            <!-- Left: CodeMirror Editor -->
+            <div class="editor-pane">
+              <div class="cm-gutter">
+                <div class="cm-line-numbers">
+                  <div>1</div><div>2</div><div>3</div><div>4</div><div>5</div>
+                  <div>6</div><div>7</div><div>8</div><div>9</div><div>10</div>
+                  <div>11</div><div>12</div><div>13</div><div>14</div><div>15</div>
+                  <div>16</div><div>17</div><div>18</div><div>19</div><div>20</div>
+                  <div>21</div><div>22</div><div>23</div><div>24</div><div>25</div>
+                  <div>26</div>
+                </div>
+              </div>
+              <div class="cm-content">
+                <div class="cm-line"><span class="tok-hr">---</span></div>
+                <div class="cm-line"><span class="tok-prop">layout</span>: <span class="tok-string">document</span></div>
+                <div class="cm-line"><span class="tok-prop">theme</span>: <span class="tok-string" id="cm-theme-code">voltage</span></div>
+                <div class="cm-line"><span class="tok-prop">title</span>: <span class="tok-string">Autonomous Systems Specification</span></div>
+                <div class="cm-line"><span class="tok-prop">client</span>: <span class="tok-string">Apex Robotics Lab</span></div>
+                <div class="cm-line"><span class="tok-prop">document-id</span>: <span class="tok-string">SPEC-2026-09</span></div>
+                <div class="cm-line"><span class="tok-prop">lang</span>: <span class="tok-string">en</span></div>
+                <div class="cm-line"><span class="tok-hr">---</span></div>
+                <div class="cm-line">&nbsp;</div>
+                <div class="cm-line"><span class="tok-h2">## 2. Deterministic State Estimation</span></div>
+                <div class="cm-line">&nbsp;</div>
+                <div class="cm-line"><span class="tok-text">Core control loop executes deterministic state estimation over 200 Hz boundary:</span></div>
+                <div class="cm-line">&nbsp;</div>
+                <div class="cm-line"><span class="tok-math">$$V(x) = \frac&#123;1&#125;&#123;2&#125; x^T P x + \int_0^t \gamma \|u(\tau)\|^2 d\tau$$</span></div>
+                <div class="cm-line">&nbsp;</div>
+                <div class="cm-line"><span class="tok-text">Where </span><span class="tok-math">$P \succ 0$</span><span class="tok-text"> satisfies continuous-time Riccati bounds:</span></div>
+                <div class="cm-line">&nbsp;</div>
+                <div class="cm-line"><span class="tok-math">$$A^T P + P A - P B R^&#123;-1&#125; B^T P + Q = 0$$</span></div>
+                <div class="cm-line">&nbsp;</div>
+                <div class="cm-line"><span class="tok-quote">&gt; "Deterministic convergence guaranteed within 14 ms for perturbations."</span></div>
+                <div class="cm-line">&nbsp;</div>
+                <div class="cm-line"><span class="tok-h3">### Milestone Deliverables</span></div>
+                <div class="cm-line">&nbsp;</div>
+                <div class="cm-line"><span class="tok-table">| Module | Latency | Determinism | SLA |</span></div>
+                <div class="cm-line"><span class="tok-table">| :--- | ---: | :--- | ---: |</span></div>
+                <div class="cm-line"><span class="tok-table">| EKF Estimator | &lt; 2.4 ms | Hard Real-Time | 99.99% |</span></div>
+              </div>
+              <div class="editor-bottom-bar">
+                <span class="tab is-active">Issues (0)</span>
+                <span class="tab">Changes</span>
+                <span class="tab">Template</span>
+                <span class="editor-meta">UTF-8 · LF · Markdown</span>
+              </div>
+            </div>
+
+            <!-- Right: Rendered Document Sheet (True Print A4 Physics) -->
+            <div class="preview-stage" id="preview-stage">
+              <!-- PAGE 2 VIEW: CONTENT SHEET WITH LATEX MATH & DELIVERABLES -->
+              <div class="doc-page-sheet theme-voltage" id="active-body-page">
+                <!-- Running Header -->
+                <div class="sheet-running-header">
+                  <span class="hdr-left">FOLIO / APEX ROBOTICS</span>
+                  <span class="hdr-center">§ 2.4 STATE ESTIMATION & BOUNDS</span>
+                  <span class="hdr-right">SPEC-2026-09</span>
+                </div>
+
+                <div class="sheet-body-content">
+                  <h2 class="sheet-h2">2. Deterministic State Estimation</h2>
+                  <p class="sheet-lead">
+                    The core trajectory planner executes deterministic state estimation over a 200 Hz boundary. System stability is proven through the Lyapunov function <span class="sheet-math-inline" set:html={inlineP} />:
+                  </p>
+
+                  <!-- Real LaTeX Display Equation 1 -->
+                  <div class="sheet-equation-card">
+                    <div class="sheet-equation-math" set:html={eqLyapunov} />
+                    <span class="sheet-eq-num">(2.1)</span>
+                  </div>
+
+                  <p class="sheet-p">
+                    Where the algebraic Riccati matrix satisfies positive definiteness for all disturbances bounded by <span class="sheet-math-inline" set:html={inlineOmega} />:
+                  </p>
+
+                  <!-- Real LaTeX Display Equation 2 -->
+                  <div class="sheet-equation-card">
+                    <div class="sheet-equation-math" set:html={eqRiccati} />
+                    <span class="sheet-eq-num">(2.2)</span>
+                  </div>
+
+                  <!-- Themed Blockquote -->
+                  <blockquote class="sheet-blockquote">
+                    <p>"Deterministic convergence is mathematically guaranteed within 14 ms for all initial state perturbations bounded by the stability envelope."</p>
+                  </blockquote>
+
+                  <!-- Milestone Deliverables Table -->
+                  <div class="sheet-table-section">
+                    <div class="sheet-table-kicker">// MILESTONE DELIVERABLES & LATENCY BUDGET</div>
+                    <table class="sheet-table">
+                      <thead>
+                        <tr>
+                          <th>Module</th>
+                          <th>Latency</th>
+                          <th>Determinism</th>
+                          <th>Target SLA</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><strong>State Estimator</strong></td>
+                          <td>&lt; 2.4 ms</td>
+                          <td>Hard Real-Time</td>
+                          <td>99.99%</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Trajectory QP</strong></td>
+                          <td>&lt; 8.1 ms</td>
+                          <td>Bounded Loop</td>
+                          <td>99.95%</td>
+                        </tr>
+                        <tr>
+                          <td><strong>CAN Bus Link</strong></td>
+                          <td>&lt; 0.8 ms</td>
+                          <td>Deterministic</td>
+                          <td>99.99%</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Running Footer -->
+                <div class="sheet-running-footer">
+                  <span class="ftr-left">Confidential · Apex Robotics Lab</span>
+                  <span class="ftr-right">Page 2 of 4</span>
+                </div>
+              </div>
+
+              <!-- PAGE 1 VIEW: THEMED COVER SHEET (TOGGLEABLE) -->
+              <div class="doc-cover-sheet theme-voltage" id="active-cover-page" style="display: none;">
+                <div class="cover-kicker-line">TECHNICAL SPECIFICATION · SPEC-2026-09</div>
+                <h1 class="cover-title">Autonomous Systems Specification</h1>
+                <p class="cover-client-line">Prepared for Apex Robotics Lab · Autonomous Fleet Division</p>
+                <div class="cover-rule-divider"></div>
+                
+                <div class="cover-grid-details">
+                  <div class="cov-col">
+                    <span class="cov-lbl">Prepared For</span>
+                    <strong class="cov-val">Apex Robotics Lab</strong>
+                  </div>
+                  <div class="cov-col">
+                    <span class="cov-lbl">Prepared By</span>
+                    <strong class="cov-val">Folio Engineering</strong>
+                  </div>
+                  <div class="cov-col">
+                    <span class="cov-lbl">Issued</span>
+                    <strong class="cov-val">October 2026</strong>
+                  </div>
+                  <div class="cov-col">
+                    <span class="cov-lbl">Valid Until</span>
+                    <strong class="cov-val">Q4 2027</strong>
+                  </div>
+                </div>
+
+                <!-- Geometric Accent Art -->
+                <div class="cover-accent-rings">
+                  <span class="ring-1"></span>
+                  <span class="ring-2"></span>
+                  <span class="ring-3"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Theme Showcase: 7 Curated Themes -->
+    <section class="section themes-section" id="themes">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Typography & Print Palettes</p>
+          <h2 class="section-title">Seven curated themes. Zero styling fatigue.</h2>
+          <p class="section-desc">
+            Add <code>theme: voltage</code> or <code>theme: editorial</code> to your frontmatter. Every theme brings calibrated display typography, line heights, running headers, table rules, and print palettes. Click any theme to transform the document above:
+          </p>
+        </div>
+
+        <div class="theme-grid">
+          {themes.map((t, idx) => (
+            <button 
+              type="button" 
+              class={`theme-card ${idx === 0 ? 'is-active' : ''}`} 
+              data-theme-id={t.id}
+              data-theme-name={t.name}
+              data-theme-swatch={t.swatch}
+              data-theme-bg={t.bg}
+            >
+              <div class="theme-card-head">
+                <span class="theme-swatch-chip" style={`background: ${t.swatch}; border-color: ${t.id === 'contrast' || t.id === 'scientific' ? '#ccc' : 'transparent'};`}></span>
+                <strong class="theme-name">{t.name}</strong>
+                <span class="theme-check-radio">✓</span>
+              </div>
+              <div class="theme-fonts">{t.fonts}</div>
+              <p class="theme-desc">{t.desc}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- LaTeX Math Section: Real Typesetting -->
+    <section class="section latex-section" id="latex">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Mathematical Rigor</p>
+          <h2 class="section-title">Native LaTeX Math. Typeset to vector glyphs.</h2>
+          <p class="section-desc">
+            Write standard KaTeX equations directly in Markdown. Folio compiles equations into scalable vector paths in the final PDF — razor-sharp at any zoom level, never pixelated raster images.
+          </p>
+        </div>
+
+        <div class="latex-showcase-box">
+          <div class="latex-pane-code">
+            <div class="pane-tag">Plain Markdown Syntax</div>
+            <pre><code>$$
+\mathcal&#123;L&#125;_&#123;\text&#123;total&#125;&#125;(\theta) = \mathbb&#123;E&#125;_&#123;x \sim p_&#123;\text&#123;data&#125;&#125;&#125;\left[ -\log p_\theta(x) \right] + \beta \cdot D_&#123;\text&#123;KL&#125;&#125;\left( q_\phi(z|x) \,\parallel\, p(z) \right)
+$$</code></pre>
+          </div>
+          <div class="latex-pane-render">
+            <div class="pane-tag">Vector Typeset PDF Output</div>
+            <div class="latex-rendered-math">
+              <div class="math-content" set:html={eqShowcase} />
+              <span class="eq-badge">(3.2)</span>
+            </div>
+            <div class="latex-render-meta">
+              <span>✓ Scalable vector glyphs</span>
+              <span>✓ MathML accessible</span>
+              <span>✓ Millimeter print alignment</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Print Engine Details -->
+    <section class="section engine-section" id="engine">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">W3C Paged Media Engine</p>
+          <h2 class="section-title">Physical pages, not infinite scrolls.</h2>
+          <p class="section-desc">
+            Browsers format for endless vertical screens. When you hit Print, headings get severed across page seams, page numbers vanish, and tables break mid-row. Folio uses Paged.js to enforce real physical page boundaries before export.
+          </p>
+        </div>
+
+        <div class="engine-grid">
+          <div class="engine-card">
+            <div class="card-num">01</div>
+            <h3>W3C Margin Boxes</h3>
+            <p>
+              Standard <code>@top-left</code>, <code>@bottom-right</code>, and running page counters (<code>counter(page)</code> of <code>counter(pages)</code>). Keep client titles and confidentiality markings strictly on the page edge.
+            </p>
+          </div>
+
+          <div class="engine-card">
+            <div class="card-num">02</div>
+            <h3>Widow & Orphan Suppression</h3>
+            <p>
+              Strict break heuristics. Headings never sit alone at the bottom of a page, table rows avoid mid-cell cuts, and equations remain intact with their introducing text.
+            </p>
+          </div>
+
+          <div class="engine-card">
+            <div class="card-num">03</div>
+            <h3>Chromium Vector PDF Pipeline</h3>
+            <p>
+              Direct print dispatch through headless Chromium. Text remains crisp and selectable, vector charts and equations scale infinitely, and internal links function seamlessly.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Native FAQ Section -->
+    <section class="section faq-section" id="faq">
+      <div class="container faq-container">
+        <div class="section-head">
+          <p class="eyebrow">Common Questions</p>
+          <h2 class="section-title">Frequently asked questions.</h2>
+        </div>
+
+        <div class="faq-list">
+          <details class="faq-item">
+            <summary class="faq-summary">
+              <span>How does Folio paginate documents differently from browsers?</span>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-body">
+              Standard web browsers only paginate when opening the print dialog. Folio paginates continuously in real time using the W3C Paged Media polyfill. You see exact page breaks, running headers, and margin boxes live as you type.
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-summary">
+              <span>Does Folio require an internet connection or send my documents anywhere?</span>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-body">
+              Never. Folio is a 100% offline macOS desktop application. Your documents, markdown files, and generated PDFs remain exclusively on your local disk. No telemetry, no cloud accounts, and zero subscriptions.
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-summary">
+              <span>Can I customize the themes or override CSS variables?</span>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-body">
+              Yes. You can override any theme variable directly in your document frontmatter (such as <code>--cover-bg</code>, <code>--heading</code>, or <code>--quote-border</code>), or edit template files to match your organization's exact brand standards.
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-summary">
+              <span>How are mathematical formulas compiled into the PDF?</span>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-body">
+              Folio uses KaTeX to parse LaTeX equations into clean HTML and MathML vector structures. When exported via Chromium's print pipeline, the math glyphs become true vector shapes inside the PDF, ensuring crisp printing at 1200+ DPI.
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- Closing CTA -->
+    <section class="closing-section">
+      <div class="container closing-inner">
+        <h2 class="closing-title">Write in Markdown.<br>Publish for the boardroom.</h2>
+        <p class="closing-lede">Download Folio for macOS. Free, open source, and built for local-first craftsmanship.</p>
+        <div class="closing-cta">
+          <a href={downloadUrl} class="cta-pill">Download for macOS →</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Clean, Minimal Footer (No Carlos Rivera link) -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-left">
+        <a href={`${base}/`} class="footer-brand">
+          <span class="brand-badge">F/</span>
+          <span class="brand-text">folio.</span>
+        </a>
+        <p class="footer-copy">Native macOS Markdown publisher. Built for documents destined for paper.</p>
+      </div>
+
+      <div class="footer-right">
+        <a href={githubRepo} target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://github.com/carlosrivera/folio/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
+        <a href="#themes">Themes</a>
+        <a href="#latex">LaTeX</a>
+      </div>
+    </div>
+  </footer>
+</Layout>
+
+<script>
+  // Interactive Theme Switching Logic
+  const themeCards = document.querySelectorAll<HTMLButtonElement>('.theme-card')
+  const cmThemeCode = document.getElementById('cm-theme-code')
+  const appThemeName = document.getElementById('app-theme-name')
+  const appThemeSwatch = document.getElementById('app-theme-swatch')
+  const activeBodyPage = document.getElementById('active-body-page')
+  const activeCoverPage = document.getElementById('active-cover-page')
+  const previewMetaBadge = document.getElementById('preview-meta-badge')
+
+  // Page View Switching Logic (Cover vs Body Page)
+  const tabCoverView = document.getElementById('tab-cover-view')
+  const tabBodyView = document.getElementById('tab-body-view')
+  const btnPrevPage = document.getElementById('btn-prev-page')
+  const btnNextPage = document.getElementById('btn-next-page')
+  const pgStatusNum = document.getElementById('pg-status-num')
+
+  let currentTheme = 'voltage'
+  let currentThemeName = 'Voltage'
+  let currentThemeSwatch = '#d4ff2b'
+  let currentPage = 2 // 1 = Cover, 2 = Body/Spec
+
+  function updateView(page: number) {
+    currentPage = page
+    if (page === 1) {
+      if (activeCoverPage) activeCoverPage.style.display = 'flex'
+      if (activeBodyPage) activeBodyPage.style.display = 'none'
+      if (tabCoverView) tabCoverView.classList.add('is-active')
+      if (tabBodyView) tabBodyView.classList.remove('is-active')
+      if (pgStatusNum) pgStatusNum.textContent = '1 / 4'
+      if (previewMetaBadge) previewMetaBadge.textContent = `SPEC · ${currentThemeName} · Cover`
+    } else {
+      if (activeCoverPage) activeCoverPage.style.display = 'none'
+      if (activeBodyPage) activeBodyPage.style.display = 'flex'
+      if (tabCoverView) tabCoverView.classList.remove('is-active')
+      if (tabBodyView) tabBodyView.classList.add('is-active')
+      if (pgStatusNum) pgStatusNum.textContent = '2 / 4'
+      if (previewMetaBadge) previewMetaBadge.textContent = `SPEC · ${currentThemeName} · Page 2 of 4`
+    }
+  }
+
+  function applyTheme(themeId: string, themeName: string, themeSwatch: string) {
+    currentTheme = themeId
+    currentThemeName = themeName
+    currentThemeSwatch = themeSwatch
+
+    // Update active state on cards
+    themeCards.forEach((c) => {
+      c.classList.toggle('is-active', c.getAttribute('data-theme-id') === themeId)
+    })
+
+    // Update CodeMirror frontmatter token
+    if (cmThemeCode) cmThemeCode.textContent = themeId
+
+    // Update macOS app titlebar pill
+    if (appThemeName) appThemeName.textContent = themeName
+    if (appThemeSwatch) (appThemeSwatch as HTMLElement).style.background = themeSwatch
+
+    // Update preview sheet classes
+    const themeClassPrefix = 'theme-'
+    const allThemeClasses = ['theme-voltage', 'theme-editorial', 'theme-slate', 'theme-scientific', 'theme-contrast', 'theme-graphite', 'theme-nocturne']
+    
+    if (activeBodyPage) {
+      allThemeClasses.forEach((cls) => activeBodyPage.classList.remove(cls))
+      activeBodyPage.classList.add(`theme-${themeId}`)
+    }
+
+    if (activeCoverPage) {
+      allThemeClasses.forEach((cls) => activeCoverPage.classList.remove(cls))
+      activeCoverPage.classList.add(`theme-${themeId}`)
+    }
+
+    updateView(currentPage)
+  }
+
+  themeCards.forEach((card) => {
+    card.addEventListener('click', () => {
+      const id = card.getAttribute('data-theme-id') || 'voltage'
+      const name = card.getAttribute('data-theme-name') || 'Voltage'
+      const swatch = card.getAttribute('data-theme-swatch') || '#d4ff2b'
+      applyTheme(id, name, swatch)
+    })
+  })
+
+  // Page view tabs
+  tabCoverView?.addEventListener('click', () => updateView(1))
+  tabBodyView?.addEventListener('click', () => updateView(2))
+  btnPrevPage?.addEventListener('click', () => updateView(1))
+  btnNextPage?.addEventListener('click', () => updateView(2))
+</script>
+
+<style>
+  /* Navigation */
+  .nav-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(245, 242, 233, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .brand-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 7px;
+    font-size: 0.85rem;
+    font-weight: 800;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--text-2);
+  }
+
+  .nav-links a {
+    transition: color 0.15s ease;
+  }
+
+  .nav-links a:hover {
+    color: var(--text);
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .icon-link {
+    color: var(--text-2);
+    display: flex;
+    align-items: center;
+    transition: color 0.15s ease;
+  }
+
+  .icon-link:hover {
+    color: var(--text);
+  }
+
+  .btn-pill {
+    padding: 7px 16px;
+    background: var(--text);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    transition: transform 0.2s var(--spring), background 0.15s ease;
+  }
+
+  .btn-pill:hover {
+    transform: translateY(-1px);
+    background: #000;
+  }
+
+  /* Hero Section */
+  .hero {
+    padding: 3.5rem 0 4.5rem;
+    text-align: center;
+  }
+
+  .hero-content {
+    max-width: 840px;
+    margin: 0 auto 2.5rem;
+  }
+
+  .eyebrow {
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.8rem;
+  }
+
+  /* Refined, more compact headers fitting in fewer lines */
+  .hero h1 {
+    font-size: clamp(2.1rem, 3.8vw, 3.1rem);
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 1.1rem;
+  }
+
+  .hero-lede {
+    font-size: clamp(1.02rem, 1.6vw, 1.2rem);
+    line-height: 1.55;
+    color: var(--text-2);
+    max-width: 680px;
+    margin: 0 auto 1.8rem;
+  }
+
+  .hero-cta-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .cta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 28px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(210, 92, 58, 0.28);
+    transition: transform 0.2s var(--spring), box-shadow 0.2s ease, background 0.15s ease;
+  }
+
+  .cta-pill:hover {
+    transform: translateY(-2px);
+    background: var(--accent-hover);
+    box-shadow: 0 6px 20px rgba(210, 92, 58, 0.38);
+  }
+
+  .cta-meta {
+    font-size: 0.8rem;
+    color: var(--text-faint);
+  }
+
+  /* Window Container: Desktop-first, fixed desktop proportions */
+  .window-container {
+    max-width: 1140px;
+    margin: 0 auto;
+    overflow-x: auto;
+    padding: 10px 0 20px;
+    scrollbar-width: thin;
+  }
+
+  .app-window {
+    min-width: 980px;
+    background: #141517;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.35);
+    box-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.08),
+      0 12px 36px rgba(0, 0, 0, 0.22),
+      0 28px 64px rgba(0, 0, 0, 0.26);
+    overflow: hidden;
+    color: #e4e4e7;
+    text-align: left;
+  }
+
+  /* Titlebar */
+  .app-titlebar {
+    height: 44px;
+    background: #1e2024;
+    border-bottom: 1px solid #2b2e34;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    user-select: none;
+  }
+
+  .titlebar-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .traffic-lights {
+    display: flex;
+    gap: 7px;
+  }
+
+  .traffic-lights span {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+  }
+
+  .tl-close { background: #ff5f56; border: 1px solid #e0443e; }
+  .tl-min { background: #ffbd2e; border: 1px solid #dea123; }
+  .tl-max { background: #27c93f; border: 1px solid #1aab29; }
+
+  .app-brand-mark {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .app-icon-squircle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    background: #d25c3a;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    border-radius: 4px;
+  }
+
+  .app-window-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: #f4f4f5;
+  }
+
+  .doc-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    background: #272a30;
+    border-radius: 4px;
+    font-size: 11px;
+    color: #a1a1aa;
+    font-family: "JetBrains Mono", monospace;
+  }
+
+  .titlebar-center {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pill-select {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px;
+    background: #282b31;
+    border: 1px solid #363a43;
+    border-radius: 5px;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: #d4d4d8;
+    cursor: default;
+  }
+
+  .swatch-square {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+  }
+
+  .arrow {
+    font-size: 9px;
+    color: #71717a;
+    margin-left: 2px;
+  }
+
+  .titlebar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .theme-icon-toggle {
+    display: flex;
+    gap: 4px;
+    padding: 2px 6px;
+    background: #272a30;
+    border-radius: 4px;
+    font-size: 10px;
+    color: #71717a;
+  }
+
+  .win-btn {
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 11.5px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: default;
+  }
+
+  .win-btn-subtle {
+    background: #272a30;
+    border: 1px solid #363a43;
+    color: #d4d4d8;
+  }
+
+  .win-btn-export {
+    background: #d25c3a;
+    border: 1px solid #e06947;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* Subbars Row */
+  .app-subbars {
+    display: grid;
+    grid-template-columns: 48% 52%;
+    border-bottom: 1px solid #24272d;
+    background: #18191c;
+    font-size: 11px;
+    user-select: none;
+  }
+
+  .editor-subbar, .preview-subbar {
+    display: flex;
+    align-items: center;
+    padding: 6px 14px;
+    gap: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .editor-subbar {
+    border-right: 1px solid #24272d;
+    justify-content: space-between;
+  }
+
+  .subbar-left-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    overflow: hidden;
+  }
+
+  .preview-subbar {
+    justify-content: space-between;
+  }
+
+  .subbar-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #71717a;
+    font-weight: 600;
+  }
+
+  .editor-formatting-tools {
+    display: flex;
+    gap: 8px;
+    color: #a1a1aa;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+  }
+
+  .editor-tools-right {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #71717a;
+    flex-shrink: 0;
+  }
+
+  .active-badge {
+    color: #d25c3a;
+    font-weight: 700;
+  }
+
+  .badge-issues {
+    padding: 1px 6px;
+    background: #23272e;
+    color: #10b981;
+    border-radius: 4px;
+    font-size: 9.5px;
+  }
+
+  .preview-page-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pg-arrow {
+    background: #24272d;
+    border: 1px solid #333740;
+    color: #e4e4e7;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .pg-arrow:hover {
+    background: #2f343d;
+  }
+
+  .pg-status {
+    font-size: 11px;
+    font-weight: 600;
+    color: #d4d4d8;
+    min-width: 32px;
+    text-align: center;
+  }
+
+  .page-view-tabs {
+    display: flex;
+    margin-left: 8px;
+    background: #24272d;
+    border-radius: 5px;
+    padding: 2px;
+    gap: 2px;
+  }
+
+  .view-tab {
+    padding: 2px 8px;
+    font-size: 10.5px;
+    color: #a1a1aa;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .view-tab.is-active {
+    background: #363b45;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .preview-status-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .zoom-level {
+    color: #71717a;
+  }
+
+  .preview-meta {
+    color: #a1a1aa;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+  }
+
+  /* App Main Split */
+  .app-body {
+    display: grid;
+    grid-template-columns: 48% 52%;
+    height: 600px;
+    background: #111214;
+  }
+
+  /* CodeMirror Editor Pane */
+  .editor-pane {
+    display: flex;
+    position: relative;
+    border-right: 1px solid #24272d;
+    background: #141518;
+    overflow: hidden;
+  }
+
+  .cm-gutter {
+    width: 44px;
+    flex-shrink: 0;
+    background: #16171b;
+    border-right: 1px solid #22242a;
+    padding: 12px 0;
+    text-align: right;
+    user-select: none;
+  }
+
+  .cm-line-numbers {
+    color: #52525b;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    line-height: 19px;
+    padding-right: 10px;
+  }
+
+  .cm-content {
+    flex: 1;
+    padding: 12px 14px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    line-height: 19px;
+    overflow-y: auto;
+    color: #d4d4d8;
+  }
+
+  .cm-line {
+    white-space: pre;
+  }
+
+  .tok-hr { color: #52525b; font-weight: 700; }
+  .tok-prop { color: #f472b6; }
+  .tok-string { color: #38bdf8; }
+  .tok-h2 { color: #e56c47; font-weight: 700; }
+  .tok-h3 { color: #fb923c; font-weight: 700; }
+  .tok-math { color: #a3e635; font-weight: 500; }
+  .tok-quote { color: #94a3b8; font-style: italic; }
+  .tok-table { color: #c084fc; }
+
+  .editor-bottom-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 24px;
+    background: #1a1b20;
+    border-top: 1px solid #252830;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 12px;
+    font-size: 10px;
+    color: #71717a;
+  }
+
+  .editor-bottom-bar .tab.is-active {
+    color: #e4e4e7;
+    font-weight: 600;
+  }
+
+  .editor-meta {
+    margin-left: auto;
+  }
+
+  /* Preview Stage: True A4 Sheet presentation */
+  .preview-stage {
+    background: #090a0c;
+    padding: 28px 24px;
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  /* Physical Document Page Sheet (A4 aspect ratio, 210mm x 297mm) */
+  .doc-page-sheet {
+    width: 100%;
+    max-width: 440px;
+    min-height: 540px;
+    background: #ffffff;
+    color: #111111;
+    border-radius: 3px;
+    padding: 24px 28px;
+    box-shadow: 
+      0 2px 5px rgba(0,0,0,0.25),
+      0 12px 30px rgba(0,0,0,0.45);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.25s var(--ease-out);
+    font-family: var(--font-body, -apple-system, sans-serif);
+  }
+
+  /* Cover Sheet View */
+  .doc-cover-sheet {
+    width: 100%;
+    max-width: 440px;
+    min-height: 540px;
+    border-radius: 3px;
+    padding: 32px 28px;
+    box-shadow: 
+      0 2px 5px rgba(0,0,0,0.25),
+      0 12px 30px rgba(0,0,0,0.45);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s var(--ease-out);
+  }
+
+  .cover-kicker-line {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--cover-kicker, #d4ff2b);
+    margin-top: 24px;
+    margin-bottom: 12px;
+    font-family: "JetBrains Mono", monospace;
+  }
+
+  .cover-title {
+    font-size: 24px;
+    line-height: 1.1;
+    font-weight: 700;
+    color: var(--cover-title, #ffffff);
+    margin-bottom: 8px;
+    font-family: var(--font-display, "Space Grotesk", sans-serif);
+  }
+
+  .cover-client-line {
+    font-size: 11px;
+    color: var(--cover-client, #949494);
+    margin-bottom: auto;
+  }
+
+  .cover-rule-divider {
+    width: 100%;
+    height: 1px;
+    background: var(--cover-rule, rgba(255,255,255,0.15));
+    margin: 24px 0 16px;
+  }
+
+  .cover-grid-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .cov-col {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .cov-lbl {
+    font-size: 7.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--cover-dt, #71717a);
+    font-family: "JetBrains Mono", monospace;
+  }
+
+  .cov-val {
+    font-size: 10px;
+    color: var(--cover-dd, #ffffff);
+  }
+
+  .cover-accent-rings {
+    position: absolute;
+    bottom: -30px;
+    right: -30px;
+    width: 140px;
+    height: 140px;
+    pointer-events: none;
+  }
+
+  .cover-accent-rings span {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid var(--cover-ring, rgba(212, 255, 43, 0.3));
+  }
+
+  .ring-1 { inset: 0; }
+  .ring-2 { inset: 20px; }
+  .ring-3 { inset: 40px; }
+
+  /* Body Page Styles */
+  .sheet-running-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e4e4e7;
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+    font-size: 7.5px;
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 600;
+    color: #71717a;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .sheet-body-content {
+    flex: 1;
+  }
+
+  .sheet-h2 {
+    font-size: 15px;
+    line-height: 1.2;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: var(--heading, #000000);
+    font-family: var(--font-display, "Space Grotesk", sans-serif);
+  }
+
+  .sheet-lead {
+    font-size: 9.5px;
+    line-height: 1.5;
+    color: #27272a;
+    margin-bottom: 10px;
+  }
+
+  .sheet-p {
+    font-size: 9.5px;
+    line-height: 1.5;
+    color: #27272a;
+    margin: 8px 0;
+  }
+
+  .sheet-math-inline {
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  /* Rendered Equation Cards */
+  .sheet-equation-card {
+    position: relative;
+    background: #fafafa;
+    border: 1px solid #f0f0f0;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin: 8px 0;
+    text-align: center;
+  }
+
+  .sheet-equation-math {
+    font-size: 10px;
+    color: var(--heading, #000);
+  }
+
+  .sheet-eq-num {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 8px;
+    font-family: "JetBrains Mono", monospace;
+    color: #71717a;
+  }
+
+  .sheet-blockquote {
+    border-left: 3px solid var(--quote-border, #d4ff2b);
+    background: var(--quote-bg, #f4f7ea);
+    color: var(--quote-fg, #111111);
+    padding: 7px 10px;
+    margin: 10px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 9px;
+    line-height: 1.45;
+  }
+
+  .sheet-blockquote p {
+    margin: 0;
+  }
+
+  .sheet-table-section {
+    margin-top: 10px;
+  }
+
+  .sheet-table-kicker {
+    font-size: 7.5px;
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 700;
+    color: var(--subheading, #333);
+    margin-bottom: 4px;
+  }
+
+  .sheet-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5px;
+  }
+
+  .sheet-table th {
+    text-align: left;
+    padding: 4px 6px;
+    border-bottom: 1.5px solid var(--th-border, #000);
+    font-size: 7.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--th-fg, #000);
+  }
+
+  .sheet-table th:last-child,
+  .sheet-table td:last-child {
+    text-align: right;
+  }
+
+  .sheet-table td {
+    padding: 4px 6px;
+    border-bottom: 1px solid #e4e4e7;
+    color: #27272a;
+  }
+
+  .sheet-running-footer {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid #e4e4e7;
+    padding-top: 8px;
+    margin-top: 14px;
+    font-size: 7.5px;
+    font-family: "JetBrains Mono", monospace;
+    color: #71717a;
+  }
+
+  /* ==========================================================================
+     THEME DEFINITIONS FOR ACTIVE PAGE & ACTIVE COVER
+     ========================================================================== */
+
+  /* 1. VOLTAGE */
+  .doc-page-sheet.theme-voltage {
+    --heading: #000000;
+    --subheading: #222222;
+    --font-display: "Space Grotesk", sans-serif;
+    --quote-border: #d4ff2b;
+    --quote-bg: #f5f8ea;
+    --quote-fg: #000000;
+    --th-border: #000000;
+    --th-fg: #000000;
+  }
+  .doc-cover-sheet.theme-voltage {
+    background: #000000;
+    --cover-title: #ffffff;
+    --cover-accent: #d4ff2b;
+    --cover-kicker: #d4ff2b;
+    --cover-client: #949494;
+    --cover-rule: rgba(255,255,255,0.15);
+    --cover-dt: #71717a;
+    --cover-dd: #ffffff;
+    --cover-ring: rgba(212, 255, 43, 0.35);
+  }
+
+  /* 2. EDITORIAL */
+  .doc-page-sheet.theme-editorial {
+    --heading: #18342e;
+    --subheading: #b84f32;
+    --font-display: Georgia, "Times New Roman", serif;
+    --quote-border: #e56c47;
+    --quote-bg: #edf2ef;
+    --quote-fg: #18342e;
+    --th-border: #26413b;
+    --th-fg: #26413b;
+  }
+  .doc-cover-sheet.theme-editorial {
+    background: #172d29;
+    --cover-title: #fffaf1;
+    --cover-accent: #e56c47;
+    --cover-kicker: #e56c47;
+    --cover-client: #c7d2cd;
+    --cover-rule: rgba(218, 230, 225, 0.28);
+    --cover-dt: #8fa59d;
+    --cover-dd: #eef2ee;
+    --cover-ring: rgba(229, 108, 71, 0.4);
+  }
+
+  /* 3. SLATE */
+  .doc-page-sheet.theme-slate {
+    --heading: #0f172a;
+    --subheading: #0369a1;
+    --font-display: Inter, sans-serif;
+    --quote-border: #38bdf8;
+    --quote-bg: #f0f9ff;
+    --quote-fg: #0f172a;
+    --th-border: #334155;
+    --th-fg: #0f172a;
+  }
+  .doc-cover-sheet.theme-slate {
+    background: #0f172a;
+    --cover-title: #f8fafc;
+    --cover-accent: #38bdf8;
+    --cover-kicker: #38bdf8;
+    --cover-client: #94a3b8;
+    --cover-rule: rgba(148, 163, 184, 0.35);
+    --cover-dt: #64748b;
+    --cover-dd: #e2e8f0;
+    --cover-ring: rgba(56, 189, 248, 0.35);
+  }
+
+  /* 4. SCIENTIFIC */
+  .doc-page-sheet.theme-scientific {
+    --heading: #172b3a;
+    --subheading: #27465b;
+    --font-display: "Times New Roman", Georgia, serif;
+    --quote-border: #47657a;
+    --quote-bg: #f5f8f9;
+    --quote-fg: #202a32;
+    --th-border: #61717b;
+    --th-fg: #27465b;
+  }
+  .doc-cover-sheet.theme-scientific {
+    background: #ffffff;
+    border: 1px solid #e4e4e7;
+    --cover-title: #172b3a;
+    --cover-accent: #47657a;
+    --cover-kicker: #47657a;
+    --cover-client: #52616b;
+    --cover-rule: #9aabb6;
+    --cover-dt: #61717b;
+    --cover-dd: #202a32;
+    --cover-ring: rgba(71, 101, 122, 0.25);
+  }
+
+  /* 5. CONTRAST */
+  .doc-page-sheet.theme-contrast {
+    --heading: #000000;
+    --subheading: #333333;
+    --font-display: Inter, sans-serif;
+    --quote-border: #000000;
+    --quote-bg: #f5f5f5;
+    --quote-fg: #000000;
+    --th-border: #000000;
+    --th-fg: #000000;
+  }
+  .doc-cover-sheet.theme-contrast {
+    background: #000000;
+    --cover-title: #ffffff;
+    --cover-accent: #ffffff;
+    --cover-kicker: #a1a1a1;
+    --cover-client: #8f8f8f;
+    --cover-rule: rgba(255, 255, 255, 0.22);
+    --cover-dt: #6f6f6f;
+    --cover-dd: #ededed;
+    --cover-ring: rgba(255, 255, 255, 0.2);
+  }
+
+  /* 6. GRAPHITE */
+  .doc-page-sheet.theme-graphite {
+    --heading: #09090b;
+    --subheading: #4d7c0f;
+    --font-display: Inter, sans-serif;
+    --quote-border: #a3e635;
+    --quote-bg: #f4fce3;
+    --quote-fg: #18181b;
+    --th-border: #18181b;
+    --th-fg: #18181b;
+  }
+  .doc-cover-sheet.theme-graphite {
+    background: #101113;
+    --cover-title: #ffffff;
+    --cover-accent: #a3e635;
+    --cover-kicker: #a3e635;
+    --cover-client: #a1a1aa;
+    --cover-rule: rgba(63, 63, 70, 0.6);
+    --cover-dt: #71717a;
+    --cover-dd: #f4f4f5;
+    --cover-ring: rgba(163, 230, 53, 0.35);
+  }
+
+  /* 7. NOCTURNE */
+  .doc-page-sheet.theme-nocturne {
+    --heading: #443c68;
+    --subheading: #7b4bb7;
+    --font-display: "Space Grotesk", sans-serif;
+    --quote-border: #bd93f9;
+    --quote-bg: #f4f0ff;
+    --quote-fg: #322b4d;
+    --th-border: #443c68;
+    --th-fg: #443c68;
+  }
+  .doc-cover-sheet.theme-nocturne {
+    background: #282a36;
+    --cover-title: #f8f8f2;
+    --cover-accent: #ff79c6;
+    --cover-kicker: #8be9fd;
+    --cover-client: #a9b1d6;
+    --cover-rule: rgba(189, 147, 249, 0.4);
+    --cover-dt: #6272a4;
+    --cover-dd: #f8f8f2;
+    --cover-ring: rgba(255, 121, 198, 0.35);
+  }
+
+  /* ==========================================================================
+     SECTION STYLES (Clean, minimal, compact typography)
+     ========================================================================== */
+  .section {
+    padding: 5rem 0;
+  }
+
+  .section-head {
+    max-width: 680px;
+    margin-bottom: 2.5rem;
+  }
+
+  .section-title {
+    font-size: clamp(1.6rem, 2.6vw, 2.2rem);
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0.4rem 0 0.8rem;
+  }
+
+  .section-desc {
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--text-2);
+  }
+
+  .section-desc code {
+    background: rgba(0,0,0,0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+
+  /* Interactive Theme Grid */
+  .theme-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .theme-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.2s var(--spring), border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .theme-card:hover {
+    transform: translateY(-2px);
+    border-color: #c9c2b4;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+  }
+
+  .theme-card.is-active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-light), 0 4px 16px rgba(210, 92, 58, 0.12);
+  }
+
+  .theme-card-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .theme-swatch-chip {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid transparent;
+  }
+
+  .theme-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .theme-check-radio {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .theme-card.is-active .theme-check-radio {
+    opacity: 1;
+  }
+
+  .theme-fonts {
+    font-size: 0.78rem;
+    font-family: "JetBrains Mono", monospace;
+    color: var(--text-faint);
+    margin-bottom: 6px;
+  }
+
+  .theme-desc {
+    font-size: 0.88rem;
+    color: var(--text-2);
+    line-height: 1.45;
+  }
+
+  /* LaTeX Math Showcase Box */
+  .latex-showcase-box {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  }
+
+  @media (max-width: 768px) {
+    .latex-showcase-box {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .latex-pane-code {
+    background: #141518;
+    color: #e4e4e7;
+    padding: 24px;
+    border-right: 1px solid #22242a;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pane-tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #a1a1aa;
+    margin-bottom: 14px;
+  }
+
+  .latex-pane-code pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: #a3e635;
+    font-family: "JetBrains Mono", monospace;
+  }
+
+  .latex-pane-render {
+    background: #ffffff;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .latex-pane-render .pane-tag {
+    color: var(--accent);
+  }
+
+  .latex-rendered-math {
+    position: relative;
+    padding: 20px 10px;
+    text-align: center;
+  }
+
+  .latex-rendered-math .math-content {
+    font-size: 1.15rem;
+  }
+
+  .eq-badge {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.82rem;
+    font-family: "JetBrains Mono", monospace;
+    color: var(--text-faint);
+  }
+
+  .latex-render-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-2);
+    border-top: 1px solid #f0ece3;
+    padding-top: 14px;
+  }
+
+  /* Engine Grid */
+  .engine-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    gap: 20px;
+  }
+
+  .engine-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+  }
+
+  .card-num {
+    font-size: 0.8rem;
+    font-weight: 800;
+    font-family: "JetBrains Mono", monospace;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  .engine-card h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .engine-card p {
+    font-size: 0.92rem;
+    color: var(--text-2);
+    line-height: 1.5;
+  }
+
+  .engine-card code {
+    background: rgba(0,0,0,0.05);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 0.88em;
+  }
+
+  /* FAQ Accordions */
+  .faq-container {
+    max-width: 760px;
+  }
+
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .faq-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .faq-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+  }
+
+  .faq-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-icon {
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: var(--text-faint);
+    transition: transform 0.2s var(--spring);
+  }
+
+  .faq-item[open] .faq-icon {
+    transform: rotate(45deg);
+  }
+
+  .faq-body {
+    padding: 0 20px 18px;
+    font-size: 0.94rem;
+    line-height: 1.55;
+    color: var(--text-2);
+  }
+
+  /* Closing Section */
+  .closing-section {
+    padding: 5rem 0 6rem;
+    text-align: center;
+    border-top: 1px solid var(--border);
+  }
+
+  .closing-inner {
+    max-width: 640px;
+  }
+
+  .closing-title {
+    font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 0.8rem;
+  }
+
+  .closing-lede {
+    font-size: 1.05rem;
+    color: var(--text-2);
+    margin-bottom: 1.8rem;
+  }
+
+  .closing-cta {
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Clean Footer */
+  .footer {
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+    padding: 2.5rem 0;
+  }
+
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+
+  .footer-left {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .footer-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .footer-copy {
+    font-size: 0.85rem;
+    color: var(--text-faint);
+  }
+
+  .footer-right {
+    display: flex;
+    gap: 1.8rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-2);
+  }
+
+  .footer-right a:hover {
+    color: var(--text);
+  }
+</style>

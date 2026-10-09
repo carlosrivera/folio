@@ -1,0 +1,202 @@
+{
+  "pageCount": 11,
+  "diagramErrors": 1,
+  "palette": {
+    "coverBackground": "rgb(23, 45, 41)",
+    "coverTitle": "rgb(255, 250, 241)",
+    "coverTitleFont": "Georgia, \"Times New Roman\", serif",
+    "coverTitleWeight": "400",
+    "coverKicker": "rgb(221, 121, 90)",
+    "coverKickerFont": "-apple-system, \"system-ui\", \"Helvetica Neue\", sans-serif",
+    "coverClient": "rgb(199, 210, 205)",
+    "coverRule": "rgba(218, 230, 225, 0.28)",
+    "coverDt": "rgb(143, 165, 157)",
+    "coverDd": "rgb(238, 242, 238)",
+    "coverRingBorder": "rgba(229, 108, 71, 0.34)",
+    "bodyText": "rgb(38, 38, 32)",
+    "bodyFont": "-apple-system, \"system-ui\", \"Helvetica Neue\", sans-serif",
+    "kicker": "rgb(184, 79, 50)",
+    "heading": "rgb(24, 52, 46)",
+    "headingFont": "Georgia, \"Times New Roman\", serif",
+    "headingWeight": "600",
+    "subheading": "rgb(184, 79, 50)",
+    "subheadingFont": "-apple-system, \"system-ui\", \"Helvetica Neue\", sans-serif",
+    "subheadingTransform": "none",
+    "quoteBorder": "rgb(223, 107, 72)",
+    "quoteBackground": "rgb(237, 242, 239)",
+    "quoteText": "rgb(33, 65, 58)",
+    "quoteFont": "Georgia, \"Times New Roman\", serif",
+    "tableHeadBorder": "rgb(38, 65, 59)",
+    "tableHeadText": "rgb(38, 65, 59)",
+    "tableHeadFont": "-apple-system, \"system-ui\", \"Helvetica Neue\", sans-serif",
+    "tableBorder": "rgb(216, 215, 208)",
+    "link": "rgb(184, 79, 50)",
+    "figureBorder": "rgb(216, 215, 208)",
+    "figureBackground": "rgb(251, 250, 247)",
+    "figureRadius": "11.3386px",
+    "runningChrome": "rgb(140, 137, 128)",
+    "tocHeading": "rgb(24, 52, 46)"
+  },
+  "pages": [
+    {
+      "index": 1,
+      "classes": [
+        "folio-cover-sheet",
+        "pagedjs_cover_first_page",
+        "pagedjs_cover_page",
+        "pagedjs_first_page",
+        "pagedjs_named_page",
+        "pagedjs_right_page",
+        "theme-editorial"
+      ],
+      "orientation": "portrait",
+      "header": null,
+      "footer": null,
+      "outline": [
+        "h1 Kitchen Sink Regression Fixture"
+      ]
+    },
+    {
+      "index": 2,
+      "classes": [
+        "folio-toc-sheet",
+        "pagedjs_left_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 2 de 11",
+      "outline": [
+        "h2 Índice de Contenido"
+      ]
+    },
+    {
+      "index": 3,
+      "classes": [
+        "pagedjs_right_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 3 de 11",
+      "outline": [
+        "h1 Portada del Cuerpo",
+        "blockquote Cita destacada: este bloque verifica el estilo d"
+      ]
+    },
+    {
+      "index": 4,
+      "classes": [
+        "pagedjs_left_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 4 de 11",
+      "outline": [
+        "h2 01 — Encabezado que Inicia con Dígitos"
+      ]
+    },
+    {
+      "index": 5,
+      "classes": [
+        "pagedjs_right_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 5 de 11",
+      "outline": [
+        "h2 02 — Saltos y Tablas",
+        "table"
+      ]
+    },
+    {
+      "index": 6,
+      "classes": [
+        "pagedjs_left_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 6 de 11",
+      "outline": [
+        "h2 03 — Diagrama Alto"
+      ]
+    },
+    {
+      "index": 7,
+      "classes": [
+        "pagedjs_right_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 7 de 11",
+      "outline": [
+        "figure.mermaid-figure",
+        "h2 04 — Diagrama Corto"
+      ]
+    },
+    {
+      "index": 8,
+      "classes": [
+        "pagedjs_left_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 8 de 11",
+      "outline": [
+        "figure.mermaid-figure"
+      ]
+    },
+    {
+      "index": 9,
+      "classes": [
+        "pagedjs_landscape_first_page",
+        "pagedjs_landscape_page",
+        "pagedjs_named_page",
+        "pagedjs_right_page"
+      ],
+      "orientation": "landscape",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 9 de 11",
+      "outline": [
+        "h3 Sección Apaisada",
+        "figure.mermaid-figure"
+      ]
+    },
+    {
+      "index": 10,
+      "classes": [
+        "pagedjs_left_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 10 de 11",
+      "outline": [
+        "h2 05 — Diagrama Inválido",
+        "figure.mermaid-figure",
+        "h2 06 — Bloque de Código",
+        "pre const total = items.reduce((sum, item) => sum + ",
+        "h2 07 — Cierre",
+        "h3 Subsección de Tercer Nivel"
+      ]
+    },
+    {
+      "index": 11,
+      "classes": [
+        "pagedjs_right_page"
+      ],
+      "orientation": "portrait",
+      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "footer": "Fixture CoPágina 11 de 11",
+      "outline": []
+    }
+  ],
+  "index": [
+    "01 — Encabezado que Inicia con Dígitos → #section-01-encabezado-que-inicia-con-digitos",
+    "02 — Saltos y Tablas → #section-02-saltos-y-tablas",
+    "03 — Diagrama Alto → #section-03-diagrama-alto",
+    "04 — Diagrama Corto → #section-04-diagrama-corto",
+    "Sección Apaisada → #seccion-apaisada",
+    "05 — Diagrama Inválido → #section-05-diagrama-invalido",
+    "06 — Bloque de Código → #section-06-bloque-de-codigo",
+    "07 — Cierre → #section-07-cierre",
+    "Subsección de Tercer Nivel → #subseccion-de-tercer-nivel"
+  ]
+}

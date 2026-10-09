@@ -1,0 +1,137 @@
+---
+interface Props {
+  title?: string
+  description?: string
+}
+
+const {
+  title = "Folio — macOS Markdown Document Editor & Paginated Publishing",
+  description = "A macOS-first Markdown document editor with live A4 paginated preview, proposal templates, LaTeX math, Mermaid diagrams, and pixel-perfect PDF export."
+} = Astro.props
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="theme-color" content="#f5f2e9" />
+    <meta name="color-scheme" content="light" />
+    <meta name="robots" content="index, follow" />
+    <meta name="keywords" content="markdown, pdf publisher, macos app, paged media, katex, latex, proposal, statement of work, electronic document, folio" />
+    <link rel="canonical" href="https://carlosrivera.github.io/folio/" />
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href={`${base}/icon.svg`} />
+    <link rel="icon" type="image/png" sizes="32x32" href={`${base}/icon.png`} />
+    <link rel="apple-touch-icon" href={`${base}/icon.png`} />
+    
+    <!-- OpenGraph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Folio" />
+    <meta property="og:url" content="https://carlosrivera.github.io/folio/" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content="https://carlosrivera.github.io/folio/og.png" />
+    <meta property="og:image:secure_url" content="https://carlosrivera.github.io/folio/og.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Folio — Plain Markdown. Boardroom-ready pages." />
+    
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://carlosrivera.github.io/folio/" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content="https://carlosrivera.github.io/folio/og.png" />
+    <meta name="twitter:image:alt" content="Folio — Plain Markdown. Boardroom-ready pages." />
+    
+    <!-- Fonts & Math -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="glow" aria-hidden="true"></div>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --bg: #f5f2e9;
+    --surface: #fdfcf9;
+    --border: #e3ded2;
+    --border-subtle: #ece6da;
+    --text: #1a1614;
+    --text-2: #6c635b;
+    --text-faint: #9c9187;
+    --accent: #d25c3a;
+    --accent-hover: #df6845;
+    --accent-light: #f7ede8;
+    --healthy: #1e9a4b;
+    --spring: cubic-bezier(0.2, 1.3, 0.35, 1);
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --gutter: clamp(18px, 5vw, 64px);
+    color-scheme: light;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    overflow-x: clip;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, Segoe UI, Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.55;
+    overflow-x: clip;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  code, pre {
+    font-family: "JetBrains Mono", Menlo, monospace;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .glow {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(45vmax 45vmax at 50% 18%, rgba(210, 92, 58, 0.05), transparent 70%),
+      radial-gradient(40vmax 40vmax at 8% 70%, rgba(244, 197, 61, 0.04), transparent 70%),
+      var(--bg);
+  }
+
+  .container {
+    width: 100%;
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+  }
+</style>
