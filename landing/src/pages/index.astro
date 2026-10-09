@@ -41,9 +41,10 @@ const themes = [
       </a>
 
       <nav class="nav-links">
+        <a href="#ai-bridge">AI Workflow</a>
         <a href="#themes">Themes</a>
         <a href="#latex">LaTeX Math</a>
-        <a href="#engine">Print Engine</a>
+        <a href="#pages">Real Pages</a>
         <a href="#faq">FAQ</a>
       </nav>
 
@@ -69,9 +70,9 @@ const themes = [
     <section class="hero">
       <div class="container hero-content">
         <p class="eyebrow">macOS Native Markdown Publisher</p>
-        <h1>Plain Markdown.<br>Boardroom-ready pages.</h1>
+        <h1>PDFs you’re not<br>embarrassed to send.</h1>
         <p class="hero-lede">
-          Folio turns plain text Markdown into print-shop quality PDFs with real-time A4 pagination, cover sheets, LaTeX math, and zero cloud lock-in. Built for documents destined for paper.
+          Folio turns Markdown into polished, printable documents with proper pagination, typography, tables, Mermaid diagrams, math, and code.
         </p>
 
         <div class="hero-cta-wrap">
@@ -411,14 +412,52 @@ const themes = [
       </div>
     </section>
 
+    <!-- AI Workflow Bridge Section -->
+    <section class="section ai-bridge-section" id="ai-bridge">
+      <div class="container">
+        <div class="ai-bridge-box">
+          <div class="ai-bridge-text">
+            <p class="eyebrow">The AI Document Bridge</p>
+            <h2 class="ai-bridge-title">AI already gives you Markdown.<br>Folio makes it presentable.</h2>
+            <p class="ai-bridge-lede">
+              Paste the Markdown. Get the document. Use output from ChatGPT, Claude, or your own agents without rebuilding it in Word or Google Docs. Mermaid, LaTeX, tables, and code render directly.
+            </p>
+          </div>
+          <div class="ai-bridge-pills">
+            <div class="ai-pill">
+              <span class="ai-pill-icon">⚡</span>
+              <div class="ai-pill-content">
+                <strong>Paste & Go</strong>
+                <span>Direct output from ChatGPT, Claude, or coding agents</span>
+              </div>
+            </div>
+            <div class="ai-pill">
+              <span class="ai-pill-icon">📊</span>
+              <div class="ai-pill-content">
+                <strong>Mermaid & LaTeX</strong>
+                <span>Flowcharts, sequence diagrams, and vector math formulas</span>
+              </div>
+            </div>
+            <div class="ai-pill">
+              <span class="ai-pill-icon">📄</span>
+              <div class="ai-pill-content">
+                <strong>Zero Reformatting</strong>
+                <span>Skip the 45-minute Google Docs and Word cleanup dance</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Interactive Theme Showcase: 7 Curated Themes -->
     <section class="section themes-section" id="themes">
       <div class="container">
         <div class="section-head">
-          <p class="eyebrow">Typography & Print Palettes</p>
-          <h2 class="section-title">Seven curated themes. Zero styling fatigue.</h2>
+          <p class="eyebrow">Curated Typography</p>
+          <h2 class="section-title">Pick a theme and move on.</h2>
           <p class="section-desc">
-            Click any theme below to transform the document and entire site palette in real time. Every theme brings calibrated display typography, line heights, running headers, table rules, and print palettes:
+            Folio handles typography, spacing, covers, and print styles so you can focus on the content. Click any theme below to preview how it transforms the document and page in real time:
           </p>
         </div>
 
@@ -451,14 +490,14 @@ const themes = [
       </div>
     </section>
 
-    <!-- LaTeX Math Section: Real Typesetting -->
+    <!-- LaTeX Math & Technical Section -->
     <section class="section latex-section" id="latex">
       <div class="container">
         <div class="section-head">
-          <p class="eyebrow">Mathematical Rigor</p>
-          <h2 class="section-title">Native LaTeX Math. Typeset to vector glyphs.</h2>
+          <p class="eyebrow">Formulas & Diagrams</p>
+          <h2 class="section-title">Mermaid, LaTeX, tables, and code render directly.</h2>
           <p class="section-desc">
-            Write standard KaTeX equations directly in Markdown. Folio compiles equations into scalable vector paths in the final PDF — razor-sharp at any zoom level, never pixelated raster images.
+            Write standard math formulas and technical diagrams directly in plain text Markdown. Folio compiles equations and charts into scalable vector paths in the final PDF — razor-sharp at any zoom level, never pixelated raster images.
           </p>
         </div>
 
@@ -485,39 +524,39 @@ $$</code></pre>
       </div>
     </section>
 
-    <!-- Print Engine Details -->
-    <section class="section engine-section" id="engine">
+    <!-- Real Pages Section (replaces nerdy engine section) -->
+    <section class="section engine-section" id="pages">
       <div class="container">
         <div class="section-head">
-          <p class="eyebrow">W3C Paged Media Engine</p>
-          <h2 class="section-title">Physical pages, not infinite scrolls.</h2>
+          <p class="eyebrow">Real Pages, Not Infinite Scrolls</p>
+          <h2 class="section-title">Real pages, before you export.</h2>
           <p class="section-desc">
-            Browsers format for endless vertical screens. When you hit Print, headings get severed across page seams, page numbers vanish, and tables break mid-row. Folio uses Paged.js to enforce real physical page boundaries before export.
+            See page breaks, headers, footers, tables, and diagrams exactly where they’ll land in the PDF.
           </p>
         </div>
 
         <div class="engine-grid">
           <div class="engine-card">
             <div class="card-num">01</div>
-            <h3>W3C Margin Boxes</h3>
+            <h3>Real pages, before you export.</h3>
             <p>
-              Standard <code>@top-left</code>, <code>@bottom-right</code>, and running page counters (<code>counter(page)</code> of <code>counter(pages)</code>). Keep client titles and confidentiality markings strictly on the page edge.
+              See page breaks, headers, footers, tables, and diagrams exactly where they’ll land in the PDF. What you see on screen is what prints to paper.
             </p>
           </div>
 
           <div class="engine-card">
             <div class="card-num">02</div>
-            <h3>Widow & Orphan Suppression</h3>
+            <h3>Paste the Markdown. Get the document.</h3>
             <p>
-              Strict break heuristics. Headings never sit alone at the bottom of a page, table rows avoid mid-cell cuts, and equations remain intact with their introducing text.
+              Use output from ChatGPT, Claude, or your own agents without rebuilding it in Word or Google Docs. Mermaid, LaTeX, tables, and code render directly.
             </p>
           </div>
 
           <div class="engine-card">
             <div class="card-num">03</div>
-            <h3>Chromium Vector PDF Pipeline</h3>
+            <h3>Your files stay Markdown.</h3>
             <p>
-              Direct print dispatch through headless Chromium. Text remains crisp and selectable, vector charts and equations scale infinitely, and internal links function seamlessly.
+              Keep them in Git, edit them anywhere, generate them with agents, and export locally on your Mac. 100% offline with zero cloud lock-in.
             </p>
           </div>
         </div>
@@ -535,11 +574,21 @@ $$</code></pre>
         <div class="faq-list">
           <details class="faq-item">
             <summary class="faq-summary">
-              <span>How does Folio paginate documents differently from browsers?</span>
+              <span>Can I use output from ChatGPT, Claude, or AI coding agents?</span>
               <span class="faq-icon" aria-hidden="true">+</span>
             </summary>
             <div class="faq-body">
-              Standard web browsers only paginate when opening the print dialog. Folio paginates continuously in real time using the W3C Paged Media polyfill. You see exact page breaks, running headers, and margin boxes live as you type.
+              Yes, absolutely. AI already gives you Markdown. Paste raw text directly into Folio, and it instantly renders into a polished, printable document with styled tables, syntax highlighting, Mermaid diagrams, and LaTeX math.
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-summary">
+              <span>How does Folio handle page breaks compared to browsers?</span>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-body">
+              Browsers format for endless vertical screens and guess page breaks when you hit Print — chopping table rows mid-cut or leaving headings stranded. Folio paginates continuously as you type, so you see real page boundaries, running headers, and margin boxes live before exporting.
             </div>
           </details>
 
@@ -549,27 +598,17 @@ $$</code></pre>
               <span class="faq-icon" aria-hidden="true">+</span>
             </summary>
             <div class="faq-body">
-              Never. Folio is a 100% offline macOS desktop application. Your documents, markdown files, and generated PDFs remain exclusively on your local disk. No telemetry, no cloud accounts, and zero subscriptions.
+              Never. Folio is a 100% offline macOS desktop application. Your documents and exported PDFs stay strictly on your local disk. No subscriptions, no cloud accounts, and zero telemetry.
             </div>
           </details>
 
           <details class="faq-item">
             <summary class="faq-summary">
-              <span>Can I customize the themes or override CSS variables?</span>
+              <span>Are my documents locked into Folio?</span>
               <span class="faq-icon" aria-hidden="true">+</span>
             </summary>
             <div class="faq-body">
-              Yes. You can override any theme variable directly in your document frontmatter (such as <code>--cover-bg</code>, <code>--heading</code>, or <code>--quote-border</code>), or edit template files to match your organization's exact brand standards.
-            </div>
-          </details>
-
-          <details class="faq-item">
-            <summary class="faq-summary">
-              <span>How are mathematical formulas compiled into the PDF?</span>
-              <span class="faq-icon" aria-hidden="true">+</span>
-            </summary>
-            <div class="faq-body">
-              Folio uses KaTeX to parse LaTeX equations into clean HTML and MathML vector structures. When exported via Chromium's print pipeline, the math glyphs become true vector shapes inside the PDF, ensuring crisp printing at 1200+ DPI.
+              No. Your files stay standard Markdown (.md). Keep them in Git, edit them anywhere in your favorite editor, generate them with agents, and export locally on your Mac.
             </div>
           </details>
         </div>
@@ -598,7 +637,7 @@ $$</code></pre>
           </div>
         </div>
 
-        <h2 class="closing-title">Write in Markdown.<br>Publish for the boardroom.</h2>
+        <h2 class="closing-title">PDFs you’re not<br>embarrassed to send.</h2>
         <p class="closing-lede">Download Folio for macOS. Free, open source, and built for local-first craftsmanship.</p>
         <div class="closing-cta">
           <div class="split-cta-container">
@@ -2239,6 +2278,89 @@ $$</code></pre>
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 0.9em;
+  }
+
+  /* AI Workflow Bridge */
+  .ai-bridge-section {
+    padding: 2rem 0 4.5rem;
+  }
+
+  .ai-bridge-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.8rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    transition: background-color 0.4s ease, border-color 0.4s ease;
+  }
+
+  .ai-bridge-text {
+    max-width: 820px;
+  }
+
+  .ai-bridge-title {
+    font-size: clamp(1.6rem, 2.8vw, 2.3rem);
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    font-weight: 800;
+    color: var(--text);
+    margin: 0.4rem 0 0.9rem;
+  }
+
+  .ai-bridge-lede {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--text-2);
+  }
+
+  .ai-bridge-pills {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+  }
+
+  .ai-pill {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: all 0.2s ease;
+  }
+
+  .ai-pill:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+
+  .ai-pill-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .ai-pill-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .ai-pill-content strong {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .ai-pill-content span {
+    font-size: 0.8rem;
+    color: var(--text-2);
+    line-height: 1.4;
   }
 
   /* Interactive Themes Showcase */
