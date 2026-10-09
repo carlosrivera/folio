@@ -13,15 +13,30 @@ export type DocumentTheme =
   | 'nocturne'
   | 'scientific'
 
-export type DocumentLayout = 'sow' | 'cv'
+export type DocumentLayout = 'report' | 'simple' | 'invoice' | 'cv'
 
-export const SUPPORTED_LAYOUTS: DocumentLayout[] = ['sow', 'cv']
+export const SUPPORTED_LAYOUTS: DocumentLayout[] = ['report', 'simple', 'invoice', 'cv']
 
 const LAYOUT_ALIASES: Record<string, DocumentLayout> = {
-  sow: 'sow',
-  proposal: 'sow',
-  'statement-of-work': 'sow',
-  statement: 'sow',
+  report: 'report',
+  reports: 'report',
+  cover: 'report',
+  formal: 'report',
+  booklet: 'report',
+  sow: 'report',
+  proposal: 'report',
+  'statement-of-work': 'report',
+  statement: 'report',
+  simple: 'simple',
+  plain: 'simple',
+  markdown: 'simple',
+  document: 'simple',
+  doc: 'simple',
+  note: 'simple',
+  invoice: 'invoice',
+  factura: 'invoice',
+  bill: 'invoice',
+  receipt: 'invoice',
   cv: 'cv',
   resume: 'cv',
   'curriculum-vitae': 'cv',
@@ -59,6 +74,7 @@ export type DocumentMetadata = {
   documentId: string
   name?: string
   role?: string
+  kicker?: string
   subtitle?: string
   tagline?: string
   email?: string
@@ -73,6 +89,36 @@ export type DocumentMetadata = {
   toc?: boolean
   header?: boolean
   footer?: boolean
+  headerLeft?: string
+  headerRight?: string
+  headerCenter?: string
+  footerLeft?: string
+  footerRight?: string
+  footerCenter?: string
+  // Invoice-specific metadata
+  invoiceNumber?: string
+  dueDate?: string
+  poNumber?: string
+  status?: string
+  from?: string
+  fromAddress?: string
+  fromEmail?: string
+  fromPhone?: string
+  fromTaxId?: string
+  fromWebsite?: string
+  clientAddress?: string
+  clientEmail?: string
+  clientPhone?: string
+  clientTaxId?: string
+  currency?: string
+  subtotal?: string
+  tax?: string
+  taxRate?: string
+  total?: string
+  amountDue?: string
+  paymentTerms?: string
+  paymentDetails?: string
+  notes?: string
   /** Token overrides the document carries for its template. */
   themeOverrides: Record<string, string>
 }
@@ -205,14 +251,14 @@ markdown.renderer.rules.heading_open = (tokens, idx, options, _env, self) => {
 }
 
 const defaults: DocumentMetadata = {
-  layout: 'sow',
+  layout: 'report',
   title: 'Untitled document',
   client: 'Client',
   preparedFor: '',
   preparedBy: 'Your studio',
   date: new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date()),
   validUntil: '',
-  documentId: 'SOW-001',
+  documentId: 'DOC-001',
   lang: 'en',
   theme: 'editorial',
   toc: true,
@@ -314,6 +360,27 @@ export function preprocessMarkdown(content: string): string {
     .replace(/(?:^|\n)[ \t]*<!--\s*landscape\s*-->[ \t]*(?:\n|$)/gi, `\n\n${LANDSCAPE_OPEN_MARKER}\n\n`)
 }
 
+/**
+ * Interpolates header and footer placeholders with document and pagination variables.
+ */
+export function formatChromeText(
+  template: string,
+  doc: { metadata: DocumentMetadata },
+  pageIndex: number,
+  pageCount: number,
+  _lang: SupportedLanguage = 'en',
+): string {
+  const meta = doc.metadata
+  return template
+    .replace(/\{page\}/gi, String(pageIndex + 1))
+    .replace(/\{(?:pages|total)\}/gi, String(pageCount))
+    .replace(/\{title\}/gi, meta.title || '')
+    .replace(/\{date\}/gi, meta.date || '')
+    .replace(/\{(?:client|customer)\}/gi, meta.client || '')
+    .replace(/\{(?:author|preparedBy|prepared-by|from)\}/gi, meta.preparedBy || meta.from || meta.name || '')
+    .replace(/\{(?:documentId|document-id|invoiceNumber|invoice-number|id)\}/gi, meta.invoiceNumber || meta.documentId || '')
+}
+
 export function parseDocument(source: string): ParsedDocument {
   let body = source
   let raw: Record<string, unknown> = {}
@@ -333,7 +400,7 @@ export function parseDocument(source: string): ParsedDocument {
   
   // Detect layout from frontmatter or fall back
   const rawLayout = (value('layout') || '').toLowerCase().trim()
-  const layout: DocumentLayout = LAYOUT_ALIASES[rawLayout] ?? 'sow'
+  const layout: DocumentLayout = LAYOUT_ALIASES[rawLayout] ?? 'report'
 
   // Detect language from frontmatter or fall back
   const rawLang = (value('lang') || value('language') || 'en').toLowerCase().trim()
@@ -343,17 +410,99 @@ export function parseDocument(source: string): ParsedDocument {
   const rawTheme = (value('theme') || 'editorial').toLowerCase().trim()
   const theme: DocumentTheme = THEME_ALIASES[rawTheme] ?? 'editorial'
 
-  // Detect toc (CV layout defaults to false; SOW defaults to true)
-  const tocDefault = layout !== 'cv'
+  // Detect toc (Report defaults to true; CV, simple, invoice default to false)
+  const tocDefault = layout === 'report'
   const tocEnabled = asBoolean(raw.toc ?? raw['table-of-contents'], tocDefault)
 
-  // Detect running header (CV layout defaults to false; SOW defaults to true)
-  const headerDefault = layout !== 'cv'
-  const headerEnabled = asBoolean(raw.header ?? raw['page-header'] ?? raw.pageHeader, headerDefault)
+  // Running header handling:
+  // Report defaults to true; others default to false unless configured via header or header-left/right
+  const headerDefault = layout === 'report'
+  let headerEnabled = headerDefault
+  let headerLeft: string | undefined
+  let headerRight: string | undefined
+  let headerCenter: string | undefined
 
-  // Detect running footer (defaults to true)
+  if (typeof raw.header === 'boolean') {
+    headerEnabled = raw.header
+  } else if (typeof raw.header === 'string') {
+    const trimmed = raw.header.trim()
+    const lower = trimmed.toLowerCase()
+    if (lower === 'true' || lower === 'yes' || lower === '1') {
+      headerEnabled = true
+    } else if (lower === 'false' || lower === 'no' || lower === '0') {
+      headerEnabled = false
+    } else {
+      headerEnabled = true
+      headerLeft = trimmed
+    }
+  } else if (raw.header && typeof raw.header === 'object' && !Array.isArray(raw.header)) {
+    const hObj = raw.header as Record<string, unknown>
+    headerEnabled = true
+    if (hObj.left !== undefined) headerLeft = asText(hObj.left)
+    if (hObj.right !== undefined) headerRight = asText(hObj.right)
+    if (hObj.center !== undefined) headerCenter = asText(hObj.center)
+  }
+
+  if (raw['page-header'] !== undefined || raw.pageHeader !== undefined) {
+    headerEnabled = asBoolean(raw['page-header'] ?? raw.pageHeader, headerEnabled)
+  }
+  if (value('header-left', 'headerLeft')) {
+    headerLeft = value('header-left', 'headerLeft')
+    headerEnabled = true
+  }
+  if (value('header-right', 'headerRight')) {
+    headerRight = value('header-right', 'headerRight')
+    headerEnabled = true
+  }
+  if (value('header-center', 'headerCenter')) {
+    headerCenter = value('header-center', 'headerCenter')
+    headerEnabled = true
+  }
+
+  // Running footer handling:
+  // Defaults to true across all layouts
   const footerDefault = true
-  const footerEnabled = asBoolean(raw.footer ?? raw['page-footer'] ?? raw.pageFooter, footerDefault)
+  let footerEnabled = footerDefault
+  let footerLeft: string | undefined
+  let footerRight: string | undefined
+  let footerCenter: string | undefined
+
+  if (typeof raw.footer === 'boolean') {
+    footerEnabled = raw.footer
+  } else if (typeof raw.footer === 'string') {
+    const trimmed = raw.footer.trim()
+    const lower = trimmed.toLowerCase()
+    if (lower === 'true' || lower === 'yes' || lower === '1') {
+      footerEnabled = true
+    } else if (lower === 'false' || lower === 'no' || lower === '0') {
+      footerEnabled = false
+    } else {
+      footerEnabled = true
+      footerLeft = trimmed
+    }
+  } else if (raw.footer && typeof raw.footer === 'object' && !Array.isArray(raw.footer)) {
+    const fObj = raw.footer as Record<string, unknown>
+    footerEnabled = true
+    if (fObj.left !== undefined) footerLeft = asText(fObj.left)
+    if (fObj.right !== undefined) footerRight = asText(fObj.right)
+    if (fObj.center !== undefined) footerCenter = asText(fObj.center)
+  }
+
+  if (raw['page-footer'] !== undefined || raw.pageFooter !== undefined) {
+    footerEnabled = asBoolean(raw['page-footer'] ?? raw.pageFooter, footerEnabled)
+  }
+  if (value('footer-left', 'footerLeft')) {
+    footerLeft = value('footer-left', 'footerLeft')
+    footerEnabled = true
+  }
+  if (value('footer-right', 'footerRight')) {
+    footerRight = value('footer-right', 'footerRight')
+    footerEnabled = true
+  }
+  if (value('footer-center', 'footerCenter')) {
+    footerCenter = value('footer-center', 'footerCenter')
+    footerEnabled = true
+  }
 
   const themeOverrides = sanitizeThemeOverrides(raw['theme-overrides'] ?? raw.themeOverrides)
 
@@ -366,17 +515,51 @@ export function parseDocument(source: string): ParsedDocument {
   const linkedin = value('linkedin')
   const github = value('github')
 
+  // Invoice-specific metadata
+  const invoiceNumber =
+    value('invoiceNumber', 'invoice-number') ||
+    value('invoiceId', 'invoice-id') ||
+    value('number') ||
+    value('documentId', 'document-id')
+  const dueDate = value('dueDate', 'due-date') || value('due') || value('validUntil', 'valid-until')
+  const poNumber = value('poNumber', 'po-number') || value('po') || value('orderNumber', 'order-number')
+  const status = value('status', 'payment-status')
+  const from = value('from') || value('preparedBy', 'prepared-by') || value('company') || value('issuer') || name
+  const fromAddress = value('fromAddress', 'from-address') || value('address')
+  const fromEmail = value('fromEmail', 'from-email') || email
+  const fromPhone = value('fromPhone', 'from-phone') || phone
+  const fromTaxId = value('fromTaxId', 'from-tax-id') || value('taxId', 'tax-id') || value('vatId', 'vat-id') || value('vat')
+  const fromWebsite = value('fromWebsite', 'from-website') || website
+  const clientAddress = value('clientAddress', 'client-address') || value('toAddress', 'to-address') || value('billToAddress', 'bill-to-address')
+  const clientEmail = value('clientEmail', 'client-email') || value('toEmail', 'to-email')
+  const clientPhone = value('clientPhone', 'client-phone') || value('toPhone', 'to-phone')
+  const clientTaxId = value('clientTaxId', 'client-tax-id') || value('toTaxId', 'to-tax-id') || value('clientVat', 'client-vat')
+  const currency = value('currency') || '$'
+  const subtotal = value('subtotal', 'sub-total')
+  const tax = value('tax', 'vat')
+  const taxRate = value('taxRate', 'tax-rate') || value('vatRate', 'vat-rate')
+  const total = value('total', 'amount')
+  const amountDue = value('amountDue', 'amount-due') || value('balanceDue', 'balance-due') || total
+  const paymentTerms = value('paymentTerms', 'payment-terms') || value('terms')
+  const paymentDetails = value('paymentDetails', 'payment-details') || value('bankDetails', 'bank-details')
+  const notes = value('notes', 'note')
+  const kicker = value('kicker') || value('docType', 'doc-type') || value('documentType', 'document-type')
+
+  const titleInferred = inferredTitle(body)
+  const defaultTitle = layout === 'invoice' && invoiceNumber ? `Invoice ${invoiceNumber}` : (name || titleInferred)
+
   const metadata: DocumentMetadata = {
     layout,
-    title: value('title') || name || inferredTitle(body),
-    client: value('client') || (lang === 'es' ? 'Cliente' : defaults.client),
-    preparedFor: value('preparedFor', 'prepared-for'),
-    preparedBy: value('preparedBy', 'prepared-by') || defaults.preparedBy,
-    date: value('date') || defaults.date,
-    validUntil: value('validUntil', 'valid-until'),
-    documentId: value('documentId', 'document-id') || defaults.documentId,
+    title: value('title') || defaultTitle,
+    client: value('client') || value('billTo', 'bill-to') || value('to') || (layout === 'report' ? (lang === 'es' ? 'Cliente' : defaults.client) : ''),
+    preparedFor: value('preparedFor', 'prepared-for') || value('billTo', 'bill-to') || value('to'),
+    preparedBy: value('preparedBy', 'prepared-by') || from || (layout === 'report' ? defaults.preparedBy : ''),
+    date: value('date') || value('issueDate', 'issue-date') || defaults.date,
+    validUntil: value('validUntil', 'valid-until') || dueDate,
+    documentId: invoiceNumber || value('documentId', 'document-id') || defaults.documentId,
     name: name || undefined,
     role: role || undefined,
+    kicker: kicker || undefined,
     subtitle: value('subtitle') || undefined,
     tagline: value('tagline') || undefined,
     email: email || undefined,
@@ -391,6 +574,35 @@ export function parseDocument(source: string): ParsedDocument {
     toc: tocEnabled,
     header: headerEnabled,
     footer: footerEnabled,
+    headerLeft,
+    headerRight,
+    headerCenter,
+    footerLeft,
+    footerRight,
+    footerCenter,
+    invoiceNumber: invoiceNumber || undefined,
+    dueDate: dueDate || undefined,
+    poNumber: poNumber || undefined,
+    status: status || undefined,
+    from: from || undefined,
+    fromAddress: fromAddress || undefined,
+    fromEmail: fromEmail || undefined,
+    fromPhone: fromPhone || undefined,
+    fromTaxId: fromTaxId || undefined,
+    fromWebsite: fromWebsite || undefined,
+    clientAddress: clientAddress || undefined,
+    clientEmail: clientEmail || undefined,
+    clientPhone: clientPhone || undefined,
+    clientTaxId: clientTaxId || undefined,
+    currency: currency || undefined,
+    subtotal: subtotal || undefined,
+    tax: tax || undefined,
+    taxRate: taxRate || undefined,
+    total: total || undefined,
+    amountDue: amountDue || undefined,
+    paymentTerms: paymentTerms || undefined,
+    paymentDetails: paymentDetails || undefined,
+    notes: notes || undefined,
     themeOverrides,
   }
 

@@ -9,5 +9,5 @@
     "outDir": "dist-electron",
     "types": ["node"]
   },
-  "include": ["electron", "vite.electron.config.ts"]
+  "include": ["electron", "vite.electron.config.ts", "src/mcp", "src/lib"]
 }

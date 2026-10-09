@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ArrowRight, Briefcase, Clock, FileCode, FileText, FolderOpen, Sparkles, UserRound, X } from 'lucide-react'
-import { sampleCvDocument, sampleDocument } from '../lib/sample'
+import { ArrowRight, Briefcase, Clock, FileCode, FileText, FolderOpen, ReceiptText, Sparkles, UserRound, X } from 'lucide-react'
+import { sampleCvDocument, sampleDocument, sampleInvoiceDocument, sampleSimpleDocument } from '../lib/sample'
 import type { DocumentLayout, DocumentTheme } from '../lib/document'
 import type { SupportedLanguage } from '../lib/i18n'
 
@@ -48,18 +48,69 @@ export const TEMPLATES: TemplateDefinition[] = [
     badge: 'Simple',
     badgeVariant: 'accent',
     icon: FileText,
-    layout: 'sow',
+    layout: 'simple',
     getContent: () => '# Untitled\n\nStart writing in plain Markdown...\n',
   },
   {
-    id: 'sow',
-    title: 'Statement of Work',
-    subtitle: 'Client proposal layout with SOW front matter, deliverables, and milestones.',
+    id: 'invoice',
+    title: 'Invoice',
+    subtitle: 'Client invoice with billing details, line items table, and payment instructions.',
     category: 'starters',
-    badge: 'Proposal',
+    badge: 'Invoice',
+    badgeVariant: 'accent',
+    icon: ReceiptText,
+    layout: 'invoice',
+    getContent: ({ theme, lang }) => `---
+layout: invoice
+title: Invoice INV-001
+invoice-number: INV-001
+date: ${formatDate(new Date())}
+due-date: ${formatFutureDate(30)}
+status: Due
+from: Your Studio / Company Name
+from-address: |
+  123 Creative Studio Way
+  San Francisco, CA 94103
+from-email: billing@yourstudio.com
+from-phone: +1 (555) 019-2834
+from-tax-id: US-12-3456789
+client: Client Organization
+client-address: |
+  456 Enterprise Blvd, Suite 200
+  New York, NY 10001
+client-email: accounts@client.com
+theme: ${theme}
+lang: ${lang}
+---
+
+### Services Rendered
+
+| Description | Qty / Hours | Rate | Amount |
+|:---|:---:|---:|---:|
+| **Design & Architecture Consultation**<br>Initial discovery workshops and system specification | 20 hrs | $150.00 | $3,000.00 |
+| **Platform Implementation**<br>Core feature development and automated testing suite | 40 hrs | $150.00 | $6,000.00 |
+| **Deployment & Cloud Handover**<br>Production configuration and team knowledge transfer | 1 | $2,000.00 | $2,000.00 |
+
+### Payment Details
+
+Please remit payment within 30 days via ACH or bank transfer:
+
+- **Bank:** First Republic / Chase
+- **Account:** 1234567890
+- **Routing:** 987654321
+
+*Thank you for your business!*
+`,
+  },
+  {
+    id: 'report',
+    title: 'Report / Statement of Work',
+    subtitle: 'Standard document with cover page, metadata table, and table of contents.',
+    category: 'starters',
+    badge: 'Report',
     badgeVariant: 'neutral',
     icon: Briefcase,
-    layout: 'sow',
+    layout: 'report',
     getContent: ({ theme, lang }) => `---
 title: Project Scope of Work
 client: Client Organization
@@ -67,8 +118,8 @@ prepared-for: Stakeholder Name
 prepared-by: Your Studio / Name
 date: ${formatDate(new Date())}
 valid-until: ${formatFutureDate(30)}
-document-id: SOW-001
-layout: sow
+document-id: DOC-001
+layout: report
 theme: ${theme}
 lang: ${lang}
 ---
@@ -144,14 +195,36 @@ Description of role and impact across projects.
 `,
   },
   {
-    id: 'sample-sow',
-    title: 'SOW Sample Document',
+    id: 'sample-simple',
+    title: 'Simple Markdown Sample',
+    subtitle: 'Clean document sample with customizable headers, footers, and diagrams.',
+    category: 'samples',
+    badge: 'Sample',
+    badgeVariant: 'muted',
+    icon: FileText,
+    layout: 'simple',
+    getContent: () => sampleSimpleDocument,
+  },
+  {
+    id: 'sample-invoice',
+    title: 'Invoice Sample',
+    subtitle: 'Complete consulting invoice with line items, tax breakdown, and payment instructions.',
+    category: 'samples',
+    badge: 'Sample',
+    badgeVariant: 'muted',
+    icon: ReceiptText,
+    layout: 'invoice',
+    getContent: () => sampleInvoiceDocument,
+  },
+  {
+    id: 'sample-report',
+    title: 'Report / SOW Sample Document',
     subtitle: 'Northstar Brand Platform proposal showcasing typography, tables, and diagrams.',
     category: 'samples',
     badge: 'Sample',
     badgeVariant: 'muted',
     icon: Sparkles,
-    layout: 'sow',
+    layout: 'report',
     getContent: () => sampleDocument,
   },
   {

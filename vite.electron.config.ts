@@ -9,7 +9,7 @@ export default defineConfig({
       formats: ['es'],
     },
     rollupOptions: {
-      external: ['electron', 'electron-updater', 'node:fs', 'node:fs/promises', 'node:path', 'node:url'],
+      external: ['electron', 'electron-updater', /^node:/],
       output: { entryFileNames: '[name].js' },
     },
   },

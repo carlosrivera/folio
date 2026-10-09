@@ -82,6 +82,41 @@ $$
 
 Escape a dollar sign as `\$` when it could be mistaken for a math delimiter. LaTeX support is for equations inside Markdown documents; it does not import complete `.tex` files.
 
+## AI & Agent Integration (Model Context Protocol)
+
+Folio includes a native Model Context Protocol (MCP) server that lets AI agents (Claude Desktop, Cursor, Google Antigravity, Cline, Windsurf) autonomously generate, customize, lint, and export Folio documents to PDF.
+
+### Instant Connection (No Node.js or Repo Clone Required)
+
+If Folio is installed in your Applications folder, connect directly via the native `--mcp` flag:
+
+```json
+{
+  "mcpServers": {
+    "folio": {
+      "command": "/Applications/Folio.app/Contents/MacOS/Folio",
+      "args": ["--mcp"]
+    }
+  }
+}
+```
+
+Or symlink to your PATH (`sudo ln -sf /Applications/Folio.app/Contents/MacOS/Folio /usr/local/bin/folio`):
+
+```json
+{
+  "mcpServers": {
+    "folio": {
+      "command": "folio",
+      "args": ["--mcp"]
+    }
+  }
+}
+```
+
+See [**`docs/mcp.md`**](docs/mcp.md) for full setup guides across all clients, all 7 tool references, and end-to-end agent workflow examples. Also visit the web documentation at [**`https://carlosrivera.github.io/folio/docs/`**](https://carlosrivera.github.io/folio/docs/).
+
+
 ## Packaging & Distribution
 
 Folio uses `electron-builder` to package native macOS releases (DMG & ZIP for Apple Silicon and Intel):

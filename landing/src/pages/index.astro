@@ -5,7 +5,7 @@ import katex from 'katex'
 const base = import.meta.env.BASE_URL.replace(/\/$/, '')
 const githubRepo = 'https://github.com/carlosrivera/folio'
 const releasesUrl = `${githubRepo}/releases`
-const version = '0.1.0'
+const version = '0.2.0'
 const downloadSilicon = `https://github.com/carlosrivera/folio/releases/download/v${version}/Folio-${version}-arm64.dmg`
 const downloadIntel = `https://github.com/carlosrivera/folio/releases/download/v${version}/Folio-${version}.dmg`
 const downloadSiliconZip = `https://github.com/carlosrivera/folio/releases/download/v${version}/Folio-${version}-arm64-mac.zip`
@@ -42,6 +42,7 @@ const themes = [
 
       <!-- Desktop Navigation Links -->
       <nav class="nav-links" aria-label="Main Navigation">
+        <a href={`${base}/docs`}>Docs</a>
         <a href="#ai-bridge">AI Workflow</a>
         <a href="#themes">Themes</a>
         <a href="#latex">LaTeX Math</a>
@@ -146,7 +147,7 @@ const themes = [
                 <span class="sub-dot">·</span>
                 <a href={downloadIntelZip} class="sub-link" download>Intel .zip</a>
                 <span class="sub-dot">·</span>
-                <a href="https://github.com/carlosrivera/folio/releases/tag/v0.1.0" target="_blank" rel="noopener noreferrer" class="sub-link">All releases ↗</a>
+                <a href={releasesUrl} target="_blank" rel="noopener noreferrer" class="sub-link">All releases ↗</a>
               </div>
             </div>
           </div>
@@ -449,7 +450,7 @@ const themes = [
           <p class="eyebrow">The AI Document Bridge</p>
           <h2 class="ai-bridge-title">AI already gives you Markdown.<br>Folio makes it presentable.</h2>
           <p class="ai-bridge-lede">
-            Paste the Markdown. Get the document. Use output from ChatGPT, Claude, or your own agents without rebuilding it in Word or Google Docs. Mermaid, LaTeX, tables, and code render directly.
+            Paste the Markdown or connect Claude, Cursor, and agents directly via Model Context Protocol (MCP). Use raw output from LLMs without rebuilding it in Word or Google Docs. Mermaid, LaTeX, tables, and pagination render automatically.
           </p>
         </div>
 
@@ -469,7 +470,28 @@ const themes = [
             </div>
           </div>
 
-          <!-- Feature 2: Mermaid & LaTeX -->
+          <!-- Feature 2: Native MCP Server -->
+          <div class="ai-feature-item">
+            <div class="ai-feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v4"></path>
+                <path d="m4.93 4.93 2.83 2.83"></path>
+                <path d="M2 12h4"></path>
+                <path d="m4.93 19.07 2.83-2.83"></path>
+                <path d="M12 18v4"></path>
+                <path d="m16.24 16.24 2.83 2.83"></path>
+                <path d="M18 12h4"></path>
+                <path d="m16.24 7.76 2.83-2.83"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </div>
+            <div class="ai-feature-body">
+              <h3 class="ai-feature-heading">Native MCP Server</h3>
+              <p class="ai-feature-desc">Agents create, lint, style, and compile PDFs end-to-end</p>
+            </div>
+          </div>
+
+          <!-- Feature 3: Mermaid & LaTeX -->
           <div class="ai-feature-item">
             <div class="ai-feature-icon" aria-hidden="true">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -486,7 +508,7 @@ const themes = [
             </div>
           </div>
 
-          <!-- Feature 3: Zero Reformatting -->
+          <!-- Feature 4: Zero Reformatting -->
           <div class="ai-feature-item">
             <div class="ai-feature-icon" aria-hidden="true">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -744,7 +766,7 @@ $$</code></pre>
                 <span class="sub-dot">·</span>
                 <a href={downloadIntelZip} class="sub-link" download>Intel .zip</a>
                 <span class="sub-dot">·</span>
-                <a href="https://github.com/carlosrivera/folio/releases/tag/v0.1.0" target="_blank" rel="noopener noreferrer" class="sub-link">All releases ↗</a>
+                <a href={releasesUrl} target="_blank" rel="noopener noreferrer" class="sub-link">All releases ↗</a>
               </div>
             </div>
           </div>
@@ -765,6 +787,7 @@ $$</code></pre>
       </div>
 
       <div class="footer-right">
+        <a href={`${base}/docs`}>Documentation</a>
         <a href={githubRepo} target="_blank" rel="noopener noreferrer">GitHub</a>
         <a href="https://github.com/carlosrivera/folio/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
         <a href="#themes">Themes</a>
@@ -2545,8 +2568,8 @@ $$</code></pre>
 
   .ai-features-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2.5rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
   }
 
   .ai-feature-item {
@@ -2596,7 +2619,14 @@ $$</code></pre>
     margin: 0;
   }
 
-  @media (max-width: 820px) {
+  @media (max-width: 980px) {
+    .ai-features-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+    }
+  }
+
+  @media (max-width: 600px) {
     .ai-features-grid {
       grid-template-columns: 1fr;
       gap: 1.8rem;

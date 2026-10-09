@@ -63,7 +63,7 @@
         "pagedjs_left_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "header": "Folio Test Suite / InformeFIX-001",
       "footer": "Fixture CoPágina 2 de 11",
       "outline": [
         "h2 Índice de Contenido"
@@ -75,7 +75,7 @@
         "pagedjs_right_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "header": "Folio Test Suite / InformeFIX-001",
       "footer": "Fixture CoPágina 3 de 11",
       "outline": [
         "h1 Portada del Cuerpo",
@@ -88,7 +88,7 @@
         "pagedjs_left_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "header": "Folio Test Suite / InformeFIX-001",
       "footer": "Fixture CoPágina 4 de 11",
       "outline": [
         "h2 01 — Encabezado que Inicia con Dígitos"
@@ -100,7 +100,7 @@
         "pagedjs_right_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "header": "Folio Test Suite / InformeFIX-001",
       "footer": "Fixture CoPágina 5 de 11",
       "outline": [
         "h2 02 — Saltos y Tablas",
@@ -113,7 +113,7 @@
         "pagedjs_left_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "header": "Folio Test Suite / InformeFIX-001",
       "footer": "Fixture CoPágina 6 de 11",
       "outline": [
         "h2 03 — Diagrama Alto"
@@ -125,7 +125,7 @@
         "pagedjs_right_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "header": "Folio Test Suite / InformeFIX-001",
       "footer": "Fixture CoPágina 7 de 11",
       "outline": [
         "figure.mermaid-figure",
@@ -138,7 +138,7 @@
         "pagedjs_left_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "header": "Folio Test Suite / InformeFIX-001",
       "footer": "Fixture CoPágina 8 de 11",
       "outline": [
         "figure.mermaid-figure"
@@ -153,7 +153,7 @@
         "pagedjs_right_page"
       ],
       "orientation": "landscape",
-      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "header": "Folio Test Suite / InformeFIX-001",
       "footer": "Fixture CoPágina 9 de 11",
       "outline": [
         "h3 Sección Apaisada",
@@ -166,7 +166,7 @@
         "pagedjs_left_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "header": "Folio Test Suite / InformeFIX-001",
       "footer": "Fixture CoPágina 10 de 11",
       "outline": [
         "h2 05 — Diagrama Inválido",
@@ -183,7 +183,7 @@
         "pagedjs_right_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Propuesta de TrabajoFIX-001",
+      "header": "Folio Test Suite / InformeFIX-001",
       "footer": "Fixture CoPágina 11 de 11",
       "outline": []
     }

@@ -249,3 +249,104 @@ Created an open-source macOS menu bar utility for maintainers juggling multiple 
 - **French** — Limited Working Proficiency
 `
 
+export const sampleSimpleDocument = `---
+layout: simple
+title: System Architecture & Reliability Guidelines
+header-left: Northstar Engineering
+header-right: Reliability Guidelines
+footer-left: Confidential · Internal Use Only
+footer-right: Page {page} of {pages}
+theme: graphite
+lang: en
+---
+
+# System Architecture & Reliability Guidelines
+
+## 01 — Architectural Overview
+
+This guide establishes the baseline reliability and performance standards for all core platform services. Every production service must adhere to these tenets before deployment to production environments.
+
+> **Guiding Principle:** Systems should be resilient by default, observable under pressure, and simple enough to debug during incidents.
+
+\`\`\`mermaid
+flowchart LR
+  Ingress[Edge Ingress] --> Gateway[API Gateway]
+  Gateway --> ServiceA[Auth Service]
+  Gateway --> ServiceB[Workload Engine]
+  ServiceB --> Cache[(Distributed Cache)]
+  ServiceB --> PrimaryDB[(PostgreSQL Primary)]
+\`\`\`
+
+## 02 — Service Level Objectives (SLOs)
+
+All tier-1 user-facing endpoints operate under strict availability and latency budgets:
+
+| Service | Target Availability | Latency (p95) | Latency (p99) |
+|:---|:---:|:---:|:---:|
+| Edge Gateway | 99.99% | < 25 ms | < 60 ms |
+| Auth & Token Verification | 99.95% | < 45 ms | < 120 ms |
+| Data Processing Engine | 99.90% | < 250 ms | < 500 ms |
+
+### Failure Domain Isolation
+
+- **Bulkheads:** Separate worker pools and database connections for isolated client workloads.
+- **Circuit Breakers:** Upstream service timeouts trigger circuit breakers within 3 failures.
+- **Graceful Degradation:** Read caches serve stale data if database connections saturate.
+
+## 03 — Incident Lifecycle & Postmortems
+
+Every sev-1 incident mandates a blameless postmortem within 48 hours of resolution. Postmortems analyze systemic gaps rather than individual actions, focusing on architectural hardening and observability improvements.
+`
+
+export const sampleInvoiceDocument = `---
+layout: invoice
+title: Invoice INV-2026-042
+document-id: INV-2026-042
+invoice-number: INV-2026-042
+date: October 9, 2026
+due-date: November 8, 2026
+status: Due
+from: Fieldwork Studio
+from-address: |
+  100 Montgomery St, Suite 1400
+  San Francisco, CA 94104
+from-email: billing@fieldwork.studio
+from-phone: +1 (415) 555-0142
+from-tax-id: US-82-4910283
+client: Northstar Labs
+client-address: |
+  450 Mission St, 8th Floor
+  San Francisco, CA 94105
+client-email: ap@northstarlabs.com
+client-tax-id: US-94-3829101
+subtotal: "$28,000.00"
+tax: "$0.00"
+total: "$28,000.00"
+payment-terms: Net 30 days. Payments received after due date accrue 1.5% interest per month.
+theme: editorial
+lang: en
+---
+
+### Professional Services Rendered
+
+| Description | Qty / Hours | Rate | Amount |
+|:---|:---:|---:|---:|
+| **Brand Foundation & Strategy**<br>Stakeholder interviews, market scan, and narrative positioning | 40 hrs | $150.00 | $6,000.00 |
+| **Creative Direction & Visual Identity**<br>Typography system, design tokens, and two visual territories | 60 hrs | $150.00 | $9,000.00 |
+| **Launch Toolkit & Design System**<br>Figma library, component specs, and marketing templates | 50 hrs | $150.00 | $7,500.00 |
+| **Executive Handoff & Enablement**<br>Team training workshop and brand guidelines documentation | 1 | $5,500.00 | $5,500.00 |
+
+### Payment Instructions
+
+Please remit payment via ACH or wire transfer to:
+
+- **Bank Name:** Silicon Valley Bank / First Citizens
+- **Account Name:** Fieldwork Studio LLC
+- **Account Number:** 9821-4820-11
+- **Routing Number (ACH):** 121000358
+- **SWIFT / BIC:** SVBUS6SXXX
+
+*Thank you for your business!*
+`
+
+

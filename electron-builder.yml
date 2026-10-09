@@ -9,6 +9,8 @@ directories:
 files:
   - dist/**
   - dist-electron/**
+  - scripts/export-pdf-cli.cjs
+  - bin/**
   - package.json
 
 publish:
@@ -46,3 +48,32 @@ dmg:
       y: 220
       type: link
       path: /Applications
+
+win:
+  category: Productivity
+  icon: build/icon.png
+  target:
+    - target: nsis
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64
+
+nsis:
+  oneClick: true
+  perMachine: false
+  allowToChangeInstallationDirectory: false
+
+linux:
+  category: Office
+  icon: build/icon.png
+  target:
+    - target: AppImage
+      arch:
+        - x64
+    - target: deb
+      arch:
+        - x64
+

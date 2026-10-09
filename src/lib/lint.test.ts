@@ -115,6 +115,33 @@ Experienced engineer.
   })
 
   it('recognizes header and footer frontmatter keys', () => {
-    expect(rules('---\ntitle: T\nclient: C\nprepared-by: S\ndocument-id: D\nheader: false\nfooter: false\npage-header: true\npage-footer: true\n---\n\n## A\n')).toEqual([])
+    expect(rules('---\ntitle: T\nclient: C\nprepared-by: S\ndocument-id: D\nheader: false\nfooter: false\npage-header: true\npage-footer: true\nheader-left: H\nfooter-right: F\n---\n\n## A\n')).toEqual([])
+  })
+
+  it('recognizes invoice frontmatter keys without unknown key warnings', () => {
+    const invoiceDoc = `---
+layout: invoice
+invoice-number: INV-100
+date: October 9, 2026
+due-date: November 9, 2026
+status: Due
+from: Studio
+from-address: Address
+from-email: email@example.com
+from-phone: 555-1234
+from-tax-id: VAT-123
+client: Client
+client-address: Address
+client-email: c@example.com
+subtotal: "$1,000"
+tax: "$100"
+total: "$1,100"
+payment-terms: Net 30
+---
+
+## Services
+`
+    expect(rules(invoiceDoc)).toEqual([])
   })
 })
+

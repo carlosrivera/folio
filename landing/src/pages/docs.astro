@@ -1,0 +1,969 @@
+---
+import Layout from '../layouts/Layout.astro'
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+const githubRepo = 'https://github.com/carlosrivera/folio'
+const releasesUrl = `${githubRepo}/releases`
+const version = '0.2.0'
+const downloadSilicon = `${releasesUrl}/download/v${version}/Folio-${version}-arm64.dmg`
+const downloadIntel = `${releasesUrl}/download/v${version}/Folio-${version}.dmg`
+---
+
+<Layout title="Documentation — Folio" description="Complete documentation for Folio: Getting Started, Front Matter, Themes, MCP Server, and Development.">
+  <!-- Top Navigation -->
+  <header class="nav-wrap">
+    <div class="container nav-inner">
+      <a href={`${base}/`} class="brand" aria-label="Folio home">
+        <span class="brand-badge">F/</span>
+        <span class="brand-text">folio.</span>
+        <span class="brand-tag">docs</span>
+      </a>
+
+      <!-- Quick Nav Links -->
+      <nav class="nav-links" aria-label="Docs Navigation">
+        <a href="#getting-started">Getting Started</a>
+        <a href="#frontmatter">Front Matter</a>
+        <a href="#customizing-themes">Themes</a>
+        <a href="#mcp">MCP Agent Server</a>
+        <a href="#development">Development</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href={`${base}/`} class="btn-ghost" aria-label="Back to main page">
+          <span>← Back to Home</span>
+        </a>
+        <a href={githubRepo} target="_blank" rel="noopener noreferrer" class="icon-link" aria-label="GitHub Repository">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Docs Layout Container -->
+  <div class="container docs-container">
+    <!-- Sidebar Navigation -->
+    <aside class="docs-sidebar">
+      <nav class="sidebar-nav">
+        <div class="sidebar-group">
+          <p class="sidebar-title">Getting Started</p>
+          <a href="#getting-started" class="sidebar-link">Overview & Installation</a>
+          <a href="#editor-tour" class="sidebar-link">Editor Interface & Shortcuts</a>
+        </div>
+
+        <div class="sidebar-group">
+          <p class="sidebar-title">Front Matter</p>
+          <a href="#frontmatter" class="sidebar-link">Layouts & Metadata</a>
+          <a href="#layout-report" class="sidebar-link">Cover Report (SOW)</a>
+          <a href="#layout-invoice" class="sidebar-link">Invoices</a>
+          <a href="#layout-simple" class="sidebar-link">Simple & Headers/Footers</a>
+          <a href="#mermaid-katex" class="sidebar-link">Mermaid & KaTeX Math</a>
+        </div>
+
+        <div class="sidebar-group">
+          <p class="sidebar-title">Customizing Themes</p>
+          <a href="#customizing-themes" class="sidebar-link">Curated Themes</a>
+          <a href="#theme-overrides" class="sidebar-link">Per-Document Overrides</a>
+          <a href="#print-styles" class="sidebar-link">Print & Page Breaks</a>
+        </div>
+
+        <div class="sidebar-group">
+          <p class="sidebar-title">MCP Integration</p>
+          <a href="#mcp" class="sidebar-link">What is Folio MCP?</a>
+          <a href="#mcp-flag" class="sidebar-link">Zero-Setup Connection (--mcp)</a>
+          <a href="#mcp-clients" class="sidebar-link">Client Configurations</a>
+          <a href="#mcp-tools" class="sidebar-link">MCP Tools Reference</a>
+          <a href="#mcp-presets" class="sidebar-link">Custom Presets</a>
+        </div>
+
+        <div class="sidebar-group">
+          <p class="sidebar-title">Development</p>
+          <a href="#development" class="sidebar-link">Cloning & Local Dev</a>
+          <a href="#running-tests" class="sidebar-link">Running Tests & Audits</a>
+          <a href="#packaging-app" class="sidebar-link">Packaging Releases</a>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="docs-content">
+      <!-- Header -->
+      <section class="docs-hero">
+        <p class="eyebrow">Folio Documentation</p>
+        <h1 class="docs-title">Learn Folio</h1>
+        <p class="docs-lead">
+          Folio transforms raw Markdown into professional, paginated PDF documents. This guide covers the editor, YAML frontmatter configurations, theme customization, AI agent connections via MCP, and codebase development.
+        </p>
+      </section>
+
+      <!-- 1. GETTING STARTED -->
+      <section id="getting-started" class="docs-section">
+        <h2 class="section-heading">1. Getting Started</h2>
+        <p>
+          Folio is a macOS-first desktop application engineered with Electron, React, CodeMirror 6, and Paged.js. It bridges the gap between lightweight Markdown writing and executive-ready A4 PDF publishing.
+        </p>
+
+        <h3 class="sub-heading">Installation</h3>
+        <p>Download the latest release for your Mac architecture:</p>
+        <div class="download-chips">
+          <a href={downloadSilicon} class="chip-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <span>Download for Apple Silicon (M1/M2/M3/M4)</span>
+          </a>
+          <a href={downloadIntel} class="chip-btn secondary">
+            <span>Download for Intel Mac</span>
+          </a>
+        </div>
+        <p class="tip-callout">
+          <strong>Tip:</strong> Open the downloaded <code>.dmg</code> and drag <strong>Folio.app</strong> into your <code>/Applications</code> directory.
+        </p>
+
+        <h3 id="editor-tour" class="sub-heading">Editor Interface & Shortcuts</h3>
+        <p>Folio features a synchronized split pane: write on the left with full CodeMirror syntax highlighting, and watch realistic A4 pages format in real-time on the right.</p>
+
+        <div class="table-wrap">
+          <table class="docs-table">
+            <thead>
+              <tr>
+                <th>Shortcut</th>
+                <th>Action</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>⌘ O</code></td>
+                <td>Open File</td>
+                <td>Open any local <code>.md</code> or <code>.markdown</code> file.</td>
+              </tr>
+              <tr>
+                <td><code>⌘ S</code></td>
+                <td>Save File</td>
+                <td>Saves changes directly to the source Markdown file.</td>
+              </tr>
+              <tr>
+                <td><code>⇧ ⌘ E</code></td>
+                <td>Export PDF</td>
+                <td>Renders and compiles the paginated document into a vector PDF.</td>
+              </tr>
+              <tr>
+                <td><code>⌘ F</code></td>
+                <td>Find & Replace</td>
+                <td>Opens the CodeMirror search bar in the editor pane.</td>
+              </tr>
+              <tr>
+                <td><code>⌘ 1</code> / <code>⌘ 2</code></td>
+                <td>Layout Controls</td>
+                <td>Toggle between split view, editor-only, and preview-only modes.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 2. FRONT MATTER -->
+      <section id="frontmatter" class="docs-section">
+        <h2 class="section-heading">2. Document Front Matter</h2>
+        <p>
+          Folio documents are 100% standard Markdown. You can optionally include a YAML frontmatter block at the very top of your document to configure layouts, metadata, invoices, or running headers and footers.
+        </p>
+
+        <h3 id="layout-report" class="sub-heading">A. Cover Report / SOW (<code>layout: cover-report</code>)</h3>
+        <p>
+          The default layout for statements of work, proposals, whitepapers, and formal reports. Generates a branded cover page with metadata fields, followed by numbered pages.
+        </p>
+
+        <div class="code-block">
+          <div class="code-header"><span>sample-sow.md</span></div>
+          <pre><code>---
+layout: cover-report
+title: Enterprise Cloud Architecture Proposal
+kicker: Technical Proposal
+client: Acme Global Industries
+prepared-for: Marcus Vance, CTO
+prepared-by: Meridian Cloud Advisory
+date: October 12, 2026
+valid-until: November 12, 2026
+document-id: SOW-2026-089
+theme: editorial
+lang: en
+---
+
+# Executive Summary
+
+This proposal outlines the multi-region migration strategy...</code></pre>
+        </div>
+
+        <h3 id="layout-invoice" class="sub-heading">B. Invoices (<code>layout: invoice</code>)</h3>
+        <p>
+          A dedicated commercial invoice layout. Folio automatically renders clean vendor/client header cards, a formatted line items table, subtotal, tax rate, total due, and remittance instructions.
+        </p>
+
+        <div class="code-block">
+          <div class="code-header"><span>invoice-0042.md</span></div>
+          <pre><code>---
+layout: invoice
+title: Invoice INV-2026-0042
+client: Northstar Technologies
+prepared-by: Carlos Rivera Studio
+date: 2026-10-15
+theme: contrast
+invoice:
+  number: INV-2026-0042
+  issue-date: 2026-10-15
+  due-date: 2026-11-15
+  currency: USD
+  tax-rate: 8.5
+  items:
+    - description: Brand Identity Design System
+      quantity: 1
+      unit-price: 4500
+      total: 4500
+    - description: Design System Component Tokens
+      quantity: 40
+      unit-price: 75
+      total: 3000
+  notes: Payment due within 30 days via wire transfer or ACH.
+  bank:
+    name: Silicon Valley Bank
+    account: "4820-9182-01"
+    routing: "121000358"
+---
+
+### Payment Instructions
+
+Please remit payment within 30 calendar days. Contact billing@rivera.im for questions.</code></pre>
+        </div>
+
+        <h3 id="layout-simple" class="sub-heading">C. Simple Documents & Running Headers/Footers (<code>layout: simple</code>)</h3>
+        <p>
+          Ideal for memos, technical specs, meeting notes, articles, and short policies where a cover page is unnecessary. You can customize running headers and footers directly:
+        </p>
+
+        <div class="code-block">
+          <div class="code-header"><span>tech-spec.md</span></div>
+          <pre><code>---
+layout: simple
+title: Real-Time Sync Engine Spec
+header-left: "Folio Engine V2"
+header-right: "Confidential"
+footer-left: "Revision 1.4"
+footer-right: "Page &#123;page&#125; of &#123;pages&#125;"
+theme: graphite
+---
+
+# Architecture Overview
+
+This specification details the conflict-free replicated data types...</code></pre>
+        </div>
+
+        <h3 id="mermaid-katex" class="sub-heading">D. Mermaid Diagrams & KaTeX Math</h3>
+        <p>
+          Folio natively paginates Mermaid diagrams and LaTeX equations:
+        </p>
+        <ul>
+          <li><strong>Mermaid:</strong> Use standard fenced <code>```mermaid</code> blocks. Folio colors them according to your active theme swatch!</li>
+          <li><strong>LaTeX:</strong> Write inline formulas with <code>$E = mc^2$</code> and block formulas with <code>$$ \frac&#123;\partial f&#125;&#123;\partial x&#125; = 2x $$</code>.</li>
+        </ul>
+      </section>
+
+      <!-- 3. CUSTOMIZING THEMES -->
+      <section id="customizing-themes" class="docs-section">
+        <h2 class="section-heading">3. Customizing Themes & Typography</h2>
+        <p>
+          Folio bundles 7 curated design presets crafted specifically for print pagination:
+        </p>
+
+        <div class="themes-overview-grid">
+          <div class="theme-pill"><strong>voltage</strong>: Pitch black, acid neon lime, sharp monospace</div>
+          <div class="theme-pill"><strong>editorial</strong>: British racing green cover, terracotta rules, serif type</div>
+          <div class="theme-pill"><strong>slate</strong>: Midnight navy, sky blue accents, corporate engineering</div>
+          <div class="theme-pill"><strong>scientific</strong>: Paper white, formal steel navy, numbered math</div>
+          <div class="theme-pill"><strong>contrast</strong>: Brutalist monochrome black & white, high contrast</div>
+          <div class="theme-pill"><strong>graphite</strong>: Charcoal gray, technical drafting lime</div>
+          <div class="theme-pill"><strong>nocturne</strong>: Deep plum, cyberpunk violet & pink</div>
+        </div>
+
+        <h3 id="theme-overrides" class="sub-heading">Per-Document Overrides</h3>
+        <p>
+          You can override any theme's color palette or font families inside your Markdown frontmatter:
+        </p>
+
+        <div class="code-block">
+          <div class="code-header"><span>frontmatter-overrides.yaml</span></div>
+          <pre><code>---
+theme: editorial
+theme-overrides:
+  accent: "#2563eb"
+  font-heading: "Space Grotesk, sans-serif"
+  font-body: "Inter, sans-serif"
+  font-mono: "JetBrains Mono, monospace"
+---</code></pre>
+        </div>
+
+        <h3 id="print-styles" class="sub-heading">Page Breaks and Landscape Sections</h3>
+        <p>Need explicit page control? Insert standard HTML helper tags anywhere in your Markdown body:</p>
+        <div class="code-block">
+          <pre><code>&lt;!-- Force a clean page break before a new section --&gt;
+&lt;div class="page-break"&gt;&lt;/div&gt;
+
+&lt;!-- Rotate a wide financial table or diagram into landscape mode --&gt;
+&lt;div class="page-landscape"&gt;
+
+| Q1 Revenue | Q2 Revenue | Q3 Revenue | Q4 Revenue | Total YTD | Margin |
+|:---|:---|:---|:---|:---|:---|
+| $1,200,000 | $1,450,000 | $1,800,000 | $2,100,000 | $6,550,000 | 38.2% |
+
+&lt;/div&gt;</code></pre>
+        </div>
+      </section>
+
+      <!-- 4. MCP INTEGRATION -->
+      <section id="mcp" class="docs-section">
+        <h2 class="section-heading">4. Model Context Protocol (MCP) Integration</h2>
+        <p>
+          Folio includes a native <strong>Model Context Protocol (MCP)</strong> server. This allows AI coding agents and LLM clients (such as Claude Desktop, Cursor, Google Antigravity, Cline, and Windsurf) to inspect document schemas, create branded documents, customize frontmatter, lint formatting, and compile pixel-perfect PDFs end-to-end.
+        </p>
+
+        <h3 id="mcp-flag" class="sub-heading">Zero-Clone Connection via Native App Flag (<code>--mcp</code>)</h3>
+        <p>
+          You do <strong>not</strong> need to clone this repository, install Node.js, or hardcode development paths. If you have <strong>Folio.app</strong> installed in your Applications folder, launch it directly in headless MCP mode:
+        </p>
+
+        <div class="code-block">
+          <div class="code-header"><span>Terminal command</span></div>
+          <pre><code>/Applications/Folio.app/Contents/MacOS/Folio --mcp</code></pre>
+        </div>
+
+        <p class="tip-callout">
+          <strong>Pro Tip: Create a system-wide <code>folio</code> CLI shortcut</strong><br/>
+          Run this one-line command in your terminal to symlink Folio to your PATH:
+          <br/><br/>
+          <code>sudo ln -sf /Applications/Folio.app/Contents/MacOS/Folio /usr/local/bin/folio</code>
+          <br/><br/>
+          Then you can simply configure your AI tools to run <code>folio --mcp</code> anywhere!
+        </p>
+
+        <h3 id="mcp-clients" class="sub-heading">Client Configuration Snippets</h3>
+        <p>Copy and paste the configuration block for your preferred AI client:</p>
+
+        <div class="client-tabs">
+          <div class="client-tab">
+            <h4>Claude Desktop</h4>
+            <p>File: <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></p>
+            <div class="code-block">
+              <pre><code>&#123;
+  "mcpServers": &#123;
+    "folio": &#123;
+      "command": "/Applications/Folio.app/Contents/MacOS/Folio",
+      "args": ["--mcp"]
+    &#125;
+  &#125;
+&#125;</code></pre>
+            </div>
+          </div>
+
+          <div class="client-tab">
+            <h4>Cursor</h4>
+            <p>File: <code>.cursor/mcp.json</code> or <strong>Settings &gt; Features &gt; MCP</strong></p>
+            <div class="code-block">
+              <pre><code>&#123;
+  "mcpServers": &#123;
+    "folio": &#123;
+      "command": "/Applications/Folio.app/Contents/MacOS/Folio",
+      "args": ["--mcp"]
+    &#125;
+  &#125;
+&#125;</code></pre>
+            </div>
+          </div>
+
+          <div class="client-tab">
+            <h4>Google Antigravity</h4>
+            <p>File: <code>~/.gemini/config/mcp_config.json</code></p>
+            <div class="code-block">
+              <pre><code>&#123;
+  "mcpServers": &#123;
+    "folio": &#123;
+      "command": "/Applications/Folio.app/Contents/MacOS/Folio",
+      "args": ["--mcp"]
+    &#125;
+  &#125;
+&#125;</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <h3 id="mcp-tools" class="sub-heading">The 7 MCP Agent Tools</h3>
+        <div class="table-wrap">
+          <table class="docs-table">
+            <thead>
+              <tr>
+                <th>Tool Name</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>folio_list_document_types</code></td>
+                <td>Lists all 9 built-in presets (report, invoice, simple, cv, whitepaper, contract...) and workspace presets.</td>
+              </tr>
+              <tr>
+                <td><code>folio_get_document_type</code></td>
+                <td>Returns schema fields, frontmatter defaults, and starter template body for a given preset ID.</td>
+              </tr>
+              <tr>
+                <td><code>folio_create_document</code></td>
+                <td>Generates a full Markdown file with structured frontmatter, content, and optional file output.</td>
+              </tr>
+              <tr>
+                <td><code>folio_customize_document</code></td>
+                <td>Safely modifies frontmatter keys or updates document sections while preserving comments.</td>
+              </tr>
+              <tr>
+                <td><code>folio_lint_document</code></td>
+                <td>Lints Markdown for broken KaTeX math, unclosed Mermaid fences, invalid layout keys, or broken links.</td>
+              </tr>
+              <tr>
+                <td><code>folio_export_pdf</code></td>
+                <td>Compiles Markdown to an A4 PDF using the headless Electron renderer (Paged.js + KaTeX + Mermaid).</td>
+              </tr>
+              <tr>
+                <td><code>folio_register_document_type</code></td>
+                <td>Persists a custom reusable document format into <code>.folio/presets/&lt;id&gt;.json</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 id="mcp-presets" class="sub-heading">Custom Presets in <code>.folio/presets/</code></h3>
+        <p>
+          When an agent or user registers a custom document format via <code>folio_register_document_type</code>, Folio saves it into <code>.folio/presets/&lt;id&gt;.json</code> in your repository root. These presets are automatically discovered on future runs across all agent sessions.
+        </p>
+      </section>
+
+      <!-- 5. DEVELOPMENT -->
+      <section id="development" class="docs-section">
+        <h2 class="section-heading">5. Development & Contributing</h2>
+        <p>
+          Contributing to Folio or running the app from source is straightforward:
+        </p>
+
+        <h3 class="sub-heading">Prerequisites</h3>
+        <ul>
+          <li><strong>macOS</strong> (Apple Silicon or Intel)</li>
+          <li><strong>Node.js 20</strong> or newer</li>
+          <li><strong>pnpm 11+</strong> (<code>corepack enable &amp;&amp; corepack prepare pnpm@latest --activate</code>)</li>
+        </ul>
+
+        <h3 class="sub-heading">Cloning & Running Locally</h3>
+        <div class="code-block">
+          <pre><code># 1. Clone the repository
+git clone https://github.com/carlosrivera/folio.git
+cd folio
+
+# 2. Install dependencies
+pnpm install
+
+# 3. Start development environment
+pnpm dev</code></pre>
+        </div>
+        <p>
+          <code>pnpm dev</code> starts the Vite renderer server on <code>localhost:5173</code> and launches the Electron application with hot reloading.
+        </p>
+
+        <h3 id="running-tests" class="sub-heading">Running Tests & Verification</h3>
+        <div class="code-block">
+          <pre><code># Run Vitest unit tests (lib, diff, document parser, linting, mcp server)
+pnpm test
+
+# Run full project verification (TypeScript + Vitest + Render Tests + Editor Smoke)
+pnpm check
+
+# Run headless golden visual regression tests
+pnpm test:render
+
+# Test MCP server directly over stdio
+pnpm mcp</code></pre>
+        </div>
+
+        <h3 id="packaging-app" class="sub-heading">Packaging macOS Releases Locally</h3>
+        <p>
+          Folio uses <code>electron-builder</code> to produce universal and signed macOS distributions:
+        </p>
+        <div class="code-block">
+          <pre><code># Build macOS distributables (.dmg and .zip) into dist-packaged/
+pnpm dist:mac
+
+# Build unpackaged directory app for inspection
+pnpm dist:dir</code></pre>
+        </div>
+
+        <h3 class="sub-heading">Landing Page & Docs Development</h3>
+        <div class="code-block">
+          <pre><code># Run Astro docs & landing server locally
+pnpm landing:dev
+
+# Build static production site to landing/dist/
+pnpm landing:build</code></pre>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="docs-footer">
+    <div class="container footer-inner">
+      <div class="footer-left">
+        <span class="brand-badge">F/</span>
+        <span>Folio &copy; 2026. Made with care for writers and engineers.</span>
+      </div>
+      <div class="footer-links">
+        <a href={`${base}/`}>Home</a>
+        <a href={`${base}/#themes`}>Themes</a>
+        <a href={githubRepo} target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href={releasesUrl} target="_blank" rel="noopener noreferrer">Releases</a>
+      </div>
+    </div>
+  </footer>
+</Layout>
+
+<style>
+  /* Header & Navigation */
+  .nav-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--nav-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 700;
+    font-size: 1.15rem;
+  }
+
+  .brand-badge {
+    background: var(--accent);
+    color: var(--accent-fg);
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .brand-tag {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--text-2);
+    letter-spacing: 0.04em;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .nav-links a {
+    color: var(--text-2);
+    text-decoration: none;
+    font-size: 0.92rem;
+    font-weight: 500;
+    transition: color 0.15s ease;
+  }
+
+  .nav-links a:hover {
+    color: var(--accent);
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .btn-ghost {
+    color: var(--text-2);
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+  }
+
+  .btn-ghost:hover {
+    color: var(--text);
+    background: var(--surface);
+  }
+
+  .icon-link {
+    color: var(--text-2);
+    display: inline-flex;
+    align-items: center;
+    transition: color 0.15s ease;
+  }
+
+  .icon-link:hover {
+    color: var(--text);
+  }
+
+  /* Docs Container & Layout */
+  .docs-container {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 48px;
+    padding-top: 48px;
+    padding-bottom: 96px;
+    align-items: start;
+  }
+
+  /* Sticky Sidebar */
+  .docs-sidebar {
+    position: sticky;
+    top: 96px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    padding-right: 16px;
+  }
+
+  .sidebar-group {
+    margin-bottom: 24px;
+  }
+
+  .sidebar-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: var(--text-faint);
+    margin: 0 0 10px 0;
+  }
+
+  .sidebar-link {
+    display: block;
+    color: var(--text-2);
+    text-decoration: none;
+    font-size: 0.88rem;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+    line-height: 1.4;
+  }
+
+  .sidebar-link:hover {
+    color: var(--text);
+    background: var(--surface);
+  }
+
+  /* Docs Content Area */
+  .docs-content {
+    min-width: 0;
+    max-width: 860px;
+  }
+
+  .docs-hero {
+    margin-bottom: 48px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 32px;
+  }
+
+  .eyebrow {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .docs-title {
+    font-size: 2.75rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin: 0 0 16px 0;
+  }
+
+  .docs-lead {
+    font-size: 1.15rem;
+    line-height: 1.6;
+    color: var(--text-2);
+    margin: 0;
+  }
+
+  .docs-section {
+    margin-bottom: 64px;
+    scroll-margin-top: 84px;
+  }
+
+  .section-heading {
+    font-size: 1.85rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin: 0 0 16px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .sub-heading {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    margin: 32px 0 12px 0;
+    scroll-margin-top: 84px;
+  }
+
+  .docs-section p, .docs-section li {
+    font-size: 1rem;
+    line-height: 1.65;
+    color: var(--text-2);
+  }
+
+  .docs-section ul {
+    padding-left: 20px;
+    margin: 12px 0;
+  }
+
+  .docs-section li {
+    margin-bottom: 6px;
+  }
+
+  /* Code Blocks */
+  .code-block {
+    background: #0d1117;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 18px 0;
+  }
+
+  .code-header {
+    background: rgba(255, 255, 255, 0.04);
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.78rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: #8b949e;
+  }
+
+  .code-block pre {
+    margin: 0;
+    padding: 16px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: #e6edf3;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88em;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--text);
+  }
+
+  .code-block code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: inherit;
+  }
+
+  /* Callouts & Buttons */
+  .tip-callout {
+    background: var(--surface);
+    border-left: 4px solid var(--accent);
+    padding: 14px 18px;
+    border-radius: 0 8px 8px 0;
+    margin: 18px 0;
+    font-size: 0.94rem;
+  }
+
+  .download-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 18px 0;
+  }
+
+  .chip-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: var(--accent);
+    color: var(--accent-fg);
+    border-radius: 8px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+  }
+
+  .chip-btn.secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .chip-btn:hover {
+    opacity: 0.9;
+  }
+
+  /* Tables */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 20px 0;
+  }
+
+  .docs-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+    text-align: left;
+  }
+
+  .docs-table th, .docs-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .docs-table th {
+    background: var(--surface);
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .docs-table td {
+    color: var(--text-2);
+  }
+
+  /* Themes overview grid */
+  .themes-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+    margin: 18px 0;
+  }
+
+  .theme-pill {
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.88rem;
+    color: var(--text-2);
+  }
+
+  .theme-pill strong {
+    color: var(--text);
+  }
+
+  /* Client Tabs */
+  .client-tabs {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin: 20px 0;
+  }
+
+  .client-tab {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px;
+  }
+
+  .client-tab h4 {
+    margin: 0 0 6px 0;
+    font-size: 1.05rem;
+    color: var(--text);
+  }
+
+  .client-tab p {
+    margin: 0 0 10px 0;
+    font-size: 0.85rem;
+    color: var(--text-faint);
+  }
+
+  /* Footer */
+  .docs-footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 0;
+    background: var(--surface);
+  }
+
+  .footer-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.88rem;
+    color: var(--text-faint);
+  }
+
+  .footer-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 20px;
+  }
+
+  .footer-links a {
+    color: var(--text-2);
+    text-decoration: none;
+  }
+
+  .footer-links a:hover {
+    color: var(--accent);
+  }
+
+  @media (max-width: 900px) {
+    .docs-container {
+      grid-template-columns: 1fr;
+    }
+    .docs-sidebar {
+      display: none;
+    }
+    .nav-links {
+      display: none;
+    }
+    .footer-inner {
+      flex-direction: column;
+      gap: 16px;
+      text-align: center;
+    }
+  }
+</style>

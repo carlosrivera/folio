@@ -2,6 +2,8 @@ export type SupportedLanguage = 'en' | 'es'
 
 export interface I18nTranslations {
   statementOfWork: string
+  report: string
+  reportLayout: string
   preparedFor: string
   preparedBy: string
   issued: string
@@ -21,11 +23,21 @@ export interface I18nTranslations {
   layout: string
   sowLayout: string
   cvLayout: string
+  invoice: string
+  invoiceNumber: string
+  invoiceDate: string
+  dueDate: string
+  billTo: string
+  billFrom: string
+  simpleLayout: string
+  invoiceLayout: string
 }
 
 export const translations: Record<SupportedLanguage, I18nTranslations> = {
   en: {
     statementOfWork: 'Statement of Work',
+    report: 'Report',
+    reportLayout: 'Report',
     preparedFor: 'Prepared for',
     preparedBy: 'Prepared by',
     issued: 'Issued',
@@ -45,9 +57,19 @@ export const translations: Record<SupportedLanguage, I18nTranslations> = {
     layout: 'Layout',
     sowLayout: 'Statement of Work',
     cvLayout: 'Curriculum Vitae',
+    invoice: 'Invoice',
+    invoiceNumber: 'Invoice No.',
+    invoiceDate: 'Date',
+    dueDate: 'Due Date',
+    billTo: 'Bill To',
+    billFrom: 'From',
+    simpleLayout: 'Simple Document',
+    invoiceLayout: 'Invoice',
   },
   es: {
     statementOfWork: 'Propuesta de Trabajo',
+    report: 'Informe',
+    reportLayout: 'Informe',
     preparedFor: 'Preparado para',
     preparedBy: 'Preparado por',
     issued: 'Fecha de emisión',
@@ -67,6 +89,14 @@ export const translations: Record<SupportedLanguage, I18nTranslations> = {
     layout: 'Diseño',
     sowLayout: 'Propuesta de Trabajo',
     cvLayout: 'Currículum Vitae',
+    invoice: 'Factura',
+    invoiceNumber: 'Nº Factura',
+    invoiceDate: 'Fecha',
+    dueDate: 'Vencimiento',
+    billTo: 'Facturar a',
+    billFrom: 'De',
+    simpleLayout: 'Documento Simple',
+    invoiceLayout: 'Factura',
   },
 }
 

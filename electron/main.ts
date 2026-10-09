@@ -97,6 +97,7 @@ function createWindow() {
   // The shell has its own light/dark palette; let the OS drive the frame.
   nativeTheme.themeSource = 'system'
   const iconPath = getIconPath()
+  const isMac = process.platform === 'darwin'
   mainWindow = new BrowserWindow({
     title: 'Folio',
     ...(iconPath ? { icon: iconPath } : {}),
@@ -104,8 +105,14 @@ function createWindow() {
     height: 920,
     minWidth: 1040,
     minHeight: 680,
-    titleBarStyle: 'hiddenInset',
-    trafficLightPosition: { x: 18, y: 18 },
+    ...(isMac
+      ? {
+          titleBarStyle: 'hiddenInset' as const,
+          trafficLightPosition: { x: 18, y: 18 },
+        }
+      : {
+          autoHideMenuBar: false,
+        }),
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#17171a' : '#e9e8e4',
     show: false,
     webPreferences: {
@@ -158,22 +165,27 @@ function installMenu() {
       ]
     : [{ label: 'No Recent Documents', enabled: false }]
 
+  const isMac = process.platform === 'darwin'
   const template: Electron.MenuItemConstructorOptions[] = [
-    {
-      label: 'Folio',
-      submenu: [
-        { role: 'about' },
-        { label: 'Check for Updates…', click: () => checkForUpdates(true) },
-        { type: 'separator' },
-        { role: 'services' },
-        { type: 'separator' },
-        { role: 'hide' },
-        { role: 'hideOthers' },
-        { role: 'unhide' },
-        { type: 'separator' },
-        { role: 'quit' },
-      ],
-    },
+    ...(isMac
+      ? [
+          {
+            label: 'Folio',
+            submenu: [
+              { role: 'about' as const },
+              { label: 'Check for Updates…', click: () => checkForUpdates(true) },
+              { type: 'separator' as const },
+              { role: 'services' as const },
+              { type: 'separator' as const },
+              { role: 'hide' as const },
+              { role: 'hideOthers' as const },
+              { role: 'unhide' as const },
+              { type: 'separator' as const },
+              { role: 'quit' as const },
+            ],
+          },
+        ]
+      : []),
     {
       label: 'File',
       submenu: [
@@ -184,12 +196,23 @@ function installMenu() {
         { type: 'separator' },
         { label: 'Export PDF…', accelerator: 'CmdOrCtrl+Shift+E', click: () => sendMenuCommand('export') },
         { type: 'separator' },
-        { role: 'close' },
+        isMac ? { role: 'close' } : { role: 'quit', label: 'Exit' },
       ],
     },
     { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }, { type: 'separator' }, { label: 'Find and Replace…', accelerator: 'CmdOrCtrl+F', click: () => sendMenuCommand('find') }] },
     { label: 'View', submenu: [{ role: 'reload' }, { role: 'toggleDevTools' }, { type: 'separator' }, { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' }, { type: 'separator' }, { role: 'togglefullscreen' }] },
     { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'zoom' }, { type: 'separator' }, { role: 'front' }] },
+    ...(!isMac
+      ? [
+          {
+            label: 'Help',
+            submenu: [
+              { role: 'about' as const },
+              { label: 'Check for Updates…', click: () => checkForUpdates(true) },
+            ],
+          },
+        ]
+      : []),
   ]
   Menu.setApplicationMenu(Menu.buildFromTemplate(template))
 }
@@ -492,36 +515,56 @@ ipcMain.handle('document:export-pdf', async (_event, payload: { markdown: string
   }
 })
 
-app.whenReady().then(async () => {
-  app.name = 'Folio'
-  app.setName('Folio')
-  if (process.platform === 'darwin') {
-    app.setAboutPanelOptions({
-      applicationName: 'Folio',
-      applicationVersion: '0.1.0',
-      copyright: '© 2026 Folio',
-      credits: 'A macOS-first Markdown document editor with paginated preview and PDF export.',
-    })
-    const iconPath = getIconPath()
-    if (iconPath && app.dock) {
-      try {
-        const image = nativeImage.createFromPath(iconPath)
-        if (!image.isEmpty()) {
-          app.dock.setIcon(image)
+const isMcpMode = process.argv.includes('--mcp')
+
+if (isMcpMode) {
+  if (app.dock) {
+    app.dock.hide()
+  }
+  process.stdin.on('end', () => app.quit())
+  process.stdin.on('close', () => app.quit())
+
+  app.whenReady().then(async () => {
+    try {
+      const { startFolioMcpServer } = await import('../src/mcp/server')
+      await startFolioMcpServer()
+    } catch (err) {
+      console.error('Fatal Folio MCP server error:', err)
+      process.exit(1)
+    }
+  })
+} else {
+  app.whenReady().then(async () => {
+    app.name = 'Folio'
+    app.setName('Folio')
+    if (process.platform === 'darwin') {
+      app.setAboutPanelOptions({
+        applicationName: 'Folio',
+        applicationVersion: '0.2.0',
+        copyright: '© 2026 Folio',
+        credits: 'A Markdown document editor with paginated preview, PDF export, and Model Context Protocol agent support.',
+      })
+      const iconPath = getIconPath()
+      if (iconPath && app.dock) {
+        try {
+          const image = nativeImage.createFromPath(iconPath)
+          if (!image.isEmpty()) {
+            app.dock.setIcon(image)
+          }
+        } catch (err) {
+          console.error('Failed to set dock icon:', err)
         }
-      } catch (err) {
-        console.error('Failed to set dock icon:', err)
       }
     }
-  }
-  await loadRecentDocuments()
-  installMenu()
-  createWindow()
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    await loadRecentDocuments()
+    installMenu()
+    createWindow()
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    })
   })
-})
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit()
-})
+  app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') app.quit()
+  })
+}

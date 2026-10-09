@@ -63,7 +63,7 @@
         "pagedjs_left_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Propuesta de TrabajoFIX-002",
+      "header": "Folio Test Suite / InformeFIX-002",
       "footer": "Fixture CoPágina 2 de 3",
       "outline": [
         "h2 Índice de Contenido"
@@ -75,7 +75,7 @@
         "pagedjs_right_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Propuesta de TrabajoFIX-002",
+      "header": "Folio Test Suite / InformeFIX-002",
       "footer": "Fixture CoPágina 3 de 3",
       "outline": [
         "h2 01 — Sección con Overrides",

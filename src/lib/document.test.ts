@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { SUPPORTED_THEMES, SUPPORTED_LAYOUTS, parseDocument, upsertLanguage, upsertLayout, upsertTheme, upsertThemeOverrides, suggestedFileName } from './document'
+import { SUPPORTED_THEMES, SUPPORTED_LAYOUTS, parseDocument, formatChromeText, upsertLanguage, upsertLayout, upsertTheme, upsertThemeOverrides, suggestedFileName } from './document'
 
 describe('upsertLanguage', () => {
   it('persists a language choice in a document without front matter', () => {
@@ -310,9 +310,9 @@ describe('upsertLayout', () => {
 })
 
 describe('layout selection and CV metadata', () => {
-  it('defaults to sow layout when layout is unspecified', () => {
+  it('defaults to report layout when layout is unspecified', () => {
     const doc = parseDocument('---\ntitle: Proposal\n---\n\n# Body')
-    expect(doc.metadata.layout).toBe('sow')
+    expect(doc.metadata.layout).toBe('report')
     expect(doc.metadata.toc).toBe(true)
   })
 
@@ -320,8 +320,10 @@ describe('layout selection and CV metadata', () => {
     expect(parseDocument('---\nlayout: cv\n---\n# T').metadata.layout).toBe('cv')
     expect(parseDocument('---\nlayout: resume\n---\n# T').metadata.layout).toBe('cv')
     expect(parseDocument('---\nlayout: curriculum-vitae\n---\n# T').metadata.layout).toBe('cv')
-    expect(parseDocument('---\nlayout: sow\n---\n# T').metadata.layout).toBe('sow')
-    expect(parseDocument('---\nlayout: proposal\n---\n# T').metadata.layout).toBe('sow')
+    expect(parseDocument('---\nlayout: report\n---\n# T').metadata.layout).toBe('report')
+    expect(parseDocument('---\nlayout: sow\n---\n# T').metadata.layout).toBe('report')
+    expect(parseDocument('---\nlayout: proposal\n---\n# T').metadata.layout).toBe('report')
+    expect(parseDocument('---\nlayout: statement-of-work\n---\n# T').metadata.layout).toBe('report')
   })
 
   it('parses CV specific metadata and disables TOC by default', () => {
@@ -350,7 +352,11 @@ Expert in distributed systems.
     expect(doc.metadata.footer).toBe(true)
   })
 
-  it('defaults header to true on SOW layout and false on CV layout', () => {
+  it('defaults header to true on report/SOW layout and false on CV layout', () => {
+    const report = parseDocument('---\nlayout: report\n---\n# Report')
+    expect(report.metadata.header).toBe(true)
+    expect(report.metadata.footer).toBe(true)
+
     const sow = parseDocument('---\nlayout: sow\n---\n# SOW')
     expect(sow.metadata.header).toBe(true)
     expect(sow.metadata.footer).toBe(true)
@@ -358,6 +364,11 @@ Expert in distributed systems.
     const cv = parseDocument('---\nlayout: cv\n---\n# CV')
     expect(cv.metadata.header).toBe(false)
     expect(cv.metadata.footer).toBe(true)
+  })
+
+  it('parses kicker from frontmatter', () => {
+    const doc = parseDocument('---\nlayout: report\nkicker: Technical Specification\n---\n# Spec')
+    expect(doc.metadata.kicker).toBe('Technical Specification')
   })
 
   it('allows enabling/disabling header and footer via frontmatter flags and aliases', () => {
@@ -382,6 +393,157 @@ Expert in distributed systems.
     const noPageFooter = parseDocument('---\nlayout: sow\npage-footer: false\n---\n# SOW')
     expect(noPageFooter.metadata.footer).toBe(false)
   })
+
+  it('accepts simple layout and aliases, defaulting toc and header to false', () => {
+    for (const alias of ['simple', 'plain', 'markdown', 'document', 'doc', 'note']) {
+      const doc = parseDocument(`---\nlayout: ${alias}\n---\n# Note`)
+      expect(doc.metadata.layout).toBe('simple')
+      expect(doc.metadata.toc).toBe(false)
+      expect(doc.metadata.header).toBe(false)
+      expect(doc.metadata.footer).toBe(true)
+    }
+  })
+
+  it('accepts invoice layout and aliases, parsing invoice metadata fields', () => {
+    for (const alias of ['invoice', 'factura', 'bill', 'receipt']) {
+      const doc = parseDocument(`---\nlayout: ${alias}\n---\n# Bill`)
+      expect(doc.metadata.layout).toBe('invoice')
+      expect(doc.metadata.toc).toBe(false)
+    }
+
+    const invoice = parseDocument(`---
+layout: invoice
+invoice-number: INV-2026-99
+date: October 9, 2026
+due-date: November 8, 2026
+status: Due
+po-number: PO-1024
+from: Fieldwork Studio
+from-address: |
+  100 Montgomery St
+  San Francisco, CA
+from-email: billing@fieldwork.studio
+from-phone: +1 (415) 555-0142
+from-tax-id: US-12-3456789
+client: Northstar Labs
+client-address: 450 Mission St
+client-email: ap@northstar.com
+client-tax-id: US-98-7654321
+subtotal: "$10,000.00"
+tax: "$850.00"
+tax-rate: "8.5%"
+total: "$10,850.00"
+amount-due: "$10,850.00"
+payment-terms: Net 30 days
+payment-details: Bank of America Acct 12345
+notes: Thank you for your business!
+---
+# Invoice
+`)
+
+    expect(invoice.metadata.layout).toBe('invoice')
+    expect(invoice.metadata.invoiceNumber).toBe('INV-2026-99')
+    expect(invoice.metadata.documentId).toBe('INV-2026-99')
+    expect(invoice.metadata.title).toBe('Invoice INV-2026-99')
+    expect(invoice.metadata.date).toBe('October 9, 2026')
+    expect(invoice.metadata.dueDate).toBe('November 8, 2026')
+    expect(invoice.metadata.status).toBe('Due')
+    expect(invoice.metadata.poNumber).toBe('PO-1024')
+    expect(invoice.metadata.from).toBe('Fieldwork Studio')
+    expect(invoice.metadata.fromAddress).toContain('100 Montgomery St')
+    expect(invoice.metadata.fromEmail).toBe('billing@fieldwork.studio')
+    expect(invoice.metadata.fromPhone).toBe('+1 (415) 555-0142')
+    expect(invoice.metadata.fromTaxId).toBe('US-12-3456789')
+    expect(invoice.metadata.client).toBe('Northstar Labs')
+    expect(invoice.metadata.clientAddress).toBe('450 Mission St')
+    expect(invoice.metadata.clientEmail).toBe('ap@northstar.com')
+    expect(invoice.metadata.clientTaxId).toBe('US-98-7654321')
+    expect(invoice.metadata.subtotal).toBe('$10,000.00')
+    expect(invoice.metadata.tax).toBe('$850.00')
+    expect(invoice.metadata.taxRate).toBe('8.5%')
+    expect(invoice.metadata.total).toBe('$10,850.00')
+    expect(invoice.metadata.amountDue).toBe('$10,850.00')
+    expect(invoice.metadata.paymentTerms).toBe('Net 30 days')
+    expect(invoice.metadata.paymentDetails).toBe('Bank of America Acct 12345')
+    expect(invoice.metadata.notes).toBe('Thank you for your business!')
+  })
+
+  it('supports modifying headers and footers via string, object, and flat frontmatter keys', () => {
+    // String header & footer
+    const docString = parseDocument(`---
+layout: simple
+header: Company Report
+footer: Confidential Draft
+---
+# Report
+`)
+    expect(docString.metadata.header).toBe(true)
+    expect(docString.metadata.headerLeft).toBe('Company Report')
+    expect(docString.metadata.footer).toBe(true)
+    expect(docString.metadata.footerLeft).toBe('Confidential Draft')
+
+    // Object header & footer
+    const docObj = parseDocument(`---
+layout: simple
+header:
+  left: Left Header
+  right: Right Header
+  center: Center Header
+footer:
+  left: Left Footer
+  right: Page {page} of {pages}
+---
+# Report
+`)
+    expect(docObj.metadata.header).toBe(true)
+    expect(docObj.metadata.headerLeft).toBe('Left Header')
+    expect(docObj.metadata.headerRight).toBe('Right Header')
+    expect(docObj.metadata.headerCenter).toBe('Center Header')
+    expect(docObj.metadata.footer).toBe(true)
+    expect(docObj.metadata.footerLeft).toBe('Left Footer')
+    expect(docObj.metadata.footerRight).toBe('Page {page} of {pages}')
+
+    // Flat frontmatter keys
+    const docFlat = parseDocument(`---
+layout: simple
+header-left: Northstar Engineering
+header-right: v1.0
+header-center: Internal
+footer-left: Proprietary
+footer-right: "{page} / {pages}"
+footer-center: Confidential
+---
+# Report
+`)
+    expect(docFlat.metadata.header).toBe(true)
+    expect(docFlat.metadata.headerLeft).toBe('Northstar Engineering')
+    expect(docFlat.metadata.headerRight).toBe('v1.0')
+    expect(docFlat.metadata.headerCenter).toBe('Internal')
+    expect(docFlat.metadata.footer).toBe(true)
+    expect(docFlat.metadata.footerLeft).toBe('Proprietary')
+    expect(docFlat.metadata.footerRight).toBe('{page} / {pages}')
+    expect(docFlat.metadata.footerCenter).toBe('Confidential')
+  })
+
+  it('interpolates formatChromeText variables properly', () => {
+    const doc = parseDocument(`---
+layout: simple
+title: Architecture Guide
+client: Acme Corp
+prepared-by: Carlos Rivera
+document-id: DOC-42
+date: October 9, 2026
+---
+# Content
+`)
+    const template = '{title} · {client} · {author} · {id} · {date} · Page {page} of {pages}'
+    const formatted = formatChromeText(template, doc, 0, 5)
+    expect(formatted).toBe('Architecture Guide · Acme Corp · Carlos Rivera · DOC-42 · October 9, 2026 · Page 1 of 5')
+
+    const pageNumOnly = formatChromeText('{page} / {total}', doc, 2, 10)
+    expect(pageNumOnly).toBe('3 / 10')
+  })
 })
+
 
 

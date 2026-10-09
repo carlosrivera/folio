@@ -28,9 +28,34 @@ function collectExportReport(markdown: string) {
 
   const parsedDoc = parseDocument(markdown)
   const { metadata } = parsedDoc
-  const cvHeader = metadata.layout === 'cv' ? transformCvHtml(parsedDoc.html).header : undefined
-  const cvAuthor = cvHeader?.name || metadata.name || metadata.title
-  const cvSubject = cvHeader?.role || metadata.role || 'Curriculum Vitae'
+  const isCv = metadata.layout === 'cv'
+  const isInvoice = metadata.layout === 'invoice'
+  const isSimple = metadata.layout === 'simple'
+
+  const cvHeader = isCv ? transformCvHtml(parsedDoc.html).header : undefined
+  const author = isCv
+    ? (cvHeader?.name || metadata.name || metadata.title)
+    : isInvoice
+      ? (metadata.from || metadata.preparedBy || metadata.name || '')
+      : (metadata.preparedBy || metadata.name || '')
+
+  const title = isInvoice && metadata.invoiceNumber
+    ? (metadata.title || `Invoice ${metadata.invoiceNumber}`)
+    : (metadata.title || author || 'Document')
+
+  const subject = isCv
+    ? (cvHeader?.role || metadata.role || 'Curriculum Vitae')
+    : isInvoice
+      ? (metadata.client ? `Invoice for ${metadata.client}` : 'Invoice')
+      : (metadata.client || metadata.title)
+
+  const keywords = isCv
+    ? (['CV', 'Curriculum Vitae', subject].filter(Boolean) as string[])
+    : isInvoice
+      ? (['Invoice', metadata.invoiceNumber || metadata.documentId, metadata.client].filter(Boolean) as string[])
+      : isSimple
+        ? ([metadata.title].filter(Boolean) as string[])
+        : ([metadata.documentId, metadata.client].filter(Boolean) as string[])
 
   // The effective cover colour, read off the rendered sheet so a document that
   // overrides `--cover-bg` gets that colour in the PDF's cover bands too.
@@ -43,12 +68,10 @@ function collectExportReport(markdown: string) {
     outline,
     landscapePages,
     metadata: {
-      title: metadata.title || cvAuthor,
-      author: metadata.layout === 'cv' ? cvAuthor : metadata.preparedBy,
-      subject: metadata.layout === 'cv' ? cvSubject : metadata.client,
-      keywords: metadata.layout === 'cv'
-        ? (['CV', 'Curriculum Vitae', cvSubject].filter(Boolean) as string[])
-        : [metadata.documentId, metadata.client].filter(Boolean),
+      title,
+      author,
+      subject,
+      keywords,
     },
   }
 }

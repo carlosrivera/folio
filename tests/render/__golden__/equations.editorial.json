@@ -63,7 +63,7 @@
         "pagedjs_left_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Statement of WorkMATH-001",
+      "header": "Folio Test Suite / ReportMATH-001",
       "footer": "Folio Test SuitePage 2 / 3",
       "outline": [
         "h2 Table of Contents"
@@ -75,7 +75,7 @@
         "pagedjs_right_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Statement of WorkMATH-001",
+      "header": "Folio Test Suite / ReportMATH-001",
       "footer": "Folio Test SuitePage 3 / 3",
       "outline": [
         "h1 Mathematical Appendix",

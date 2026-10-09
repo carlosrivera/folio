@@ -74,7 +74,7 @@ export default function App() {
   // Active language, theme & layout
   const currentLang: SupportedLanguage = parsed.metadata.lang || 'en'
   const currentTheme: DocumentTheme = parsed.metadata.theme || 'editorial'
-  const currentLayout: DocumentLayout = parsed.metadata.layout || 'sow'
+  const currentLayout: DocumentLayout = parsed.metadata.layout || 'report'
   const t = useMemo(() => getTranslations(currentLang), [currentLang])
 
   const selectLayout = useCallback((layout: DocumentLayout) => {

@@ -1,13 +1,25 @@
 import { useEffect, useRef, useState } from 'react'
-import { Check, ChevronDown, FileText, User } from 'lucide-react'
+import { Briefcase, Check, ChevronDown, FileText, ReceiptText, User } from 'lucide-react'
 import type { DocumentLayout } from '../lib/document'
 
 export const DOCUMENT_LAYOUTS: { id: DocumentLayout; label: string; title: string; note: string }[] = [
   {
-    id: 'sow',
-    label: 'SOW',
-    title: 'Statement of Work',
-    note: 'Cover page, details table & proposal structure',
+    id: 'report',
+    label: 'Report',
+    title: 'Report',
+    note: 'Cover page, metadata block & table of contents',
+  },
+  {
+    id: 'simple',
+    label: 'Doc',
+    title: 'Simple Document',
+    note: 'No cover page, clean markdown with customizable headers',
+  },
+  {
+    id: 'invoice',
+    label: 'Invoice',
+    title: 'Invoice',
+    note: 'Invoice header, client billing, line items & payment terms',
   },
   {
     id: 'cv',
@@ -19,6 +31,20 @@ export const DOCUMENT_LAYOUTS: { id: DocumentLayout; label: string; title: strin
 
 export function layoutLabel(id: DocumentLayout): string {
   return DOCUMENT_LAYOUTS.find((l) => l.id === id)?.title ?? id.toUpperCase()
+}
+
+function LayoutIcon({ id, size = 13 }: { id: DocumentLayout; size?: number }) {
+  switch (id) {
+    case 'cv':
+      return <User size={size} />
+    case 'invoice':
+      return <ReceiptText size={size} />
+    case 'simple':
+      return <FileText size={size} />
+    case 'report':
+    default:
+      return <Briefcase size={size} />
+  }
 }
 
 type Props = {
@@ -58,7 +84,7 @@ export function LayoutPicker({ value, onChange }: Props) {
         title="Document layout template"
       >
         <span className="layout-picker-icon" aria-hidden="true">
-          {active.id === 'cv' ? <User size={13} /> : <FileText size={13} />}
+          <LayoutIcon id={active.id} size={13} />
         </span>
         <span className="layout-picker-label">
           {active.label}
@@ -82,7 +108,7 @@ export function LayoutPicker({ value, onChange }: Props) {
               }}
             >
               <span className="layout-option-icon" aria-hidden="true">
-                {layout.id === 'cv' ? <User size={15} /> : <FileText size={15} />}
+                <LayoutIcon id={layout.id} size={15} />
               </span>
               <span className="theme-option-text">
                 <strong>{layout.title} ({layout.label})</strong>

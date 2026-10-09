@@ -63,7 +63,7 @@
         "pagedjs_left_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Statement of WorkFIX-001",
+      "header": "Folio Test Suite / ReportFIX-001",
       "footer": "Fixture CoPage 2 / 11",
       "outline": [
         "h2 Table of Contents"
@@ -75,7 +75,7 @@
         "pagedjs_right_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Statement of WorkFIX-001",
+      "header": "Folio Test Suite / ReportFIX-001",
       "footer": "Fixture CoPage 3 / 11",
       "outline": [
         "h1 Portada del Cuerpo",
@@ -88,7 +88,7 @@
         "pagedjs_left_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Statement of WorkFIX-001",
+      "header": "Folio Test Suite / ReportFIX-001",
       "footer": "Fixture CoPage 4 / 11",
       "outline": [
         "h2 01 — Encabezado que Inicia con Dígitos"
@@ -100,7 +100,7 @@
         "pagedjs_right_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Statement of WorkFIX-001",
+      "header": "Folio Test Suite / ReportFIX-001",
       "footer": "Fixture CoPage 5 / 11",
       "outline": [
         "h2 02 — Saltos y Tablas",
@@ -113,7 +113,7 @@
         "pagedjs_left_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Statement of WorkFIX-001",
+      "header": "Folio Test Suite / ReportFIX-001",
       "footer": "Fixture CoPage 6 / 11",
       "outline": [
         "h2 03 — Diagrama Alto"
@@ -125,7 +125,7 @@
         "pagedjs_right_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Statement of WorkFIX-001",
+      "header": "Folio Test Suite / ReportFIX-001",
       "footer": "Fixture CoPage 7 / 11",
       "outline": [
         "figure.mermaid-figure"
@@ -137,7 +137,7 @@
         "pagedjs_left_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Statement of WorkFIX-001",
+      "header": "Folio Test Suite / ReportFIX-001",
       "footer": "Fixture CoPage 8 / 11",
       "outline": [
         "h2 04 — Diagrama Corto",
@@ -153,7 +153,7 @@
         "pagedjs_right_page"
       ],
       "orientation": "landscape",
-      "header": "Folio Test Suite / Statement of WorkFIX-001",
+      "header": "Folio Test Suite / ReportFIX-001",
       "footer": "Fixture CoPage 9 / 11",
       "outline": [
         "h3 Sección Apaisada",
@@ -166,7 +166,7 @@
         "pagedjs_left_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Statement of WorkFIX-001",
+      "header": "Folio Test Suite / ReportFIX-001",
       "footer": "Fixture CoPage 10 / 11",
       "outline": [
         "h2 05 — Diagrama Inválido",
@@ -183,7 +183,7 @@
         "pagedjs_right_page"
       ],
       "orientation": "portrait",
-      "header": "Folio Test Suite / Statement of WorkFIX-001",
+      "header": "Folio Test Suite / ReportFIX-001",
       "footer": "Fixture CoPage 11 / 11",
       "outline": []
     }

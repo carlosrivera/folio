@@ -1460,6 +1460,519 @@ a.cv-contact-item:hover {
   letter-spacing: .04em;
 }
 
+/* Base Simple Document styles */
+.simple-document {
+  color: var(--body-fg);
+  font-family: var(--font-body);
+  font-size: 9.3pt;
+  line-height: 1.58;
+}
+
+.folio-simple-sheet {
+  background: #ffffff;
+}
+
+.folio-simple-sheet .folio-page-header,
+.folio-simple-sheet .folio-page-footer {
+  text-transform: none;
+  font-family: var(--font-body);
+  font-size: 7pt;
+  font-weight: 500;
+  letter-spacing: .02em;
+}
+
+.simple-document .document-body > h1:first-child {
+  margin: 0 0 6mm;
+  font-size: 26pt;
+  font-weight: var(--display-weight, 700);
+  font-family: var(--font-display);
+  letter-spacing: var(--display-tracking, -.025em);
+  text-transform: none;
+  color: var(--heading);
+  line-height: 1.15;
+}
+
+/* Base Invoice styles */
+.invoice-document {
+  color: var(--body-fg);
+  font-family: var(--font-body);
+  font-size: 9.3pt;
+  line-height: 1.52;
+  --invoice-dt: #4b5563;
+  --invoice-card-bg: rgba(0, 0, 0, .02);
+  --invoice-card-border: rgba(0, 0, 0, .08);
+  --invoice-due-bg: #fef3c7;
+  --invoice-due-fg: #92400e;
+}
+
+.folio-invoice-sheet {
+  background: #ffffff;
+}
+
+.folio-invoice-sheet .folio-page-header,
+.folio-invoice-sheet .folio-page-footer {
+  font-family: var(--font-mono);
+  font-size: 6.5pt;
+  letter-spacing: .05em;
+}
+
+.invoice-header {
+  margin-bottom: 6mm;
+  break-inside: avoid;
+}
+
+.invoice-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8mm;
+  margin-bottom: 5.5mm;
+}
+
+.invoice-issuer {
+  flex: 1;
+  min-width: 0;
+}
+
+.invoice-issuer-name {
+  margin: 0 0 2mm;
+  font-size: 20pt;
+  font-family: var(--font-display);
+  font-weight: var(--display-weight, 700);
+  letter-spacing: var(--display-tracking, -.02em);
+  color: var(--heading);
+  line-height: 1.1;
+}
+
+.invoice-address {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5mm;
+  font-size: 8.5pt;
+  color: var(--invoice-dt, #4b5563);
+  line-height: 1.35;
+}
+
+.invoice-contact-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5mm 3.5mm;
+  margin-top: 2.5mm;
+  font-size: 8pt;
+  font-family: var(--font-mono);
+  color: var(--invoice-dt, #4b5563);
+}
+
+.invoice-tax-id {
+  font-weight: 600;
+}
+
+.invoice-tax-label {
+  font-weight: 500;
+  color: var(--invoice-dt, #6b7280);
+}
+
+.invoice-badge-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.invoice-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3mm;
+  line-height: 1;
+}
+
+.invoice-title {
+  font-family: var(--font-display);
+  font-size: 22pt;
+  font-weight: var(--display-weight, 700);
+  letter-spacing: .05em;
+  color: var(--heading);
+  text-transform: uppercase;
+  line-height: 1;
+  margin: 0;
+}
+
+.invoice-status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.8mm 2.4mm;
+  border-radius: 2mm;
+  font-size: 7.2pt;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  background: rgba(0, 0, 0, .07);
+  color: var(--body-fg);
+}
+
+.invoice-status-pill.status-paid {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.invoice-status-pill.status-due,
+.invoice-status-pill.status-pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.invoice-status-pill.status-overdue {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.invoice-number {
+  margin: 2mm 0 3mm;
+  font-size: 11pt;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--subheading);
+  line-height: 1.2;
+  text-align: right;
+}
+
+.invoice-meta-dl {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6mm;
+  margin: 0;
+  padding: 0;
+  align-items: flex-end;
+}
+
+.invoice-meta-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 3.5mm;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.invoice-meta-row dt {
+  font-family: var(--font-mono);
+  font-size: 7.2pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--invoice-dt, #4b5563);
+  margin: 0;
+  text-align: right;
+}
+
+.invoice-meta-row dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 8.5pt;
+  font-weight: 600;
+  color: var(--body-fg);
+  text-align: right;
+}
+
+.invoice-due-value {
+  background: var(--invoice-due-bg, #fef3c7);
+  color: var(--invoice-due-fg, #92400e);
+  font-weight: 700;
+  padding: 0.4mm 1.8mm;
+  border-radius: 2px;
+  line-height: 1.25;
+}
+
+.invoice-parties-grid {
+  margin-bottom: 5mm;
+}
+
+.invoice-party-card {
+  display: inline-block;
+  min-width: 80mm;
+  max-width: 105mm;
+  padding: 3.5mm 4.5mm;
+  background: var(--invoice-card-bg, rgba(0, 0, 0, .02));
+  border: 1px solid var(--invoice-card-border, rgba(0, 0, 0, .08));
+  border-radius: 2mm;
+}
+
+.invoice-party-label {
+  display: block;
+  font-size: 7pt;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  color: var(--invoice-dt, #4b5563);
+  margin-bottom: 1.5mm;
+}
+
+.invoice-party-name {
+  font-size: 11pt;
+  font-weight: 700;
+  color: var(--heading);
+  margin-bottom: 1.5mm;
+}
+
+.invoice-party-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5mm 3.5mm;
+  margin-top: 2mm;
+  font-size: 8pt;
+  font-family: var(--font-mono);
+  color: var(--invoice-dt, #4b5563);
+}
+
+.invoice-rule {
+  width: 100%;
+  height: 1.5px;
+  background: rgba(0, 0, 0, .12);
+  margin-top: 4mm;
+}
+
+.invoice-document .document-body > h1:first-child {
+  font-size: 16pt;
+  margin: 2mm 0 4mm;
+  color: var(--heading);
+  font-family: var(--font-display);
+}
+
+.invoice-document table {
+  width: 100%;
+  margin: 4mm 0 6mm;
+  border-collapse: collapse;
+}
+
+.invoice-document table th {
+  padding: 2.5mm 3mm;
+  font-size: 7.5pt;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  border-bottom: 1.5px solid var(--heading);
+}
+
+.invoice-document table td {
+  padding: 2.8mm 3mm;
+  border-bottom: 1px solid rgba(0, 0, 0, .08);
+  font-size: 8.8pt;
+  line-height: 1.4;
+}
+
+.invoice-totals-section {
+  display: flex;
+  justify-content: flex-end;
+  margin: 4mm 0 6mm;
+  break-inside: avoid;
+}
+
+.invoice-totals-card {
+  min-width: 68mm;
+  display: flex;
+  flex-direction: column;
+  gap: 2mm;
+  padding: 3.5mm 4.5mm;
+  background: var(--invoice-card-bg, rgba(0, 0, 0, .02));
+  border: 1px solid var(--invoice-card-border, rgba(0, 0, 0, .08));
+  border-radius: 2mm;
+}
+
+.invoice-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 8.5pt;
+}
+
+.invoice-total-row.invoice-grand-total {
+  padding-top: 2.5mm;
+  margin-top: 1mm;
+  border-top: 1.5px solid var(--heading);
+  font-size: 11pt;
+  font-weight: 700;
+  color: var(--heading);
+}
+
+.invoice-total-row.invoice-amount-due {
+  color: var(--heading);
+  font-weight: 700;
+}
+
+.invoice-footer-meta {
+  margin-top: 6mm;
+  padding-top: 4mm;
+  border-top: 1px solid rgba(0, 0, 0, .1);
+  font-size: 8pt;
+  color: var(--invoice-dt, #4b5563);
+  display: flex;
+  flex-direction: column;
+  gap: 2mm;
+  break-inside: avoid;
+}
+
+.invoice-terms-block {
+  font-size: 8pt;
+  color: var(--body-fg);
+}
+
+.invoice-payment-details {
+  font-family: var(--font-mono);
+  font-size: 7.5pt;
+  line-height: 1.45;
+  color: var(--invoice-dt, #4b5563);
+}
+
+/* Voltage theme refinements for Invoice */
+.theme-voltage .invoice-document {
+  --invoice-dt: #111111;
+  --invoice-card-bg: #f7f7f7;
+  --invoice-card-border: #000000;
+  --invoice-due-bg: #d4ff2b;
+  --invoice-due-fg: #000000;
+}
+
+.theme-voltage .invoice-rule {
+  background: #000000;
+  height: 2px;
+}
+
+.theme-voltage .invoice-party-card {
+  border-radius: 0;
+  border: 1.5px solid #000000;
+  background: #f7f7f7;
+}
+
+.theme-voltage .invoice-party-label {
+  color: #000000;
+  font-weight: 800;
+}
+
+.theme-voltage .invoice-status-pill {
+  border-radius: 0;
+  border: 1.5px solid #000000;
+}
+
+.theme-voltage .invoice-status-pill.status-paid {
+  background: #d4ff2b;
+  color: #000000;
+  font-weight: 800;
+}
+
+.theme-voltage .invoice-status-pill.status-due,
+.theme-voltage .invoice-status-pill.status-pending {
+  background: #000000;
+  color: #d4ff2b;
+  font-weight: 800;
+}
+
+.theme-voltage .invoice-status-pill.status-overdue {
+  background: #ef4444;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.theme-voltage .invoice-due-value {
+  background: #d4ff2b;
+  color: #000000;
+  font-weight: 800;
+  border: 1px solid #000000;
+  border-radius: 0;
+}
+
+.theme-voltage .invoice-totals-card {
+  border-radius: 0;
+  border: 1.5px solid #000000;
+  background: #f7f7f7;
+}
+
+.theme-voltage .invoice-total-row.invoice-grand-total {
+  border-top: 2px solid #000000;
+}
+
+.theme-voltage .invoice-total-row.invoice-amount-due {
+  color: #000000;
+  font-weight: 800;
+}
+
+/* Contrast theme refinements for Invoice */
+.theme-contrast .invoice-document {
+  --invoice-dt: #000000;
+  --invoice-card-bg: #ffffff;
+  --invoice-card-border: #000000;
+  --invoice-due-bg: #000000;
+  --invoice-due-fg: #ffffff;
+}
+
+.theme-contrast .invoice-rule {
+  background: #000000;
+  height: 2px;
+}
+
+.theme-contrast .invoice-party-card {
+  border-radius: 0;
+  border: 2px solid #000000;
+  background: #ffffff;
+}
+
+.theme-contrast .invoice-party-label {
+  color: #000000;
+  font-weight: 800;
+}
+
+.theme-contrast .invoice-status-pill {
+  border-radius: 0;
+  border: 1.5px solid #000000;
+}
+
+.theme-contrast .invoice-status-pill.status-paid {
+  background: #000000;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.theme-contrast .invoice-status-pill.status-due,
+.theme-contrast .invoice-status-pill.status-pending {
+  background: #ffffff;
+  color: #000000;
+  font-weight: 800;
+}
+
+.theme-contrast .invoice-status-pill.status-overdue {
+  background: #000000;
+  color: #ffffff;
+  text-decoration: underline;
+  font-weight: 800;
+}
+
+.theme-contrast .invoice-due-value {
+  background: #000000;
+  color: #ffffff;
+  font-weight: 800;
+  border-radius: 0;
+}
+
+.theme-contrast .invoice-totals-card {
+  border-radius: 0;
+  border: 2px solid #000000;
+  background: #ffffff;
+}
+
+.theme-contrast .invoice-total-row.invoice-grand-total {
+  border-top: 2px solid #000000;
+}
+
+.theme-contrast .invoice-total-row.invoice-amount-due {
+  color: #000000;
+  font-weight: 800;
+}
+
 /* TOC Section */
 .folio-toc-page {
   break-before: page;

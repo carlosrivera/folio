@@ -1,10 +1,10 @@
 {
   "name": "folio-md",
   "productName": "Folio",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "author": "Carlos Rivera <me@carlosrivera.im>",
-  "description": "A macOS-first Markdown document editor with paginated preview and PDF export.",
+  "description": "A Markdown document editor with paginated preview, PDF export, and Model Context Protocol agent support.",
   "homepage": "https://carlosrivera.github.io/folio/",
   "repository": {
     "type": "git",
@@ -16,9 +16,13 @@
   "private": true,
   "packageManager": "pnpm@11.23.0",
   "main": "dist-electron/main.js",
+  "bin": {
+    "folio": "bin/folio.js"
+  },
   "type": "module",
   "scripts": {
     "dev": "pnpm build:electron && concurrently -k \"vite\" \"pnpm:dev:electron\"",
+    "mcp": "tsx src/mcp/server.ts",
     "dev:electron": "wait-on tcp:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .",
     "icons": "python3 scripts/generate-icons.py",
     "patch:electron": "node scripts/patch-electron-app.cjs",
@@ -28,6 +32,8 @@
     "start": "pnpm build && electron .",
     "dist": "pnpm build && electron-builder",
     "dist:mac": "pnpm build && electron-builder --mac",
+    "dist:win": "pnpm build && electron-builder --win",
+    "dist:linux": "pnpm build && electron-builder --linux",
     "dist:dir": "pnpm build && electron-builder --dir",
     "landing:dev": "pnpm --filter folio-landing dev",
     "landing:build": "pnpm --filter folio-landing build",
@@ -40,7 +46,9 @@
     "test:render:update": "pnpm build && cross-env UPDATE_GOLDEN=1 electron tests/render/run.cjs"
   },
   "dependencies": {
-    "electron-updater": "^6.8.9"
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "electron-updater": "^6.8.9",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@codemirror/lang-markdown": "^6.3.4",
@@ -71,6 +79,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-error-boundary": "^6.0.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.2",
     "vite": "^7.1.7",
     "vitest": "^3.2.4",

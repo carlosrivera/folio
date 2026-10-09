@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Previewer } from 'pagedjs'
 import { AlertTriangle } from 'lucide-react'
-import { parseDocument, type DocumentTheme } from '../lib/document'
-import { StatementTemplate } from './StatementTemplate'
+import { parseDocument, formatChromeText, type DocumentTheme } from '../lib/document'
+import { ReportTemplate } from './ReportTemplate'
 import { CvTemplate } from './CvTemplate'
+import { SimpleTemplate } from './SimpleTemplate'
+import { InvoiceTemplate } from './InvoiceTemplate'
 import { getTranslations, type SupportedLanguage } from '../lib/i18n'
 import { transformCvHtml } from '../lib/cv-html'
 import { themeOverrideCss } from '../lib/theme-tokens'
@@ -304,6 +306,54 @@ async function renderMermaidDiagrams(container: HTMLElement, run: number, theme:
   }
 }
 
+function renderHeaderElement(
+  leftText: string,
+  centerText: string,
+  rightText: string,
+): HTMLElement {
+  const header = document.createElement('div')
+  header.className = 'folio-page-header'
+  header.append(Object.assign(document.createElement('span'), {
+    className: 'folio-page-left',
+    textContent: leftText,
+  }))
+  if (centerText) {
+    header.append(Object.assign(document.createElement('span'), {
+      className: 'folio-page-center',
+      textContent: centerText,
+    }))
+  }
+  header.append(Object.assign(document.createElement('span'), {
+    className: 'folio-page-right',
+    textContent: rightText,
+  }))
+  return header
+}
+
+function renderFooterElement(
+  leftText: string,
+  centerText: string,
+  rightText: string,
+): HTMLElement {
+  const footer = document.createElement('div')
+  footer.className = 'folio-page-footer'
+  footer.append(Object.assign(document.createElement('span'), {
+    className: 'folio-page-left',
+    textContent: leftText,
+  }))
+  if (centerText) {
+    footer.append(Object.assign(document.createElement('span'), {
+      className: 'folio-page-center',
+      textContent: centerText,
+    }))
+  }
+  footer.append(Object.assign(document.createElement('span'), {
+    className: 'folio-page-right',
+    textContent: rightText,
+  }))
+  return footer
+}
+
 function addPageChrome(
   root: HTMLElement,
   doc: ReturnType<typeof parseDocument>,
@@ -312,98 +362,176 @@ function addPageChrome(
 ) {
   const pages = Array.from(root.querySelectorAll<HTMLElement>('.pagedjs_page'))
   const t = getTranslations(lang)
-  const isCv = doc.metadata.layout === 'cv'
+  const layout = doc.metadata.layout
 
-  const cvHeader = isCv ? transformCvHtml(doc.html).header : undefined
-  const candidateName = cvHeader?.name || doc.metadata.name || doc.metadata.title
-  const role = cvHeader?.role || doc.metadata.role || doc.metadata.subtitle || doc.metadata.tagline
-  const contactParts = [
-    doc.metadata.email,
-    doc.metadata.phone,
-    doc.metadata.linkedin ? `linkedin.com/in/${doc.metadata.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, '')}` : undefined,
-    doc.metadata.github ? `github.com/${doc.metadata.github.replace(/^https?:\/\/(www\.)?github\.com\//, '')}` : undefined,
-    doc.metadata.website,
-  ].filter(Boolean) as string[]
-  const contactSummary = contactParts.slice(0, 3).join(' · ')
+  if (layout === 'cv') {
+    const cvHeader = transformCvHtml(doc.html).header
+    const candidateName = cvHeader?.name || doc.metadata.name || doc.metadata.title
+    const role = cvHeader?.role || doc.metadata.role || doc.metadata.subtitle || doc.metadata.tagline
+    const contactParts = [
+      doc.metadata.email,
+      doc.metadata.phone,
+      doc.metadata.linkedin ? `linkedin.com/in/${doc.metadata.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, '')}` : undefined,
+      doc.metadata.github ? `github.com/${doc.metadata.github.replace(/^https?:\/\/(www\.)?github\.com\//, '')}` : undefined,
+      doc.metadata.website,
+    ].filter(Boolean) as string[]
+    const contactSummary = contactParts.slice(0, 3).join(' · ')
 
-  pages.forEach((page, index) => {
-    if (isCv) {
-      page.classList.add('folio-cv-sheet')
-      page.classList.add(`theme-${theme}`)
-
+    pages.forEach((page, index) => {
+      page.classList.add('folio-cv-sheet', `theme-${theme}`)
       const box = page.querySelector<HTMLElement>('.pagedjs_pagebox') ?? page
 
       if (index === 0) {
         page.classList.add('folio-cv-first-page')
-        // Page 1 of CV does not have top running header because it has the hero header.
-        // It does get a page footer if multi-page and footer is enabled.
         if (pages.length > 1 && doc.metadata.footer) {
-          const footer = document.createElement('div')
-          footer.className = 'folio-page-footer folio-cv-footer'
-          footer.append(Object.assign(document.createElement('span'), { textContent: contactSummary || candidateName || '' }))
-          footer.append(Object.assign(document.createElement('span'), { textContent: `${t.page} 1 ${t.of} ${pages.length}` }))
+          const defaultLeft = contactSummary || candidateName || ''
+          const defaultRight = `${t.page} 1 ${t.of} ${pages.length}`
+          const left = doc.metadata.footerLeft ? formatChromeText(doc.metadata.footerLeft, doc, index, pages.length, lang) : defaultLeft
+          const center = doc.metadata.footerCenter ? formatChromeText(doc.metadata.footerCenter, doc, index, pages.length, lang) : ''
+          const right = doc.metadata.footerRight ? formatChromeText(doc.metadata.footerRight, doc, index, pages.length, lang) : defaultRight
+          const footer = renderFooterElement(left, center, right)
+          footer.classList.add('folio-cv-footer')
           box.append(footer)
         }
         return
       }
 
-      // CV subsequent pages (index > 0)
       if (doc.metadata.header) {
-        const header = document.createElement('div')
-        header.className = 'folio-page-header folio-cv-header'
         const roleSuffix = role && role.length <= 40 ? ` · ${role}` : ''
-        header.append(Object.assign(document.createElement('span'), {
-          textContent: candidateName ? `${candidateName}${roleSuffix}` : t.curriculumVitae,
-        }))
-        header.append(Object.assign(document.createElement('span'), {
-          textContent: candidateName ? t.curriculumVitae : '',
-        }))
+        const defaultLeft = candidateName ? `${candidateName}${roleSuffix}` : t.curriculumVitae
+        const defaultRight = candidateName ? t.curriculumVitae : ''
+        const left = doc.metadata.headerLeft ? formatChromeText(doc.metadata.headerLeft, doc, index, pages.length, lang) : defaultLeft
+        const center = doc.metadata.headerCenter ? formatChromeText(doc.metadata.headerCenter, doc, index, pages.length, lang) : ''
+        const right = doc.metadata.headerRight ? formatChromeText(doc.metadata.headerRight, doc, index, pages.length, lang) : defaultRight
+        const header = renderHeaderElement(left, center, right)
+        header.classList.add('folio-cv-header')
         box.append(header)
       }
 
       if (doc.metadata.footer) {
-        const footer = document.createElement('div')
-        footer.className = 'folio-page-footer folio-cv-footer'
-        footer.append(Object.assign(document.createElement('span'), { textContent: contactSummary || candidateName || '' }))
-        footer.append(Object.assign(document.createElement('span'), { textContent: `${t.page} ${index + 1} ${t.of} ${pages.length}` }))
+        const defaultLeft = contactSummary || candidateName || ''
+        const defaultRight = `${t.page} ${index + 1} ${t.of} ${pages.length}`
+        const left = doc.metadata.footerLeft ? formatChromeText(doc.metadata.footerLeft, doc, index, pages.length, lang) : defaultLeft
+        const center = doc.metadata.footerCenter ? formatChromeText(doc.metadata.footerCenter, doc, index, pages.length, lang) : ''
+        const right = doc.metadata.footerRight ? formatChromeText(doc.metadata.footerRight, doc, index, pages.length, lang) : defaultRight
+        const footer = renderFooterElement(left, center, right)
+        footer.classList.add('folio-cv-footer')
         box.append(footer)
       }
+    })
+    return
+  }
 
-      return
-    }
+  if (layout === 'simple') {
+    pages.forEach((page, index) => {
+      page.classList.add('folio-simple-sheet', `theme-${theme}`)
+      if (page.querySelector('.folio-toc-page') !== null) {
+        page.classList.add('folio-toc-sheet')
+      }
+      const box = page.querySelector<HTMLElement>('.pagedjs_pagebox') ?? page
 
-    // Default SOW layout chrome
+      if (doc.metadata.header) {
+        const defaultLeft = doc.metadata.title || ''
+        const defaultRight = doc.metadata.date || ''
+        const left = doc.metadata.headerLeft ? formatChromeText(doc.metadata.headerLeft, doc, index, pages.length, lang) : defaultLeft
+        const center = doc.metadata.headerCenter ? formatChromeText(doc.metadata.headerCenter, doc, index, pages.length, lang) : ''
+        const right = doc.metadata.headerRight ? formatChromeText(doc.metadata.headerRight, doc, index, pages.length, lang) : defaultRight
+        box.append(renderHeaderElement(left, center, right))
+      }
+
+      if (doc.metadata.footer) {
+        const defaultLeft = doc.metadata.title && pages.length > 1 ? doc.metadata.title : ''
+        const defaultRight = `${t.page} ${index + 1} ${t.of} ${pages.length}`
+        const left = doc.metadata.footerLeft ? formatChromeText(doc.metadata.footerLeft, doc, index, pages.length, lang) : defaultLeft
+        const center = doc.metadata.footerCenter ? formatChromeText(doc.metadata.footerCenter, doc, index, pages.length, lang) : ''
+        const right = doc.metadata.footerRight ? formatChromeText(doc.metadata.footerRight, doc, index, pages.length, lang) : defaultRight
+        box.append(renderFooterElement(left, center, right))
+      }
+    })
+    return
+  }
+
+  if (layout === 'invoice') {
+    const invoiceId = doc.metadata.invoiceNumber || doc.metadata.documentId
+    pages.forEach((page, index) => {
+      page.classList.add('folio-invoice-sheet', `theme-${theme}`)
+      const box = page.querySelector<HTMLElement>('.pagedjs_pagebox') ?? page
+
+      if (index === 0) {
+        // Page 1 of invoice has full invoice header; running top header only if explicitly requested
+        if (doc.metadata.headerLeft || doc.metadata.headerRight) {
+          const left = doc.metadata.headerLeft ? formatChromeText(doc.metadata.headerLeft, doc, index, pages.length, lang) : ''
+          const center = doc.metadata.headerCenter ? formatChromeText(doc.metadata.headerCenter, doc, index, pages.length, lang) : ''
+          const right = doc.metadata.headerRight ? formatChromeText(doc.metadata.headerRight, doc, index, pages.length, lang) : ''
+          box.append(renderHeaderElement(left, center, right))
+        }
+
+        if (doc.metadata.footer) {
+          const defaultLeft = doc.metadata.paymentTerms
+            ? doc.metadata.paymentTerms
+            : (doc.metadata.client ? `${t.billTo}: ${doc.metadata.client}` : '')
+          const defaultRight = pages.length > 1 ? `${t.page} 1 ${t.of} ${pages.length}` : ''
+          const left = doc.metadata.footerLeft ? formatChromeText(doc.metadata.footerLeft, doc, index, pages.length, lang) : defaultLeft
+          const center = doc.metadata.footerCenter ? formatChromeText(doc.metadata.footerCenter, doc, index, pages.length, lang) : ''
+          const right = doc.metadata.footerRight ? formatChromeText(doc.metadata.footerRight, doc, index, pages.length, lang) : defaultRight
+          box.append(renderFooterElement(left, center, right))
+        }
+        return
+      }
+
+      // Subsequent invoice pages
+      if (doc.metadata.header) {
+        const defaultLeft = `${t.invoice} #${invoiceId}${doc.metadata.client ? ` · ${doc.metadata.client}` : ''}`
+        const defaultRight = doc.metadata.date || ''
+        const left = doc.metadata.headerLeft ? formatChromeText(doc.metadata.headerLeft, doc, index, pages.length, lang) : defaultLeft
+        const center = doc.metadata.headerCenter ? formatChromeText(doc.metadata.headerCenter, doc, index, pages.length, lang) : ''
+        const right = doc.metadata.headerRight ? formatChromeText(doc.metadata.headerRight, doc, index, pages.length, lang) : defaultRight
+        box.append(renderHeaderElement(left, center, right))
+      }
+
+      if (doc.metadata.footer) {
+        const defaultLeft = doc.metadata.client || ''
+        const defaultRight = `${t.page} ${index + 1} ${t.of} ${pages.length}`
+        const left = doc.metadata.footerLeft ? formatChromeText(doc.metadata.footerLeft, doc, index, pages.length, lang) : defaultLeft
+        const center = doc.metadata.footerCenter ? formatChromeText(doc.metadata.footerCenter, doc, index, pages.length, lang) : ''
+        const right = doc.metadata.footerRight ? formatChromeText(doc.metadata.footerRight, doc, index, pages.length, lang) : defaultRight
+        box.append(renderFooterElement(left, center, right))
+      }
+    })
+    return
+  }
+
+  // Default SOW layout chrome
+  pages.forEach((page, index) => {
     if (index === 0) {
-      page.classList.add('folio-cover-sheet')
-      page.classList.add(`theme-${theme}`)
+      page.classList.add('folio-cover-sheet', `theme-${theme}`)
       return
     }
 
-    // Identify TOC page
-    const isTocPage = page.querySelector('.folio-toc-page') !== null
-    if (isTocPage) {
+    if (page.querySelector('.folio-toc-page') !== null) {
       page.classList.add('folio-toc-sheet')
     }
 
     const box = page.querySelector<HTMLElement>('.pagedjs_pagebox') ?? page
 
     if (doc.metadata.header) {
-      const header = document.createElement('div')
-      header.className = 'folio-page-header'
       const attribution = doc.metadata.preparedBy || doc.metadata.client
-      header.append(Object.assign(document.createElement('span'), {
-        textContent: attribution ? `${attribution} / ${t.statementOfWork}` : t.statementOfWork,
-      }))
-      header.append(Object.assign(document.createElement('span'), { textContent: doc.metadata.documentId }))
-      box.append(header)
+      const typeLabel = doc.metadata.kicker || t.report
+      const defaultLeft = attribution ? `${attribution} / ${typeLabel}` : typeLabel
+      const defaultRight = doc.metadata.documentId
+      const left = doc.metadata.headerLeft ? formatChromeText(doc.metadata.headerLeft, doc, index, pages.length, lang) : defaultLeft
+      const center = doc.metadata.headerCenter ? formatChromeText(doc.metadata.headerCenter, doc, index, pages.length, lang) : ''
+      const right = doc.metadata.headerRight ? formatChromeText(doc.metadata.headerRight, doc, index, pages.length, lang) : defaultRight
+      box.append(renderHeaderElement(left, center, right))
     }
 
     if (doc.metadata.footer) {
-      const footer = document.createElement('div')
-      footer.className = 'folio-page-footer'
-      footer.append(Object.assign(document.createElement('span'), { textContent: doc.metadata.client }))
-      footer.append(Object.assign(document.createElement('span'), { textContent: `${t.page} ${index + 1} ${t.of} ${pages.length}` }))
-      box.append(footer)
+      const defaultLeft = doc.metadata.client
+      const defaultRight = `${t.page} ${index + 1} ${t.of} ${pages.length}`
+      const left = doc.metadata.footerLeft ? formatChromeText(doc.metadata.footerLeft, doc, index, pages.length, lang) : defaultLeft
+      const center = doc.metadata.footerCenter ? formatChromeText(doc.metadata.footerCenter, doc, index, pages.length, lang) : ''
+      const right = doc.metadata.footerRight ? formatChromeText(doc.metadata.footerRight, doc, index, pages.length, lang) : defaultRight
+      box.append(renderFooterElement(left, center, right))
     }
   })
 }
@@ -626,8 +754,20 @@ export function PaginatedDocument({
             overrideTheme={activeTheme}
             overrideLang={activeLang}
           />
+        ) : document.metadata.layout === 'invoice' ? (
+          <InvoiceTemplate
+            document={document}
+            overrideTheme={activeTheme}
+            overrideLang={activeLang}
+          />
+        ) : document.metadata.layout === 'simple' ? (
+          <SimpleTemplate
+            document={document}
+            overrideTheme={activeTheme}
+            overrideLang={activeLang}
+          />
         ) : (
-          <StatementTemplate 
+          <ReportTemplate 
             document={document} 
             overrideTheme={activeTheme} 
             overrideLang={activeLang} 
