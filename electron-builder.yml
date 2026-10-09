@@ -50,7 +50,6 @@ dmg:
       path: /Applications
 
 win:
-  category: Productivity
   icon: build/icon.png
   target:
     - target: nsis

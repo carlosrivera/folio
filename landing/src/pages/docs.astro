@@ -7,6 +7,9 @@ const releasesUrl = `${githubRepo}/releases`
 const version = '0.2.0'
 const downloadSilicon = `${releasesUrl}/download/v${version}/Folio-${version}-arm64.dmg`
 const downloadIntel = `${releasesUrl}/download/v${version}/Folio-${version}.dmg`
+const downloadWinExe = `${releasesUrl}/download/v${version}/Folio-Setup-${version}.exe`
+const downloadLinuxAppImage = `${releasesUrl}/download/v${version}/Folio-${version}.AppImage`
+const downloadLinuxDeb = `${releasesUrl}/download/v${version}/folio_${version}_amd64.deb`
 ---
 
 <Layout title="Documentation — Folio" description="Complete documentation for Folio: Getting Started, Front Matter, Themes, MCP Server, and Development.">
@@ -105,18 +108,27 @@ const downloadIntel = `${releasesUrl}/download/v${version}/Folio-${version}.dmg`
         </p>
 
         <h3 class="sub-heading">Installation</h3>
-        <p>Download the latest release for your Mac architecture:</p>
+        <p>Download the official release for your operating system:</p>
         <div class="download-chips">
-          <a href={downloadSilicon} class="chip-btn">
+          <a href={downloadSilicon} class="chip-btn" id="docs-mac-arm">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            <span>Download for Apple Silicon (M1/M2/M3/M4)</span>
+            <span>macOS (Apple Silicon .dmg)</span>
           </a>
-          <a href={downloadIntel} class="chip-btn secondary">
-            <span>Download for Intel Mac</span>
+          <a href={downloadIntel} class="chip-btn secondary" id="docs-mac-intel">
+            <span>macOS (Intel .dmg)</span>
+          </a>
+          <a href={downloadWinExe} class="chip-btn secondary" id="docs-win-exe">
+            <span>Windows (Installer .exe)</span>
+          </a>
+          <a href={downloadLinuxAppImage} class="chip-btn secondary" id="docs-linux-appimage">
+            <span>Linux (.AppImage)</span>
+          </a>
+          <a href={downloadLinuxDeb} class="chip-btn secondary" id="docs-linux-deb">
+            <span>Linux (.deb)</span>
           </a>
         </div>
         <p class="tip-callout">
-          <strong>Tip:</strong> Open the downloaded <code>.dmg</code> and drag <strong>Folio.app</strong> into your <code>/Applications</code> directory.
+          <strong>Tip:</strong> On macOS, drag <strong>Folio.app</strong> into <code>/Applications</code>. On Windows, run the installer <code>.exe</code>. On Linux, make the <code>.AppImage</code> executable with <code>chmod +x</code> or install the <code>.deb</code> package.
         </p>
 
         <h3 id="editor-tour" class="sub-heading">Editor Interface & Shortcuts</h3>
@@ -527,6 +539,30 @@ pnpm landing:build</code></pre>
       </div>
     </div>
   </footer>
+
+  <script>
+    const ua = navigator.userAgent || ''
+    const platform = (navigator as any).userAgentData?.platform || navigator.platform || ''
+    const armBtn = document.getElementById('docs-mac-arm')
+    const intelBtn = document.getElementById('docs-mac-intel')
+    const winBtn = document.getElementById('docs-win-exe')
+    const linuxBtn = document.getElementById('docs-linux-appimage')
+
+    function setActiveBtn(active: HTMLElement | null) {
+      ;[armBtn, intelBtn, winBtn, linuxBtn].forEach((btn) => btn?.classList.add('secondary'))
+      active?.classList.remove('secondary')
+    }
+
+    if (/Win/i.test(ua) || /Win/i.test(platform)) {
+      setActiveBtn(winBtn)
+    } else if (/Linux/i.test(ua) || /Linux/i.test(platform)) {
+      setActiveBtn(linuxBtn)
+    } else if (/Intel/i.test(ua) && !/arm/i.test(ua)) {
+      setActiveBtn(intelBtn)
+    } else {
+      setActiveBtn(armBtn)
+    }
+  </script>
 </Layout>
 
 <style>

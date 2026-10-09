@@ -10,6 +10,10 @@ const downloadSilicon = `https://github.com/carlosrivera/folio/releases/download
 const downloadIntel = `https://github.com/carlosrivera/folio/releases/download/v${version}/Folio-${version}.dmg`
 const downloadSiliconZip = `https://github.com/carlosrivera/folio/releases/download/v${version}/Folio-${version}-arm64-mac.zip`
 const downloadIntelZip = `https://github.com/carlosrivera/folio/releases/download/v${version}/Folio-${version}-mac.zip`
+const downloadWinExe = `https://github.com/carlosrivera/folio/releases/download/v${version}/Folio-Setup-${version}.exe`
+const downloadWinZip = `https://github.com/carlosrivera/folio/releases/download/v${version}/Folio-${version}-win-x64.zip`
+const downloadLinuxAppImage = `https://github.com/carlosrivera/folio/releases/download/v${version}/Folio-${version}.AppImage`
+const downloadLinuxDeb = `https://github.com/carlosrivera/folio/releases/download/v${version}/folio_${version}_amd64.deb`
 
 // Pre-render KaTeX equations for the preview document at build time
 const eqLyapunov = katex.renderToString('V(x) = \\frac{1}{2} x^T P x + \\int_0^t \\gamma \\|u(\\tau)\\|^2 d\\tau', { displayMode: true, throwOnError: false })
@@ -121,15 +125,16 @@ const themes = [
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </button>
 
-            <!-- Architecture Dropdown Menu -->
+            <!-- Multi-Platform Dropdown Menu -->
             <div class="cta-dropdown-menu" id="hero-dl-menu" role="menu">
+              <div class="menu-group-header">macOS</div>
               <a href={downloadSilicon} class="menu-item is-selected" id="opt-silicon" role="menuitem" download>
                 <div class="menu-item-info">
                   <div class="menu-item-title">
                     <strong>Apple Silicon</strong>
                     <span class="rec-badge">Default</span>
                   </div>
-                  <span class="menu-item-desc">M1, M2, M3, M4 Macs · .dmg (99 MB)</span>
+                  <span class="menu-item-desc">M1, M2, M3, M4 Macs · .dmg</span>
                 </div>
                 <span class="check-mark">✓</span>
               </a>
@@ -138,14 +143,45 @@ const themes = [
                   <div class="menu-item-title">
                     <strong>Intel Mac</strong>
                   </div>
-                  <span class="menu-item-desc">x86_64 architecture · .dmg (106 MB)</span>
+                  <span class="menu-item-desc">x86_64 architecture · .dmg</span>
                 </div>
               </a>
+
+              <div class="menu-divider"></div>
+              <div class="menu-group-header">Windows</div>
+              <a href={downloadWinExe} class="menu-item" id="opt-winexe" role="menuitem" download>
+                <div class="menu-item-info">
+                  <div class="menu-item-title">
+                    <strong>Windows Installer</strong>
+                  </div>
+                  <span class="menu-item-desc">Windows 10/11 · .exe (x64 / ARM64)</span>
+                </div>
+              </a>
+
+              <div class="menu-divider"></div>
+              <div class="menu-group-header">Linux</div>
+              <a href={downloadLinuxAppImage} class="menu-item" id="opt-linux-appimage" role="menuitem" download>
+                <div class="menu-item-info">
+                  <div class="menu-item-title">
+                    <strong>Linux AppImage</strong>
+                  </div>
+                  <span class="menu-item-desc">Universal binary · .AppImage</span>
+                </div>
+              </a>
+              <a href={downloadLinuxDeb} class="menu-item" id="opt-linux-deb" role="menuitem" download>
+                <div class="menu-item-info">
+                  <div class="menu-item-title">
+                    <strong>Debian / Ubuntu</strong>
+                  </div>
+                  <span class="menu-item-desc">Debian package · .deb</span>
+                </div>
+              </a>
+
               <div class="menu-divider"></div>
               <div class="menu-sub-row">
-                <a href={downloadSiliconZip} class="sub-link" download>Silicon .zip</a>
+                <a href={downloadWinZip} class="sub-link" download>Win .zip</a>
                 <span class="sub-dot">·</span>
-                <a href={downloadIntelZip} class="sub-link" download>Intel .zip</a>
+                <a href={downloadSiliconZip} class="sub-link" download>Mac .zip</a>
                 <span class="sub-dot">·</span>
                 <a href={releasesUrl} target="_blank" rel="noopener noreferrer" class="sub-link">All releases ↗</a>
               </div>
@@ -742,29 +778,61 @@ $$</code></pre>
 
             <!-- Architecture Dropdown Menu (Opens Upward) -->
             <div class="cta-dropdown-menu dropdown-up" id="closing-dl-menu" role="menu">
-              <a href={downloadSilicon} class="menu-item is-selected" role="menuitem" download>
+              <div class="menu-group-header">macOS</div>
+              <a href={downloadSilicon} class="menu-item is-selected" id="opt-closing-silicon" role="menuitem" download>
                 <div class="menu-item-info">
                   <div class="menu-item-title">
                     <strong>Apple Silicon</strong>
                     <span class="rec-badge">Default</span>
                   </div>
-                  <span class="menu-item-desc">M1, M2, M3, M4 Macs · .dmg (99 MB)</span>
+                  <span class="menu-item-desc">M1, M2, M3, M4 Macs · .dmg</span>
                 </div>
                 <span class="check-mark">✓</span>
               </a>
-              <a href={downloadIntel} class="menu-item" role="menuitem" download>
+              <a href={downloadIntel} class="menu-item" id="opt-closing-intel" role="menuitem" download>
                 <div class="menu-item-info">
                   <div class="menu-item-title">
                     <strong>Intel Mac</strong>
                   </div>
-                  <span class="menu-item-desc">x86_64 architecture · .dmg (106 MB)</span>
+                  <span class="menu-item-desc">x86_64 architecture · .dmg</span>
                 </div>
               </a>
+
+              <div class="menu-divider"></div>
+              <div class="menu-group-header">Windows</div>
+              <a href={downloadWinExe} class="menu-item" id="opt-closing-winexe" role="menuitem" download>
+                <div class="menu-item-info">
+                  <div class="menu-item-title">
+                    <strong>Windows Installer</strong>
+                  </div>
+                  <span class="menu-item-desc">Windows 10/11 · .exe (x64 / ARM64)</span>
+                </div>
+              </a>
+
+              <div class="menu-divider"></div>
+              <div class="menu-group-header">Linux</div>
+              <a href={downloadLinuxAppImage} class="menu-item" id="opt-closing-linux-appimage" role="menuitem" download>
+                <div class="menu-item-info">
+                  <div class="menu-item-title">
+                    <strong>Linux AppImage</strong>
+                  </div>
+                  <span class="menu-item-desc">Universal binary · .AppImage</span>
+                </div>
+              </a>
+              <a href={downloadLinuxDeb} class="menu-item" id="opt-closing-linux-deb" role="menuitem" download>
+                <div class="menu-item-info">
+                  <div class="menu-item-title">
+                    <strong>Debian / Ubuntu</strong>
+                  </div>
+                  <span class="menu-item-desc">Debian package · .deb</span>
+                </div>
+              </a>
+
               <div class="menu-divider"></div>
               <div class="menu-sub-row">
-                <a href={downloadSiliconZip} class="sub-link" download>Silicon .zip</a>
+                <a href={downloadWinZip} class="sub-link" download>Win .zip</a>
                 <span class="sub-dot">·</span>
-                <a href={downloadIntelZip} class="sub-link" download>Intel .zip</a>
+                <a href={downloadSiliconZip} class="sub-link" download>Mac .zip</a>
                 <span class="sub-dot">·</span>
                 <a href={releasesUrl} target="_blank" rel="noopener noreferrer" class="sub-link">All releases ↗</a>
               </div>
@@ -984,6 +1052,110 @@ $$</code></pre>
 
   setupDropdown('hero-dl-toggle', 'hero-dl-menu')
   setupDropdown('closing-dl-toggle', 'closing-dl-menu')
+
+  // Auto-detect user OS and configure default download button & badges
+  function autoDetectOS() {
+    const ua = navigator.userAgent || ''
+    const platform = (navigator as any).userAgentData?.platform || navigator.platform || ''
+
+    let os: 'mac' | 'windows' | 'linux' = 'mac'
+    if (/Win/i.test(ua) || /Win/i.test(platform)) {
+      os = 'windows'
+    } else if (/Linux/i.test(ua) || /Linux/i.test(platform)) {
+      os = 'linux'
+    } else if (/Mac/i.test(ua) || /Mac/i.test(platform)) {
+      os = 'mac'
+    }
+
+    const heroBtn = document.getElementById('hero-dl-btn')
+    const closingBtn = document.getElementById('closing-dl-btn')
+    const heroBadge = document.getElementById('hero-arch-badge')
+    const closingBadge = closingBtn?.querySelector('.cta-arch-badge')
+    const heroMeta = document.getElementById('cta-meta-text')
+
+    function applyTarget(url: string, osLabel: string, badgeText: string, metaText: string, heroOptId: string, closingOptId: string) {
+      if (heroBtn) {
+        heroBtn.setAttribute('href', url)
+        const labelSpan = heroBtn.querySelector('span:first-of-type')
+        if (labelSpan) labelSpan.textContent = `Download for ${osLabel}`
+      }
+      if (closingBtn) {
+        closingBtn.setAttribute('href', url)
+        const labelSpan = closingBtn.querySelector('span:first-of-type')
+        if (labelSpan) labelSpan.textContent = `Download for ${osLabel}`
+      }
+      if (heroBadge) heroBadge.textContent = badgeText
+      if (closingBadge) closingBadge.textContent = badgeText
+      if (heroMeta) {
+        heroMeta.innerHTML = `<span class="cta-free-badge">100% Free forever</span> · No account required · ${metaText}`
+      }
+
+      // Mark selected in dropdown menus
+      document.querySelectorAll('.menu-item').forEach((item) => {
+        item.classList.remove('is-selected')
+        item.querySelector('.check-mark')?.remove()
+      })
+      const checkHero = document.getElementById(heroOptId)
+      if (checkHero) {
+        checkHero.classList.add('is-selected')
+        const mark = document.createElement('span')
+        mark.className = 'check-mark'
+        mark.textContent = '✓'
+        checkHero.appendChild(mark)
+      }
+      const checkClosing = document.getElementById(closingOptId)
+      if (checkClosing) {
+        checkClosing.classList.add('is-selected')
+        const mark = document.createElement('span')
+        mark.className = 'check-mark'
+        mark.textContent = '✓'
+        checkClosing.appendChild(mark)
+      }
+    }
+
+    if (os === 'windows') {
+      applyTarget(
+        'https://github.com/carlosrivera/folio/releases/download/v0.2.0/Folio-Setup-0.2.0.exe',
+        'Windows',
+        'Installer (.exe)',
+        'For Windows 10/11',
+        'opt-winexe',
+        'opt-closing-winexe'
+      )
+    } else if (os === 'linux') {
+      applyTarget(
+        'https://github.com/carlosrivera/folio/releases/download/v0.2.0/Folio-0.2.0.AppImage',
+        'Linux',
+        'Universal (.AppImage)',
+        'For Ubuntu, Debian, Fedora',
+        'opt-linux-appimage',
+        'opt-closing-linux-appimage'
+      )
+    } else {
+      const isIntel = /Intel/i.test(ua) && !/arm/i.test(ua)
+      if (isIntel) {
+        applyTarget(
+          'https://github.com/carlosrivera/folio/releases/download/v0.2.0/Folio-0.2.0.dmg',
+          'macOS',
+          'Intel Mac',
+          'For macOS 12+',
+          'opt-intel',
+          'opt-closing-intel'
+        )
+      } else {
+        applyTarget(
+          'https://github.com/carlosrivera/folio/releases/download/v0.2.0/Folio-0.2.0-arm64.dmg',
+          'macOS',
+          'Apple Silicon',
+          'For macOS 12+',
+          'opt-silicon',
+          'opt-closing-silicon'
+        )
+      }
+    }
+  }
+
+  autoDetectOS()
 
   // Responsive Mobile Navigation Drawer
   const mobileNavToggle = document.getElementById('mobile-nav-toggle')
@@ -1499,6 +1671,16 @@ $$</code></pre>
     color: var(--accent);
     font-weight: 800;
     font-size: 0.92rem;
+  }
+
+  .menu-group-header {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    padding: 6px 14px 2px;
+    font-family: 'JetBrains Mono', monospace;
   }
 
   .menu-divider {
