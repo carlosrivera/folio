@@ -2,6 +2,7 @@
   "name": "folio-md",
   "productName": "Folio",
   "version": "0.1.0",
+  "license": "MIT",
   "author": "Carlos Rivera <me@carlosrivera.im>",
   "description": "A macOS-first Markdown document editor with paginated preview and PDF export.",
   "homepage": "https://carlosrivera.github.io/folio/",

@@ -145,11 +145,21 @@ const themes = [
                 <span class="arrow">⌵</span>
               </div>
               
-              <!-- Dynamic Theme Selector Pill -->
-              <div class="pill-select is-theme" id="app-theme-pill" title="Theme Selector">
+              <!-- Dynamic Theme Selector Pill with Dropdown -->
+              <div class="pill-select is-theme" id="app-theme-pill" title="Select Theme" tabindex="0">
                 <span class="swatch-square" id="app-theme-swatch" style="background: #d4ff2b;"></span>
                 <span id="app-theme-name">Voltage</span>
                 <span class="arrow">⌵</span>
+
+                <!-- Titlebar Theme Dropdown Popover -->
+                <div class="titlebar-theme-menu" id="titlebar-theme-menu" role="menu">
+                  {themes.map((t) => (
+                    <div class="titlebar-theme-item" data-theme-id={t.id} data-theme-name={t.name} data-theme-swatch={t.swatch} role="menuitem">
+                      <span class="swatch-square" style={`background: ${t.swatch};`}></span>
+                      <span>{t.name}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div class="pill-select" title="Language">
@@ -401,29 +411,139 @@ const themes = [
           <p class="eyebrow">Typography & Print Palettes</p>
           <h2 class="section-title">Seven curated themes. Zero styling fatigue.</h2>
           <p class="section-desc">
-            Add <code>theme: voltage</code> or <code>theme: editorial</code> to your frontmatter. Every theme brings calibrated display typography, line heights, running headers, table rules, and print palettes. Click any theme to transform the document above:
+            Click any theme below to transform the document and entire site palette in real time. Every theme brings calibrated display typography, line heights, running headers, table rules, and print palettes:
           </p>
         </div>
 
-        <div class="theme-grid">
-          {themes.map((t, idx) => (
-            <button 
-              type="button" 
-              class={`theme-card ${idx === 0 ? 'is-active' : ''}`} 
-              data-theme-id={t.id}
-              data-theme-name={t.name}
-              data-theme-swatch={t.swatch}
-              data-theme-bg={t.bg}
-            >
-              <div class="theme-card-head">
-                <span class="theme-swatch-chip" style={`background: ${t.swatch}; border-color: ${t.id === 'contrast' || t.id === 'scientific' ? '#ccc' : 'transparent'};`}></span>
-                <strong class="theme-name">{t.name}</strong>
-                <span class="theme-check-radio">✓</span>
+        <div class="themes-split-layout">
+          <!-- Left: Theme Selector Cards -->
+          <div class="themes-selector-pane">
+            <div class="theme-grid">
+              {themes.map((t, idx) => (
+                <button 
+                  type="button" 
+                  class={`theme-card ${idx === 0 ? 'is-active' : ''}`} 
+                  data-theme-id={t.id}
+                  data-theme-name={t.name}
+                  data-theme-swatch={t.swatch}
+                  data-theme-bg={t.bg}
+                >
+                  <div class="theme-card-head">
+                    <span class="theme-swatch-chip" style={`background: ${t.swatch}; border-color: ${t.id === 'contrast' || t.id === 'scientific' ? '#ccc' : 'transparent'};`}></span>
+                    <strong class="theme-name">{t.name}</strong>
+                    <span class="theme-check-radio">✓</span>
+                  </div>
+                  <div class="theme-fonts">{t.fonts}</div>
+                  <p class="theme-desc">{t.desc}</p>
+                </button>
+              ))}
+            </div>
+
+            <div class="themes-reset-row">
+              <span class="theme-status-text">Active Theme: <strong id="active-theme-label">Voltage</strong></span>
+              <button type="button" class="btn-reset-theme" id="btn-reset-cream">Reset page to warm cream ↺</button>
+            </div>
+          </div>
+
+          <!-- Right: Live Synchronized Document Sheet Viewport -->
+          <div class="themes-preview-pane">
+            <div class="themes-preview-container">
+              <div class="themes-preview-header">
+                <div class="preview-doc-meta">
+                  <span class="doc-file-tag">specification.md</span>
+                  <span class="preview-theme-tag" id="themes-preview-tag">Voltage</span>
+                </div>
+                <div class="preview-tab-pills">
+                  <button type="button" class="tab-pill" id="themes-tab-cover">Cover Sheet</button>
+                  <button type="button" class="tab-pill is-active" id="themes-tab-body">Page 2: Spec</button>
+                </div>
               </div>
-              <div class="theme-fonts">{t.fonts}</div>
-              <p class="theme-desc">{t.desc}</p>
-            </button>
-          ))}
+
+              <div class="themes-preview-sheet-wrap">
+                <!-- Page 2 View -->
+                <div class="doc-page-sheet theme-voltage" id="themes-body-sheet">
+                  <div class="sheet-running-header">
+                    <span class="hdr-left">FOLIO / APEX ROBOTICS</span>
+                    <span class="hdr-center">§ 2.4 STATE ESTIMATION &amp; BOUNDS</span>
+                    <span class="hdr-right">SPEC-2026-09</span>
+                  </div>
+                  <div class="sheet-body-content">
+                    <h2 class="sheet-h2">2. Deterministic State Estimation</h2>
+                    <p class="sheet-lead">
+                      The core trajectory planner executes deterministic state estimation over a 200 Hz boundary. System stability is proven through the Lyapunov function <span class="sheet-math-inline" set:html={inlineP} />:
+                    </p>
+                    <div class="sheet-equation-card">
+                      <div class="sheet-equation-math" set:html={eqLyapunov} />
+                      <span class="sheet-eq-num">(2.1)</span>
+                    </div>
+                    <blockquote class="sheet-blockquote">
+                      <p>"Deterministic convergence is mathematically guaranteed within 14 ms for all initial state perturbations bounded by the stability envelope."</p>
+                    </blockquote>
+                    <div class="sheet-table-section">
+                      <div class="sheet-table-kicker">// MILESTONE DELIVERABLES &amp; LATENCY BUDGET</div>
+                      <table class="sheet-table">
+                        <thead>
+                          <tr>
+                            <th>Module</th>
+                            <th>Latency</th>
+                            <th>Determinism</th>
+                            <th>Target SLA</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td><strong>State Estimator</strong></td>
+                            <td>&lt; 2.4 ms</td>
+                            <td>Hard Real-Time</td>
+                            <td>99.99%</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Trajectory QP</strong></td>
+                            <td>&lt; 8.1 ms</td>
+                            <td>Bounded Loop</td>
+                            <td>99.95%</td>
+                          </tr>
+                          <tr>
+                            <td><strong>CAN Bus Link</strong></td>
+                            <td>&lt; 0.8 ms</td>
+                            <td>Deterministic</td>
+                            <td>99.99%</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <div class="sheet-running-footer">
+                    <span class="ftr-left">Confidential · Apex Robotics Lab</span>
+                    <span class="ftr-right">Page 2 of 4</span>
+                  </div>
+                </div>
+
+                <!-- Cover Page View -->
+                <div class="doc-cover-sheet theme-voltage" id="themes-cover-sheet" style="display: none;">
+                  <div class="cover-kicker-line">TECHNICAL SPECIFICATION · SPEC-2026-09</div>
+                  <h1 class="cover-title">Autonomous Systems Specification</h1>
+                  <p class="cover-client-line">Prepared for Apex Robotics Lab · Autonomous Fleet Division</p>
+                  <div class="cover-rule-divider"></div>
+                  <div class="cover-grid-details">
+                    <div class="cov-col">
+                      <span class="cov-lbl">Prepared For</span>
+                      <strong class="cov-val">Apex Robotics Lab</strong>
+                    </div>
+                    <div class="cov-col">
+                      <span class="cov-lbl">Issued</span>
+                      <strong class="cov-val">October 2026</strong>
+                    </div>
+                  </div>
+                  <div class="cover-accent-rings">
+                    <span class="ring-1"></span>
+                    <span class="ring-2"></span>
+                    <span class="ring-3"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -640,20 +760,35 @@ $$</code></pre>
   const activeCoverPage = document.getElementById('active-cover-page')
   const previewMetaBadge = document.getElementById('preview-meta-badge')
 
-  // Page View Switching Logic (Cover vs Body Page)
+  // Hero Page View Switching Logic (Cover vs Body Page)
   const tabCoverView = document.getElementById('tab-cover-view')
   const tabBodyView = document.getElementById('tab-body-view')
   const btnPrevPage = document.getElementById('btn-prev-page')
   const btnNextPage = document.getElementById('btn-next-page')
   const pgStatusNum = document.getElementById('pg-status-num')
 
+  // Themes Section Synchronized Sheet
+  const themesBodySheet = document.getElementById('themes-body-sheet')
+  const themesCoverSheet = document.getElementById('themes-cover-sheet')
+  const themesTabCover = document.getElementById('themes-tab-cover')
+  const themesTabBody = document.getElementById('themes-tab-body')
+  const activeThemeLabel = document.getElementById('active-theme-label')
+  const themesPreviewTag = document.getElementById('themes-preview-tag')
+  const btnResetCream = document.getElementById('btn-reset-cream')
+
+  // Hero Titlebar Theme Dropdown
+  const appThemePill = document.getElementById('app-theme-pill')
+  const titlebarThemeMenu = document.getElementById('titlebar-theme-menu')
+  const titlebarItems = document.querySelectorAll<HTMLElement>('.titlebar-theme-item')
+
   let currentTheme = 'voltage'
   let currentThemeName = 'Voltage'
   let currentThemeSwatch = '#d4ff2b'
-  let currentPage = 2 // 1 = Cover, 2 = Body/Spec
+  let currentHeroPage = 2 // 1 = Cover, 2 = Body/Spec
+  let currentThemesSecPage = 2 // 1 = Cover, 2 = Body/Spec
 
-  function updateView(page: number) {
-    currentPage = page
+  function updateHeroView(page: number) {
+    currentHeroPage = page
     if (page === 1) {
       if (activeCoverPage) activeCoverPage.style.display = 'flex'
       if (activeBodyPage) activeBodyPage.style.display = 'none'
@@ -671,54 +806,102 @@ $$</code></pre>
     }
   }
 
-  function applyTheme(themeId: string, themeName: string, themeSwatch: string) {
+  function updateThemesSecView(page: number) {
+    currentThemesSecPage = page
+    if (page === 1) {
+      if (themesCoverSheet) themesCoverSheet.style.display = 'flex'
+      if (themesBodySheet) themesBodySheet.style.display = 'none'
+      if (themesTabCover) themesTabCover.classList.add('is-active')
+      if (themesTabBody) themesTabBody.classList.remove('is-active')
+    } else {
+      if (themesCoverSheet) themesCoverSheet.style.display = 'none'
+      if (themesBodySheet) themesBodySheet.style.display = 'flex'
+      if (themesTabCover) themesTabCover.classList.remove('is-active')
+      if (themesTabBody) themesTabBody.classList.add('is-active')
+    }
+  }
+
+  function applyTheme(themeId: string, themeName: string, themeSwatch: string, updatePageTheme = true) {
     currentTheme = themeId
     currentThemeName = themeName
     currentThemeSwatch = themeSwatch
 
-    // Update active state on cards
+    // 1. Update the entire site palette by setting data-theme on html
+    if (updatePageTheme) {
+      document.documentElement.setAttribute('data-theme', themeId)
+    }
+
+    // 2. Update active state on cards
     themeCards.forEach((c) => {
       c.classList.toggle('is-active', c.getAttribute('data-theme-id') === themeId)
     })
 
-    // Update CodeMirror frontmatter token
+    // 3. Update CodeMirror frontmatter token
     if (cmThemeCode) cmThemeCode.textContent = themeId
 
-    // Update macOS app titlebar pill
+    // 4. Update macOS app titlebar pill in hero
     if (appThemeName) appThemeName.textContent = themeName
     if (appThemeSwatch) (appThemeSwatch as HTMLElement).style.background = themeSwatch
 
-    // Update preview sheet classes
-    const themeClassPrefix = 'theme-'
+    // 5. Update labels & badges
+    if (activeThemeLabel) activeThemeLabel.textContent = themeName
+    if (themesPreviewTag) themesPreviewTag.textContent = themeName
+
+    // 6. Update sheet classes on all preview sheets
     const allThemeClasses = ['theme-voltage', 'theme-editorial', 'theme-slate', 'theme-scientific', 'theme-contrast', 'theme-graphite', 'theme-nocturne']
     
-    if (activeBodyPage) {
-      allThemeClasses.forEach((cls) => activeBodyPage.classList.remove(cls))
-      activeBodyPage.classList.add(`theme-${themeId}`)
-    }
+    const targets = [activeBodyPage, activeCoverPage, themesBodySheet, themesCoverSheet]
+    targets.forEach((sheet) => {
+      if (!sheet) return
+      allThemeClasses.forEach((cls) => sheet.classList.remove(cls))
+      sheet.classList.add(`theme-${themeId}`)
+    })
 
-    if (activeCoverPage) {
-      allThemeClasses.forEach((cls) => activeCoverPage.classList.remove(cls))
-      activeCoverPage.classList.add(`theme-${themeId}`)
-    }
-
-    updateView(currentPage)
+    updateHeroView(currentHeroPage)
+    updateThemesSecView(currentThemesSecPage)
   }
 
+  // Click on theme cards in #themes
   themeCards.forEach((card) => {
     card.addEventListener('click', () => {
       const id = card.getAttribute('data-theme-id') || 'voltage'
       const name = card.getAttribute('data-theme-name') || 'Voltage'
       const swatch = card.getAttribute('data-theme-swatch') || '#d4ff2b'
-      applyTheme(id, name, swatch)
+      applyTheme(id, name, swatch, true)
     })
   })
 
-  // Page view tabs
-  tabCoverView?.addEventListener('click', () => updateView(1))
-  tabBodyView?.addEventListener('click', () => updateView(2))
-  btnPrevPage?.addEventListener('click', () => updateView(1))
-  btnNextPage?.addEventListener('click', () => updateView(2))
+  // Hero Titlebar Pill dropdown toggle
+  appThemePill?.addEventListener('click', (e) => {
+    e.stopPropagation()
+    titlebarThemeMenu?.classList.toggle('is-open')
+  })
+
+  titlebarItems.forEach((item) => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const id = item.getAttribute('data-theme-id') || 'voltage'
+      const name = item.getAttribute('data-theme-name') || 'Voltage'
+      const swatch = item.getAttribute('data-theme-swatch') || '#d4ff2b'
+      applyTheme(id, name, swatch, true)
+      titlebarThemeMenu?.classList.remove('is-open')
+    })
+  })
+
+  // Reset page theme to warm cream
+  btnResetCream?.addEventListener('click', () => {
+    document.documentElement.removeAttribute('data-theme')
+  })
+
+  // Hero Page view tabs
+  tabCoverView?.addEventListener('click', () => updateHeroView(1))
+  tabBodyView?.addEventListener('click', () => updateHeroView(2))
+  btnPrevPage?.addEventListener('click', () => updateHeroView(1))
+  btnNextPage?.addEventListener('click', () => updateHeroView(2))
+
+  // Themes Section View tabs
+  themesTabCover?.addEventListener('click', () => updateThemesSecView(1))
+  themesTabBody?.addEventListener('click', () => updateThemesSecView(2))
 
   // Architecture Dropdown Menus (Hero and Closing)
   function setupDropdown(toggleId: string, menuId: string) {
@@ -769,12 +952,16 @@ $$</code></pre>
       document.querySelectorAll('.cta-dropdown-menu.is-open').forEach((m) => m.classList.remove('is-open'))
       document.querySelectorAll('.cta-dropdown-btn[aria-expanded="true"]').forEach((b) => b.setAttribute('aria-expanded', 'false'))
     }
+    if (!target.closest('#app-theme-pill')) {
+      titlebarThemeMenu?.classList.remove('is-open')
+    }
   })
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       document.querySelectorAll('.cta-dropdown-menu.is-open').forEach((m) => m.classList.remove('is-open'))
       document.querySelectorAll('.cta-dropdown-btn[aria-expanded="true"]').forEach((b) => b.setAttribute('aria-expanded', 'false'))
+      titlebarThemeMenu?.classList.remove('is-open')
     }
   })
 </script>
@@ -785,10 +972,11 @@ $$</code></pre>
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(245, 242, 233, 0.88);
+    background: var(--nav-bg, rgba(245, 242, 233, 0.88));
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
+    transition: background-color 0.4s ease, border-color 0.4s ease;
   }
 
   .nav-inner {
@@ -814,10 +1002,11 @@ $$</code></pre>
     width: 28px;
     height: 28px;
     background: var(--accent);
-    color: #fff;
+    color: var(--accent-fg, #fff);
     border-radius: 7px;
     font-size: 0.85rem;
     font-weight: 800;
+    transition: background-color 0.4s ease, color 0.4s ease;
   }
 
   .nav-links {
@@ -855,17 +1044,17 @@ $$</code></pre>
 
   .btn-pill {
     padding: 7px 16px;
-    background: var(--text);
-    color: #fff;
+    background: var(--accent);
+    color: var(--accent-fg, #fff);
     border-radius: 999px;
     font-size: 0.88rem;
     font-weight: 600;
-    transition: transform 0.2s var(--spring), background 0.15s ease;
+    transition: transform 0.2s var(--spring), background-color 0.4s ease, color 0.4s ease;
   }
 
   .btn-pill:hover {
     transform: translateY(-1px);
-    background: #000;
+    background: var(--accent-hover);
   }
 
   /* Hero Section */
@@ -1247,6 +1436,53 @@ $$</code></pre>
     font-weight: 500;
     color: #d4d4d8;
     cursor: default;
+  }
+
+  .pill-select.is-theme {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .pill-select.is-theme:hover {
+    background: #32363e;
+    border-color: #434854;
+  }
+
+  .titlebar-theme-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 140px;
+    background: #18191d;
+    border: 1px solid #32353e;
+    border-radius: 8px;
+    padding: 5px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .titlebar-theme-menu.is-open {
+    display: flex;
+  }
+
+  .titlebar-theme-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-size: 11.5px;
+    color: #e4e4e7;
+    cursor: pointer;
+    transition: background 0.12s ease;
+  }
+
+  .titlebar-theme-item:hover {
+    background: #282b34;
+    color: #ffffff;
   }
 
   .swatch-square {
@@ -1680,11 +1916,14 @@ $$</code></pre>
 
   .sheet-h2 {
     font-size: 15px;
-    line-height: 1.2;
+    line-height: 1.25;
     margin-bottom: 8px;
     font-weight: 700;
     color: var(--heading, #000000);
     font-family: var(--font-display, "Space Grotesk", sans-serif);
+    border-left: 3.5px solid var(--accent-bar, #d4ff2b);
+    padding-left: 8px;
+    transition: all 0.3s ease;
   }
 
   .sheet-lead {
@@ -1709,12 +1948,14 @@ $$</code></pre>
   /* Rendered Equation Cards */
   .sheet-equation-card {
     position: relative;
-    background: #fafafa;
-    border: 1px solid #f0f0f0;
+    background: var(--eq-bg, #fafafa);
+    border: 1px solid var(--eq-border, #f0f0f0);
+    border-left: 3.5px solid var(--accent-bar, #d4ff2b);
     border-radius: 4px;
     padding: 8px 12px;
     margin: 8px 0;
     text-align: center;
+    transition: all 0.3s ease;
   }
 
   .sheet-equation-math {
@@ -1733,7 +1974,7 @@ $$</code></pre>
   }
 
   .sheet-blockquote {
-    border-left: 3px solid var(--quote-border, #d4ff2b);
+    border-left: 3.5px solid var(--quote-border, #d4ff2b);
     background: var(--quote-bg, #f4f7ea);
     color: var(--quote-fg, #111111);
     padding: 7px 10px;
@@ -1741,6 +1982,7 @@ $$</code></pre>
     border-radius: 0 4px 4px 0;
     font-size: 9px;
     line-height: 1.45;
+    transition: all 0.3s ease;
   }
 
   .sheet-blockquote p {
@@ -1757,6 +1999,7 @@ $$</code></pre>
     font-weight: 700;
     color: var(--subheading, #333);
     margin-bottom: 4px;
+    transition: all 0.3s ease;
   }
 
   .sheet-table {
@@ -1767,12 +2010,14 @@ $$</code></pre>
 
   .sheet-table th {
     text-align: left;
-    padding: 4px 6px;
-    border-bottom: 1.5px solid var(--th-border, #000);
+    padding: 5px 6px;
+    background: var(--th-bg, transparent);
+    border-bottom: 2px solid var(--th-border, #000);
     font-size: 7.5px;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--th-fg, #000);
+    transition: all 0.3s ease;
   }
 
   .sheet-table th:last-child,
@@ -1786,6 +2031,22 @@ $$</code></pre>
     color: #27272a;
   }
 
+  .sheet-running-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5px solid var(--header-rule, #e4e4e7);
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+    font-size: 7.5px;
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 600;
+    color: var(--header-fg, #71717a);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+  }
+
   .sheet-running-footer {
     display: flex;
     justify-content: space-between;
@@ -1795,6 +2056,7 @@ $$</code></pre>
     font-size: 7.5px;
     font-family: "JetBrains Mono", monospace;
     color: #71717a;
+    transition: all 0.3s ease;
   }
 
   /* ==========================================================================
@@ -1804,13 +2066,19 @@ $$</code></pre>
   /* 1. VOLTAGE */
   .doc-page-sheet.theme-voltage {
     --heading: #000000;
-    --subheading: #222222;
+    --subheading: #1a1a1a;
     --font-display: "Space Grotesk", sans-serif;
+    --accent-bar: #d4ff2b;
     --quote-border: #d4ff2b;
     --quote-bg: #f5f8ea;
     --quote-fg: #000000;
     --th-border: #000000;
+    --th-bg: #f4fcce;
     --th-fg: #000000;
+    --header-rule: #000000;
+    --header-fg: #000000;
+    --eq-bg: #fafdf2;
+    --eq-border: #e2f4a4;
   }
   .doc-cover-sheet.theme-voltage {
     background: #000000;
@@ -1829,11 +2097,17 @@ $$</code></pre>
     --heading: #18342e;
     --subheading: #b84f32;
     --font-display: Georgia, "Times New Roman", serif;
+    --accent-bar: #e56c47;
     --quote-border: #e56c47;
-    --quote-bg: #edf2ef;
+    --quote-bg: #fcf5f1;
     --quote-fg: #18342e;
-    --th-border: #26413b;
-    --th-fg: #26413b;
+    --th-border: #18342e;
+    --th-bg: #eef4f1;
+    --th-fg: #18342e;
+    --header-rule: #e56c47;
+    --header-fg: #18342e;
+    --eq-bg: #fdfaf6;
+    --eq-border: #ebdcd3;
   }
   .doc-cover-sheet.theme-editorial {
     background: #172d29;
@@ -1852,11 +2126,17 @@ $$</code></pre>
     --heading: #0f172a;
     --subheading: #0369a1;
     --font-display: Inter, sans-serif;
+    --accent-bar: #38bdf8;
     --quote-border: #38bdf8;
     --quote-bg: #f0f9ff;
     --quote-fg: #0f172a;
-    --th-border: #334155;
+    --th-border: #0f172a;
+    --th-bg: #e0f2fe;
     --th-fg: #0f172a;
+    --header-rule: #38bdf8;
+    --header-fg: #0f172a;
+    --eq-bg: #f8fafc;
+    --eq-border: #bae6fd;
   }
   .doc-cover-sheet.theme-slate {
     background: #0f172a;
@@ -1875,11 +2155,17 @@ $$</code></pre>
     --heading: #172b3a;
     --subheading: #27465b;
     --font-display: "Times New Roman", Georgia, serif;
+    --accent-bar: #2563eb;
     --quote-border: #47657a;
     --quote-bg: #f5f8f9;
     --quote-fg: #202a32;
-    --th-border: #61717b;
-    --th-fg: #27465b;
+    --th-border: #47657a;
+    --th-bg: #f1f5f9;
+    --th-fg: #172b3a;
+    --header-rule: #94a3b8;
+    --header-fg: #475569;
+    --eq-bg: #ffffff;
+    --eq-border: #cbd5e1;
   }
   .doc-cover-sheet.theme-scientific {
     background: #ffffff;
@@ -1897,13 +2183,19 @@ $$</code></pre>
   /* 5. CONTRAST */
   .doc-page-sheet.theme-contrast {
     --heading: #000000;
-    --subheading: #333333;
+    --subheading: #000000;
     --font-display: Inter, sans-serif;
+    --accent-bar: #000000;
     --quote-border: #000000;
     --quote-bg: #f5f5f5;
     --quote-fg: #000000;
     --th-border: #000000;
-    --th-fg: #000000;
+    --th-bg: #000000;
+    --th-fg: #ffffff;
+    --header-rule: #000000;
+    --header-fg: #000000;
+    --eq-bg: #ffffff;
+    --eq-border: #000000;
   }
   .doc-cover-sheet.theme-contrast {
     background: #000000;
@@ -1922,11 +2214,17 @@ $$</code></pre>
     --heading: #09090b;
     --subheading: #4d7c0f;
     --font-display: Inter, sans-serif;
+    --accent-bar: #a3e635;
     --quote-border: #a3e635;
     --quote-bg: #f4fce3;
     --quote-fg: #18181b;
     --th-border: #18181b;
+    --th-bg: #ecfccb;
     --th-fg: #18181b;
+    --header-rule: #a3e635;
+    --header-fg: #18181b;
+    --eq-bg: #fcfcf9;
+    --eq-border: #d9f99d;
   }
   .doc-cover-sheet.theme-graphite {
     background: #101113;
@@ -1942,14 +2240,20 @@ $$</code></pre>
 
   /* 7. NOCTURNE */
   .doc-page-sheet.theme-nocturne {
-    --heading: #443c68;
-    --subheading: #7b4bb7;
+    --heading: #2e1065;
+    --subheading: #7c3aed;
     --font-display: "Space Grotesk", sans-serif;
-    --quote-border: #bd93f9;
-    --quote-bg: #f4f0ff;
-    --quote-fg: #322b4d;
-    --th-border: #443c68;
-    --th-fg: #443c68;
+    --accent-bar: #ff79c6;
+    --quote-border: #ff79c6;
+    --quote-bg: #fdf2f8;
+    --quote-fg: #2e1065;
+    --th-border: #7c3aed;
+    --th-bg: #f3e8ff;
+    --th-fg: #2e1065;
+    --header-rule: #ff79c6;
+    --header-fg: #7c3aed;
+    --eq-bg: #faf5ff;
+    --eq-border: #fbcfe8;
   }
   .doc-cover-sheet.theme-nocturne {
     background: #282a36;
@@ -1997,32 +2301,166 @@ $$</code></pre>
     font-size: 0.9em;
   }
 
-  /* Interactive Theme Grid */
+  /* Interactive Themes Showcase: Split Selector + Live Preview */
+  .themes-split-layout {
+    display: grid;
+    grid-template-columns: 1fr 450px;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  @media (max-width: 980px) {
+    .themes-split-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .themes-selector-pane {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
   .theme-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+  }
+
+  .themes-reset-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.88rem;
+    transition: background 0.4s ease, border-color 0.4s ease;
+  }
+
+  .theme-status-text {
+    color: var(--text-2);
+  }
+
+  .theme-status-text strong {
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .btn-reset-theme {
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+  }
+
+  .btn-reset-theme:hover {
+    color: var(--accent);
+  }
+
+  .themes-preview-pane {
+    position: sticky;
+    top: 84px;
+  }
+
+  .themes-preview-container {
+    background: #141518;
+    border: 1px solid #2a2d35;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+  }
+
+  .themes-preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 16px;
+    background: #101113;
+    border-bottom: 1px solid #22252c;
+  }
+
+  .preview-doc-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .doc-file-tag {
+    color: #94949e;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .preview-theme-tag {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.03em;
+  }
+
+  .preview-tab-pills {
+    display: flex;
+    gap: 4px;
+  }
+
+  .tab-pill {
+    padding: 4px 10px;
+    background: #1f2127;
+    color: #8a8d96;
+    border: none;
+    border-radius: 5px;
+    font-size: 10.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .tab-pill:hover {
+    color: #ffffff;
+  }
+
+  .tab-pill.is-active {
+    background: #31353f;
+    color: #ffffff;
+  }
+
+  .themes-preview-sheet-wrap {
+    padding: 24px 16px;
+    background: #141518;
+    display: flex;
+    justify-content: center;
+    overflow-x: auto;
   }
 
   .theme-card {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 18px 20px;
+    padding: 16px 18px;
     text-align: left;
     cursor: pointer;
-    transition: transform 0.2s var(--spring), border-color 0.15s ease, box-shadow 0.15s ease;
+    transition: transform 0.2s var(--spring), border-color 0.2s ease, box-shadow 0.2s ease, background 0.4s ease;
   }
 
   .theme-card:hover {
     transform: translateY(-2px);
-    border-color: #c9c2b4;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+    border-color: var(--accent);
+    box-shadow: 0 4px 16px var(--accent-light, rgba(0,0,0,0.06));
   }
 
   .theme-card.is-active {
     border-color: var(--accent);
-    box-shadow: 0 0 0 2px var(--accent-light), 0 4px 16px rgba(210, 92, 58, 0.12);
+    box-shadow: 0 0 0 2px var(--accent), 0 6px 20px var(--accent-light, rgba(210, 92, 58, 0.16));
   }
 
   .theme-card-head {
