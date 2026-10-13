@@ -22,6 +22,28 @@ const eqLyapunov = katex.renderToString('V(x) = \\frac{1}{2} x^T P x + \\int_0^t
 const eqRiccati = katex.renderToString('A^T P + P A - P B R^{-1} B^T P + Q = 0', { displayMode: true, throwOnError: false })
 const inlineP = katex.renderToString('P \\succ 0', { displayMode: false })
 const inlineOmega = katex.renderToString('\\Omega \\subset \\mathbb{R}^n', { displayMode: false })
+const schrodingerSource = String.raw`i\hbar\frac{\partial\psi}{\partial t} = \left[-\frac{\hbar^2}{2m}\nabla^2 + V\right]\psi`
+const eqSchrodinger = katex.renderToString(schrodingerSource, { displayMode: true, throwOnError: true })
+const codeExample = `function clamp(n: number,
+  lo = 0, hi = 1) {
+  if (lo > hi) throw new RangeError();
+  return n < lo ? lo :
+    n > hi ? hi : n;
+}`
+const technicalMarkdown = `# Release pipeline
+
+\`\`\`ts
+${codeExample}
+\`\`\`
+
+\`\`\`mermaid
+flowchart LR
+  Draft --> Review --> Publish
+\`\`\`
+
+$$
+${schrodingerSource}
+$$`
 
 
 const themes = [
@@ -131,7 +153,13 @@ const themes = [
       </div>
 
       <!-- App Window Mockup: Desktop layout, fixed proportions, never squashed -->
-      <div class="container window-container">
+      <div class="hero-window-showcase" id="hero-window-showcase">
+        <div class="hero-scroll-hint" id="hero-scroll-hint">
+          <svg class="hero-swipe-icon" width="22" height="16" viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h18M7 4 3 8l4 4M17 4l4 4-4 4" /></svg>
+          <span>Swipe to explore</span>
+          <span class="hero-scroll-track" aria-hidden="true"><span class="hero-scroll-thumb" id="hero-scroll-thumb"></span></span>
+        </div>
+        <div class="container window-container" id="hero-window-scroller" role="region" aria-label="Folio editor and document preview" tabindex="0">
         <div class="app-window" id="app-window">
           <!-- macOS Native Titlebar -->
           <div class="app-titlebar">
@@ -403,6 +431,7 @@ const themes = [
           </div>
         </div>
       </div>
+      </div>
     </section>
 
     <!-- AI Workflow Bridge Section -->
@@ -542,27 +571,14 @@ const themes = [
         <div class="technical-proof">
           <div class="technical-source">
             <span class="proof-label">Plain Markdown</span>
-            <pre><code># Release pipeline
-
-```ts
-const publish = (ready: boolean) =&gt; ready
-```
-
-```mermaid
-flowchart LR
-  Draft --&gt; Review --&gt; Publish
-```
-
-$$
-E = mc^2
-$$</code></pre>
+            <pre><code>{technicalMarkdown}</code></pre>
           </div>
           <figure class="technical-paper">
             <div class="proof-paper-header"><span>ENGINEERING NOTE</span><span>FOLIO / 01</span></div>
             <h3>Release pipeline</h3>
             <div class="proof-block">
               <span class="proof-label">Syntax-highlighted code</span>
-              <pre class="proof-code"><code><span class="proof-keyword">const</span> publish = (ready: <span class="proof-type">boolean</span>) =&gt; ready</code></pre>
+              <pre class="proof-code"><code><span class="proof-keyword">function</span> <span class="proof-function">clamp</span>(n: <span class="proof-type">number</span>,{'\n'}{'  '}lo <span class="proof-operator">=</span> <span class="proof-number">0</span>, hi <span class="proof-operator">=</span> <span class="proof-number">1</span>) &#123;{'\n'}{'  '}<span class="proof-keyword">if</span> (lo <span class="proof-operator">&gt;</span> hi) <span class="proof-keyword">throw new</span> <span class="proof-function">RangeError</span>();{'\n'}{'  '}<span class="proof-keyword">return</span> n <span class="proof-operator">&lt;</span> lo <span class="proof-operator">?</span> lo <span class="proof-operator">:</span>{'\n'}{'    '}n <span class="proof-operator">&gt;</span> hi <span class="proof-operator">?</span> hi <span class="proof-operator">:</span> n;{'\n'}&#125;</code></pre>
             </div>
             <div class="proof-block">
               <span class="proof-label">Mermaid diagrams</span>
@@ -577,7 +593,7 @@ $$</code></pre>
             </div>
             <div class="proof-block proof-equation">
               <span class="proof-label">LaTeX equations</span>
-              <div class="proof-formula"><span>E = mc<sup>2</sup></span><span class="proof-equation-number">(1)</span></div>
+              <div class="proof-formula"><span class="proof-math" set:html={eqSchrodinger} /><span class="proof-equation-number">(1)</span></div>
             </div>
             <figcaption>One document. Code, diagrams, and equations ready for print.</figcaption>
           </figure>
@@ -860,6 +876,63 @@ $$</code></pre>
 
 <script>
   import { macDownloadArchitecture, type MacArchitectureHints } from '../lib/mac-architecture'
+
+  // Keep vertical reveal motion independent of native horizontal scrolling.
+  const heroShowcase = document.getElementById('hero-window-showcase')
+  const heroScroller = document.getElementById('hero-window-scroller')
+  const heroWindow = document.getElementById('app-window')
+  const heroScrollThumb = document.getElementById('hero-scroll-thumb')
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+  if (heroShowcase && heroScroller && heroWindow && heroScrollThumb) {
+    let frame = 0
+    let visible = true
+
+    function updateHeroWindow() {
+      frame = 0
+      const viewportWidth = heroScroller!.clientWidth
+      const contentWidth = heroScroller!.scrollWidth
+      const maxScroll = Math.max(0, contentWidth - viewportWidth)
+      const position = Math.max(0, Math.min(maxScroll, heroScroller!.scrollLeft))
+      const thumbWidth = Math.min(1, viewportWidth / contentWidth)
+      const offset = maxScroll > 0 ? (position / maxScroll) * (1 - thumbWidth) : 0
+      const top = heroScroller!.getBoundingClientRect().top + window.scrollY
+      const travel = Math.max(1, top - window.innerHeight * 0.16)
+      const progress = Math.max(0, Math.min(1, window.scrollY / travel))
+      const eased = progress * progress * (3 - 2 * progress)
+      const remaining = reducedMotion.matches ? 0 : 1 - eased
+      const compact = viewportWidth < 1060
+
+      heroShowcase!.dataset.scrollable = String(maxScroll > 1)
+      heroShowcase!.dataset.scrollLeft = String(position > 2)
+      heroShowcase!.dataset.scrollRight = String(position < maxScroll - 2)
+      heroShowcase!.classList.toggle('has-explored', position > 12)
+      if (maxScroll > 1) heroScroller!.setAttribute('aria-describedby', 'hero-scroll-hint')
+      else heroScroller!.removeAttribute('aria-describedby')
+      heroScrollThumb!.style.width = `${thumbWidth * 100}%`
+      heroScrollThumb!.style.left = `${offset * 100}%`
+      heroWindow!.style.setProperty('--hero-tilt', `${remaining * (compact ? 5 : 10)}deg`)
+      heroWindow!.style.setProperty('--hero-scale', String(1 - remaining * (compact ? 0.025 : 0.08)))
+      heroWindow!.style.setProperty('--hero-lift', `${remaining * (compact ? 8 : 24)}px`)
+    }
+
+    function scheduleHeroUpdate() {
+      if (visible && !frame) frame = requestAnimationFrame(updateHeroWindow)
+    }
+
+    window.addEventListener('scroll', scheduleHeroUpdate, { passive: true })
+    window.addEventListener('resize', scheduleHeroUpdate, { passive: true })
+    heroScroller.addEventListener('scroll', scheduleHeroUpdate, { passive: true })
+    reducedMotion.addEventListener('change', scheduleHeroUpdate)
+    new ResizeObserver(scheduleHeroUpdate).observe(heroScroller)
+    const heroObserver = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting
+      heroWindow.classList.toggle('is-animating', visible && !reducedMotion.matches)
+      if (visible) scheduleHeroUpdate()
+    }, { rootMargin: '120px' })
+    heroObserver.observe(heroShowcase)
+    updateHeroWindow()
+  }
 
   // Interactive Theme Switching Logic
   const themeCards = document.querySelectorAll<HTMLButtonElement>('.theme-card')
@@ -1465,6 +1538,14 @@ $$</code></pre>
   }
 
   /* Window Container: Desktop-first, fixed desktop proportions */
+  .hero-window-showcase {
+    position: relative;
+    max-width: 1220px;
+    margin: 0 auto;
+  }
+
+  .hero-scroll-hint { display: none; }
+
   .window-container {
     position: relative;
     z-index: 1;
@@ -1473,6 +1554,14 @@ $$</code></pre>
     overflow-x: auto;
     padding: 20px 40px 60px;
     scrollbar-width: thin;
+    scrollbar-color: var(--text-faint) transparent;
+    overscroll-behavior-x: contain;
+  }
+
+  .window-container:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -3px;
+    border-radius: 12px;
   }
 
   .app-window {
@@ -1487,6 +1576,59 @@ $$</code></pre>
     overflow: hidden;
     color: #e4e4e7;
     text-align: left;
+    transform: perspective(1600px) translateY(var(--hero-lift, 0px)) rotateX(var(--hero-tilt, 0deg)) scale(var(--hero-scale, 1));
+    transform-origin: center 35%;
+  }
+
+  .app-window.is-animating { will-change: transform; }
+
+  @media (max-width: 1059px) {
+    .window-container { padding-inline: var(--gutter); }
+    .app-window { transform-origin: left 35%; }
+    .hero-scroll-hint {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 0 var(--gutter) 4px;
+      color: var(--text-2);
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    .hero-window-showcase[data-scrollable="false"] .hero-scroll-hint { display: none; }
+    .hero-swipe-icon { color: var(--accent); animation: hero-swipe 1.8s ease-in-out 3; }
+    .has-explored .hero-swipe-icon { animation: none; }
+    .hero-scroll-track { position: relative; width: 64px; height: 3px; border-radius: 99px; background: var(--border); overflow: hidden; }
+    .hero-scroll-thumb { position: absolute; top: 0; bottom: 0; left: 0; width: 30%; border-radius: inherit; background: var(--accent); }
+    .hero-window-showcase::before,
+    .hero-window-showcase::after {
+      content: '';
+      position: absolute;
+      z-index: 2;
+      top: 44px;
+      bottom: 60px;
+      width: 32px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .hero-window-showcase::before { left: 0; background: linear-gradient(to right, var(--bg), transparent); }
+    .hero-window-showcase::after { right: 0; background: linear-gradient(to left, var(--bg), transparent); }
+    .hero-window-showcase[data-scroll-left="true"]::before,
+    .hero-window-showcase[data-scroll-right="true"]::after { opacity: 1; }
+  }
+
+  @keyframes hero-swipe {
+    0%, 100% { transform: translateX(0); }
+    35% { transform: translateX(4px); }
+    70% { transform: translateX(-4px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .app-window { transform: none; will-change: auto; }
+    .hero-swipe-icon { animation: none; }
+    .hero-window-showcase::before,
+    .hero-window-showcase::after { transition: none; }
   }
 
   /* Titlebar */
@@ -2671,20 +2813,24 @@ $$</code></pre>
   .proof-block + .proof-block { margin-top: 28px; }
   .proof-code { margin: 0; padding: 18px; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 5px; background: var(--bg); white-space: pre-wrap; overflow-wrap: anywhere; font: 400 0.77rem/1.7 "JetBrains Mono", monospace; color: var(--text); }
   .proof-keyword { color: var(--accent); }
-  .proof-type { color: var(--text-2); }
+  .proof-type, .proof-function { color: color-mix(in srgb, var(--text) 70%, #2563eb); }
+  .proof-operator { color: var(--accent); font-weight: 600; }
+  .proof-number { color: color-mix(in srgb, var(--text) 65%, #8b5cf6); }
   .proof-diagram { display: block; width: 100%; height: auto; }
   .proof-diagram rect { fill: var(--bg); stroke: var(--border); }
   .proof-diagram rect:last-of-type { fill: var(--accent-light); stroke: var(--accent); }
   .proof-diagram > path { stroke: var(--text-faint); }
   .proof-diagram marker path { fill: var(--text-faint); }
   .proof-diagram g { fill: var(--text); }
-  .proof-formula { display: flex; align-items: center; justify-content: center; position: relative; padding: 10px 32px; font: italic 2rem/1.5 Georgia, serif; color: var(--text); }
-  .proof-formula sup { font-size: 0.6em; }
-  .proof-equation-number { position: absolute; right: 0; font: 400 0.75rem/1.4 Georgia, serif; color: var(--text-faint); }
+  .proof-formula { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 10px 0; font-size: clamp(0.8rem, 1.3vw, 1rem); color: var(--text); }
+  .proof-math { flex: 1; min-width: 0; overflow-x: auto; }
+  .proof-math :global(.katex-display) { margin: 0.5em 0; }
+  .proof-equation-number { margin-left: auto; flex-shrink: 0; font: 400 0.75rem/1.4 Georgia, serif; color: var(--text-faint); }
   .technical-paper figcaption { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--text-2); font-size: 0.72rem; line-height: 1.5; }
   @media (max-width: 768px) {
     .technical-proof { grid-template-columns: 1fr; }
     .technical-source pre { font-size: 0.78rem; line-height: 1.65; }
+    .proof-code { padding: 14px; font-size: 0.7rem; }
   }
 
   /* MCP agent workflow */
