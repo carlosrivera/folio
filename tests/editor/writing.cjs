@@ -105,9 +105,14 @@ app.whenReady().then(async () => {
     let settings
     for (let i = 0; !settings && i < 50; i++) { settings = BrowserWindow.getAllWindows().find(candidate => candidate !== win && candidate.webContents.getURL().includes('mode=settings')); await delay(100) }
     await until(settings, `!!document.querySelector('.settings-window select')`, 'Settings did not open')
+    assert.deepEqual(await js(settings, `Array.from(document.querySelector('.settings-window select').options).map(option => option.textContent)`), ['🇺🇸 English', '🇪🇸 Español'])
+    assert.equal(await js(win, `!!document.querySelector('[title="Document language (saved in Markdown)"]')`), false)
+    const contentBeforeLanguage = await text(win)
+    const pagesBeforeLanguage = await js(win, `document.querySelector('.pagination-output').textContent`)
     await input(settings, '.settings-window select', 'es')
     await until(win, `document.querySelector('.save-main').textContent.includes('Guardar')`, 'Interface language did not propagate')
-    assert.ok((await text(win)).includes('lang: en'), 'Interface language changed document language')
+    assert.equal(await text(win), contentBeforeLanguage, 'Interface language rewrote document content')
+    assert.equal(await js(win, `document.querySelector('.pagination-output').textContent`), pagesBeforeLanguage, 'Interface language changed document labels')
     assert.equal(await js(settings, `document.querySelector('h1').textContent`), 'Ajustes')
     await input(settings, '.settings-window select', 'en')
     settings.destroy()

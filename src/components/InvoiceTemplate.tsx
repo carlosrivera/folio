@@ -13,7 +13,7 @@ export function InvoiceTemplate({
   overrideLang,
 }: InvoiceTemplateProps) {
   const { metadata } = document
-  const lang = overrideLang || metadata.lang || 'en'
+  const lang = overrideLang || 'en'
   const theme = overrideTheme || metadata.theme || 'editorial'
   const t = getTranslations(lang)
 

@@ -21,7 +21,7 @@ export function SettingsApp() {
     <section aria-labelledby="appearance-settings"><h2 id="appearance-settings">{tr('Appearance')}</h2>
       <div className="settings-row"><span>{tr('App appearance')}</span><AppThemeToggle value={theme.preference} onChange={theme.setPreference} /></div>
     </section>
-    <section aria-labelledby="language-settings"><h2 id="language-settings">{tr('Interface language')}</h2><label className="settings-row"><span>{tr('Interface language')}</span><select aria-label={tr('Interface language')} value={language} onChange={event => setLanguage(event.target.value === 'es' ? 'es' : 'en')}><option value="en">English</option><option value="es">Español</option></select></label></section>
+    <section aria-labelledby="language-settings"><h2 id="language-settings">{tr('Interface language')}</h2><label className="settings-row"><span>{tr('Interface language')}</span><select aria-label={tr('Interface language')} value={language} onChange={event => setLanguage(event.target.value === 'es' ? 'es' : 'en')}><option value="en">🇺🇸 English</option><option value="es">🇪🇸 Español</option></select></label></section>
     <section aria-labelledby="editor-settings"><h2 id="editor-settings">{tr('Editor')}</h2>
       <label className="settings-row"><span>{tr('Show line numbers')}</span><input type="checkbox" checked={numbers} onChange={event => setNumbers(event.target.checked)} /></label>
       <label className="settings-row"><span>{tr('Show folding arrows')}</span><input type="checkbox" checked={folding} onChange={event => setFolding(event.target.checked)} /></label>

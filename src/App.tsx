@@ -2,7 +2,7 @@ import appStyles from './styles.css?inline'
 import { captureFolioStyles, type FolioStyles, type FolioRevision } from './lib/folio-styles'
 import { DocumentHistory } from './components/DocumentHistory'
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, ChevronDown, Columns2, Download, FileText, FolderOpen, History, PanelLeft, Plus, Settings, SquarePen } from 'lucide-react'
+import { BookOpen, Columns2, Download, FileText, FolderOpen, History, PanelLeft, Plus, Settings, SquarePen } from 'lucide-react'
 import { SaveButton, SplitButton } from './components/SaveButton'
 import { DocumentProperties } from './components/DocumentProperties'
 import { updateDocumentProperties } from './lib/document-properties'
@@ -18,7 +18,7 @@ import { PreviewControls } from './components/PreviewControls'
 import { ThemePicker, themeLabel } from './components/ThemePicker'
 import { LayoutPicker, layoutLabel } from './components/LayoutPicker'
 import { NewDocumentDialog } from './components/NewDocumentDialog'
-import { headingAnchors, parseDocument, suggestedFileName, upsertLanguage, upsertLayout, upsertTheme, upsertThemeOverrides, type DocumentLayout, type DocumentTheme } from './lib/document'
+import { headingAnchors, parseDocument, suggestedFileName, upsertLayout, upsertTheme, upsertThemeOverrides, type DocumentLayout, type DocumentTheme } from './lib/document'
 import { diffDocuments } from './lib/diff'
 import { lintDocument } from './lib/lint'
 import { Workspace, type ViewMode } from './components/Workspace'
@@ -29,7 +29,7 @@ import { useEditorPreference, useNumberPreference } from './lib/use-editor-prefe
 import { useAppTheme } from './lib/use-app-theme'
 import { usePreviewViewport } from './lib/use-preview-viewport'
 import { sampleCvDocument, sampleDocument } from './lib/sample'
-import { getTranslations, type SupportedLanguage } from './lib/i18n'
+import { getTranslations } from './lib/i18n'
 import type { FormatAction } from './lib/editor-format'
 
 type Action = 'opening' | 'saving' | 'exporting' | null
@@ -105,8 +105,7 @@ export default function App() {
   const parsed = useMemo(() => parseDocument(markdown), [markdown])
   const title = parsed.metadata.title
 
-  // Active language, theme & layout
-  const currentLang: SupportedLanguage = parsed.metadata.lang || 'en'
+  // Active theme and layout
   const currentTheme: DocumentTheme = parsed.metadata.theme || 'editorial'
   const currentStyles = useMemo(() => captureFolioStyles(appStyles, currentTheme, styles), [currentTheme, styles])
   const currentLayout: DocumentLayout = parsed.metadata.layout || 'report'
@@ -291,7 +290,7 @@ export default function App() {
     setAction('exporting')
     setExportProgress('Preparing document…')
     try {
-      const result = await window.folio.exportPdf(markdown, suggestedFileName(title), currentTheme, currentLang, path ?? undefined, currentStyles)
+      const result = await window.folio.exportPdf(markdown, suggestedFileName(title), currentTheme, undefined, path ?? undefined, currentStyles)
       if (!result.canceled) {
         showToast(`Exported ${fileName(result.path)}`, {
           duration: 5000,
@@ -305,10 +304,10 @@ export default function App() {
       setAction(null)
       setExportProgress('')
     }
-    // currentTheme and currentLang belong here: without them the callback keeps
+    // currentTheme belongs here: without it the callback keeps
     // the theme captured when it was last rebuilt, and picking a different one
     // in the toolbar exports the previous template.
-  }, [markdown, path, showToast, title, currentTheme, currentLang, launchFile, currentStyles])
+  }, [markdown, path, showToast, title, currentTheme, launchFile, currentStyles])
 
   useEffect(() => window.folio?.onExportProgress(setExportProgress), [])
 
@@ -571,18 +570,7 @@ export default function App() {
             }}
           />
 
-          <span className="select-field">
-            <select
-              className="toolbar-select"
-              value={currentLang}
-              onChange={(e) => setMarkdown((current) => upsertLanguage(current, e.target.value as SupportedLanguage))}
-              title={tr('Document language (saved in Markdown)')}
-            >
-              <option value="es">ES</option>
-              <option value="en">EN</option>
-            </select>
-            <ChevronDown size={13} aria-hidden="true" />
-          </span>
+
         </div>
 
         <div className="toolbar-actions">
@@ -734,7 +722,6 @@ export default function App() {
               documentPath={path ?? undefined}
               selection={previewSelectionEnabled && previewMarkdown === markdown ? editorSelection : null}
               overrideTheme={currentTheme}
-              overrideLang={currentLang}
               onPageCount={onPageCount}
               onReady={onPreviewReady}
             />
@@ -756,7 +743,6 @@ export default function App() {
         <NewDocumentDialog
           canDismiss={path !== null || dirty || (markdown !== sampleDocument && markdown !== sampleCvDocument)}
           currentTheme={currentTheme}
-          currentLang={currentLang}
           onSelectTemplate={createDocumentFromTemplate}
           onOpenDocument={openDocument}
           onOpenRecent={openRecentDocument}

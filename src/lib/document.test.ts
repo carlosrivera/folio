@@ -1,18 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { SUPPORTED_THEMES, SUPPORTED_LAYOUTS, parseDocument, formatChromeText, upsertLanguage, upsertLayout, upsertTheme, upsertThemeOverrides, suggestedFileName } from './document'
+import { SUPPORTED_THEMES, SUPPORTED_LAYOUTS, parseDocument, formatChromeText, upsertLayout, upsertTheme, upsertThemeOverrides, suggestedFileName } from './document'
 
-describe('upsertLanguage', () => {
-  it('persists a language choice in a document without front matter', () => {
-    const result = upsertLanguage('# Hello\n', 'es')
-    expect(parseDocument(result).metadata.lang).toBe('es')
-    expect(result).toContain('# Hello')
-  })
-
-  it('replaces both supported language keys without losing the body', () => {
-    const result = upsertLanguage('---\nlanguage: es\nlang: en\ntitle: Test\n---\n\n# Body', 'es')
-    expect(parseDocument(result).metadata.lang).toBe('es')
-    expect(result.match(/^(lang|language):/gm)).toHaveLength(1)
-    expect(result).toContain('# Body')
+describe('legacy document language', () => {
+  it('ignores language frontmatter without changing document content', () => {
+    const parsed = parseDocument('---\nlang: es\nlanguage: es\n---\n\n# Body\n\nOriginal text.')
+    expect(parsed.metadata).not.toHaveProperty('lang')
+    expect(parsed.body).toContain('Original text.')
   })
 })
 
@@ -107,14 +100,14 @@ Hello **world**.`)
     expect(parsed.html).toContain('Safe fallback')
   })
 
-  it('detects language and theme from frontmatter', () => {
+  it('detects theme and ignores legacy document language', () => {
     const parsed = parseDocument(`---
 title: Propuesta
 lang: es
 theme: voltage
 ---
 # Introducción`)
-    expect(parsed.metadata.lang).toBe('es')
+    expect(parsed.metadata).not.toHaveProperty('lang')
     expect(parsed.metadata.theme).toBe('voltage')
   })
 

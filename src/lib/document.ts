@@ -86,7 +86,6 @@ export type DocumentMetadata = {
   url?: string
   linkedin?: string
   github?: string
-  lang?: SupportedLanguage
   theme?: DocumentTheme
   toc?: boolean
   header?: boolean
@@ -297,7 +296,6 @@ const defaults: DocumentMetadata = {
   date: new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date()),
   validUntil: '',
   documentId: 'DOC-001',
-  lang: 'en',
   theme: 'editorial',
   toc: true,
   header: true,
@@ -488,10 +486,6 @@ export function parseDocument(source: string, sourcePositions = false): ParsedDo
   const rawLayout = (value('layout') || '').toLowerCase().trim()
   const layout: DocumentLayout = LAYOUT_ALIASES[rawLayout] ?? 'report'
 
-  // Detect language from frontmatter or fall back
-  const rawLang = (value('lang') || value('language') || 'en').toLowerCase().trim()
-  const lang: SupportedLanguage = rawLang.startsWith('es') ? 'es' : 'en'
-
   // Detect theme from frontmatter or fall back
   const rawTheme = (value('theme') || 'editorial').toLowerCase().trim()
   const theme: DocumentTheme = THEME_ALIASES[rawTheme] ?? 'editorial'
@@ -639,7 +633,7 @@ export function parseDocument(source: string, sourcePositions = false): ParsedDo
   const metadata: DocumentMetadata = {
     layout,
     title: value('title') || defaultTitle,
-    client: value('client') || value('billTo', 'bill-to') || value('to') || (layout === 'report' ? (lang === 'es' ? 'Cliente' : defaults.client) : ''),
+    client: value('client') || value('billTo', 'bill-to') || value('to') || (layout === 'report' ? defaults.client : ''),
     preparedFor: value('preparedFor', 'prepared-for') || value('billTo', 'bill-to') || value('to'),
     preparedBy: value('preparedBy', 'prepared-by') || from || (layout === 'report' ? defaults.preparedBy : ''),
     date: value('date') || value('issueDate', 'issue-date') || defaults.date,
@@ -657,7 +651,6 @@ export function parseDocument(source: string, sourcePositions = false): ParsedDo
     url: value('url') || undefined,
     linkedin: linkedin || undefined,
     github: github || undefined,
-    lang,
     theme,
     toc: tocEnabled,
     header: headerEnabled,
@@ -806,26 +799,6 @@ export function upsertTheme(source: string, theme: DocumentTheme): string {
   if (themeLine === -1) lines.push(`theme: ${theme}`)
   else lines[themeLine] = `theme: ${theme}`
 
-  const contentStart = 3 + lineEnding.length
-  const contentEnd = contentStart + frontmatter[1].length
-  return source.slice(0, contentStart) + lines.join(lineEnding) + source.slice(contentEnd)
-}
-
-/** Keep the language choice with the Markdown document. */
-export function upsertLanguage(source: string, lang: SupportedLanguage): string {
-  const frontmatter = source.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/)
-  if (!frontmatter) return `---\nlang: ${lang}\n---\n\n${source.replace(/^\n+/, '')}`
-
-  const lineEnding = frontmatter[0].includes('\r\n') ? '\r\n' : '\n'
-  const lines = frontmatter[1].split(/\r?\n/)
-  const index = lines.findIndex((line) => /^(lang|language)\s*:/.test(line))
-  if (index === -1) lines.push(`lang: ${lang}`)
-  else {
-    lines[index] = `lang: ${lang}`
-    for (let i = lines.length - 1; i > index; i -= 1) {
-      if (/^(lang|language)\s*:/.test(lines[i])) lines.splice(i, 1)
-    }
-  }
   const contentStart = 3 + lineEnding.length
   const contentEnd = contentStart + frontmatter[1].length
   return source.slice(0, contentStart) + lines.join(lineEnding) + source.slice(contentEnd)

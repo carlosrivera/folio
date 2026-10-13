@@ -12,8 +12,6 @@ export interface DocumentTypePreset {
   baseLayout: DocumentLayout
   /** Default typography and color theme */
   defaultTheme?: DocumentTheme
-  /** Default document language ('en' | 'es') */
-  defaultLang?: 'en' | 'es'
   /** Cover kicker label or header badge (e.g. 'Technical Specification', 'Confidential') */
   kicker?: string
   /** Header chrome default configuration */
@@ -55,7 +53,6 @@ export const RegisterPresetSchema = z.object({
   defaultTheme: z
     .enum(['editorial', 'voltage', 'graphite', 'contrast', 'slate', 'nocturne', 'scientific'])
     .optional(),
-  defaultLang: z.enum(['en', 'es']).optional(),
   kicker: z.string().optional(),
   header: z
     .object({
@@ -95,7 +92,6 @@ export const CreateDocumentSchema = z.object({
     .enum(['editorial', 'voltage', 'graphite', 'contrast', 'slate', 'nocturne', 'scientific'])
     .optional()
     .describe('Visual aesthetic theme'),
-  lang: z.enum(['en', 'es']).optional().describe('Document language code'),
   metadata: z
     .record(z.string(), z.any())
     .optional()
@@ -115,7 +111,6 @@ export const CustomizeDocumentSchema = z.object({
   setTheme: z
     .enum(['editorial', 'voltage', 'graphite', 'contrast', 'slate', 'nocturne', 'scientific'])
     .optional(),
-  setLang: z.enum(['en', 'es']).optional(),
   setMetadata: z
     .record(z.string(), z.any())
     .optional()

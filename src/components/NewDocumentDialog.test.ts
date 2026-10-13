@@ -18,7 +18,7 @@ describe('template registry', () => {
   it('generates simple markdown with no front matter for "simple" template', () => {
     const simple = TEMPLATES.find((t) => t.id === 'simple')
     expect(simple).toBeDefined()
-    const content = simple!.getContent({ theme: 'editorial', lang: 'en' })
+    const content = simple!.getContent({ theme: 'editorial' })
     expect(content.startsWith('---')).toBe(false)
     expect(content).toContain('# Untitled')
     const parsed = parseDocument(content)
@@ -27,10 +27,11 @@ describe('template registry', () => {
 
   it('generates valid parseable documents for all templates', () => {
     for (const t of TEMPLATES) {
-      const content = t.getContent({ theme: 'editorial', lang: 'en' })
+      const content = t.getContent({ theme: 'editorial' })
       expect(content.length).toBeGreaterThan(10)
       const parsed = parseDocument(content)
       expect(parsed.body).toBeTruthy()
+      expect(content).not.toMatch(/^(lang|language):/m)
     }
   })
 })

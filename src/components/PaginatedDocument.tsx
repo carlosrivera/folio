@@ -593,7 +593,7 @@ export function PaginatedDocument({
   usePreviewSelection(pagesRef, markdown, layingOut ? null : selection)
 
   const activeTheme = overrideTheme || document.metadata.theme || 'editorial'
-  const activeLang = overrideLang || document.metadata.lang || 'en'
+  const activeLang = overrideLang || 'en'
 
   const retryRender = useCallback(() => {
     setRenderError(null)

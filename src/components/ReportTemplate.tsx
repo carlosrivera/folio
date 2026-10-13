@@ -13,7 +13,7 @@ export function ReportTemplate({
   overrideLang,
 }: ReportTemplateProps) {
   const { metadata, toc } = document
-  const lang = overrideLang || metadata.lang || 'en'
+  const lang = overrideLang || 'en'
   const theme = overrideTheme || metadata.theme || 'editorial'
   const t = getTranslations(lang)
 

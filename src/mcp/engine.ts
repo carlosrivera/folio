@@ -28,7 +28,6 @@ export interface GenerateDocOptions {
   type?: string
   title: string
   theme?: DocumentTheme
-  lang?: 'en' | 'es'
   metadata?: Record<string, unknown>
   themeOverrides?: Record<string, string>
   content: string
@@ -41,7 +40,6 @@ export interface CustomizeDocOptions {
   filePath?: string
   setLayout?: DocumentLayout
   setTheme?: DocumentTheme
-  setLang?: 'en' | 'es'
   setMetadata?: Record<string, unknown>
   setThemeOverrides?: Record<string, string>
   setHeader?: { left?: string; center?: string; right?: string }
@@ -81,14 +79,12 @@ export async function generateDocumentText(options: GenerateDocOptions): Promise
 
   const layout: DocumentLayout = preset ? preset.baseLayout : 'report'
   const theme: DocumentTheme = options.theme || preset?.defaultTheme || 'editorial'
-  const lang: 'en' | 'es' = options.lang || preset?.defaultLang || 'en'
 
   // Assemble frontmatter dictionary
   const fm: Record<string, unknown> = {
     title: options.title,
     layout,
     theme,
-    lang,
   }
 
   if (preset?.kicker) {
@@ -175,7 +171,7 @@ export async function customizeDocumentText(options: CustomizeDocOptions): Promi
   }
 
   // Update frontmatter key-value pairs if provided
-  if (options.setMetadata || options.setLang || options.setHeader || options.setFooter) {
+  if (options.setMetadata || options.setHeader || options.setFooter) {
     const parsed = parseDocument(updated)
     const rawFm: Record<string, unknown> = {}
 
@@ -191,7 +187,6 @@ export async function customizeDocumentText(options: CustomizeDocOptions): Promi
       }
     }
 
-    if (options.setLang) rawFm.lang = options.setLang
     if (options.setLayout) rawFm.layout = options.setLayout
     if (options.setTheme) rawFm.theme = options.setTheme
 

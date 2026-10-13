@@ -1,9 +1,8 @@
 import { useUi } from './UiLanguage'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowRight, Briefcase, Clock, FileCode, FileText, FolderOpen, ReceiptText, Sparkles, UserRound, X } from 'lucide-react'
-import { sampleCvDocument, sampleDocument, sampleInvoiceDocument, sampleSimpleDocument } from '../lib/sample'
+import { sampleCvDocument, sampleDocument, sampleInvoiceDocument, sampleSimpleDocument, samplePetstoreDocument } from '../lib/sample'
 import type { DocumentLayout, DocumentTheme } from '../lib/document'
-import type { SupportedLanguage } from '../lib/i18n'
 
 export type TemplateCategory = 'all' | 'starters' | 'samples'
 
@@ -16,7 +15,7 @@ export interface TemplateDefinition {
   badgeVariant?: 'accent' | 'neutral' | 'muted'
   icon: typeof FileText
   layout?: DocumentLayout
-  getContent: (options: { theme: DocumentTheme; lang: SupportedLanguage }) => string
+  getContent: (options: { theme: DocumentTheme }) => string
 }
 
 function formatDate(date: Date): string {
@@ -61,7 +60,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     badgeVariant: 'accent',
     icon: ReceiptText,
     layout: 'invoice',
-    getContent: ({ theme, lang }) => `---
+    getContent: ({ theme }) => `---
 layout: invoice
 title: Invoice INV-001
 invoice-number: INV-001
@@ -81,7 +80,6 @@ client-address: |
   New York, NY 10001
 client-email: accounts@client.com
 theme: ${theme}
-lang: ${lang}
 ---
 
 ### Services Rendered
@@ -112,7 +110,7 @@ Please remit payment within 30 days via ACH or bank transfer:
     badgeVariant: 'neutral',
     icon: Briefcase,
     layout: 'report',
-    getContent: ({ theme, lang }) => `---
+    getContent: ({ theme }) => `---
 title: Project Scope of Work
 client: Client Organization
 prepared-for: Stakeholder Name
@@ -122,7 +120,6 @@ valid-until: ${formatFutureDate(30)}
 document-id: DOC-001
 layout: report
 theme: ${theme}
-lang: ${lang}
 ---
 
 # Executive Summary
@@ -159,10 +156,9 @@ Brief overview of the initiative, strategic objectives, and scope boundaries.
     badgeVariant: 'neutral',
     icon: UserRound,
     layout: 'cv',
-    getContent: ({ theme, lang }) => `---
+    getContent: ({ theme }) => `---
 layout: cv
 theme: ${theme}
-lang: ${lang}
 ---
 
 # Your Name
@@ -229,6 +225,17 @@ Description of role and impact across projects.
     getContent: () => sampleDocument,
   },
   {
+    id: 'sample-petstore',
+    title: 'Petstore API Documentation',
+    subtitle: 'API reference with authentication, endpoints, code examples, and an integration flow.',
+    category: 'samples',
+    badge: 'Sample',
+    badgeVariant: 'muted',
+    icon: FileCode,
+    layout: 'simple',
+    getContent: () => samplePetstoreDocument,
+  },
+  {
     id: 'sample-cv',
     title: 'CV Sample Document',
     subtitle: 'Pre-filled sample CV demonstrating two-column layout and contact sections.',
@@ -244,7 +251,6 @@ Description of role and impact across projects.
 export interface NewDocumentDialogProps {
   canDismiss?: boolean
   currentTheme: DocumentTheme
-  currentLang: SupportedLanguage
   onSelectTemplate: (content: string, layout?: DocumentLayout) => void
   onOpenDocument: () => void
   onOpenRecent: (filePath: string) => void
@@ -254,7 +260,6 @@ export interface NewDocumentDialogProps {
 export function NewDocumentDialog({
   canDismiss = true,
   currentTheme,
-  currentLang,
   onSelectTemplate,
   onOpenDocument,
   onOpenRecent,
@@ -320,9 +325,9 @@ export function NewDocumentDialog({
   }, [activeCategory])
 
   const handleTemplateClick = useCallback((tpl: TemplateDefinition) => {
-    const content = tpl.getContent({ theme: currentTheme, lang: currentLang })
+    const content = tpl.getContent({ theme: currentTheme })
     onSelectTemplate(content, tpl.layout)
-  }, [currentTheme, currentLang, onSelectTemplate])
+  }, [currentTheme, onSelectTemplate])
 
   return (
     <div className="folio-dialog-backdrop" onClick={(e) => { if (e.target === e.currentTarget && canDismiss) onClose() }}>

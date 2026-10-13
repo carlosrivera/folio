@@ -10,7 +10,6 @@ export const BUILTIN_PRESETS: DocumentTypePreset[] = [
     description: 'Formal document structure featuring a cover page, metadata table, and optional table of contents.',
     baseLayout: 'report',
     defaultTheme: 'editorial',
-    defaultLang: 'en',
     kicker: 'Report',
     fields: [
       { name: 'title', description: 'Document title', required: true },
@@ -46,7 +45,6 @@ Brief overview of objectives and background context.
     description: 'Commercial invoice layout with issuer/client cards, line items table, financial totals card, and payment details.',
     baseLayout: 'invoice',
     defaultTheme: 'editorial',
-    defaultLang: 'en',
     kicker: 'Invoice',
     fields: [
       { name: 'invoice-number', description: 'Invoice number (e.g. INV-2026-001)', required: true },
@@ -92,7 +90,6 @@ Please remit payment via ACH or bank transfer:
     description: 'Clean Markdown document with no cover page, styled top heading, and customizable running headers/footers.',
     baseLayout: 'simple',
     defaultTheme: 'graphite',
-    defaultLang: 'en',
     header: {
       left: '{title}',
       right: '{date}',
@@ -123,7 +120,6 @@ Key details and narrative.
     description: 'Curriculum Vitae layout featuring a contact hero bar, summary section, and compact two-column timeline flow.',
     baseLayout: 'cv',
     defaultTheme: 'contrast',
-    defaultLang: 'en',
     fields: [
       { name: 'name', description: 'Your full name', required: true },
       { name: 'role', description: 'Professional title or headline', required: false },
@@ -153,7 +149,6 @@ Experienced software architect with 10+ years designing mission-critical distrib
     description: 'In-depth architectural whitepaper with cover page, technical summary, and system diagrams.',
     baseLayout: 'report',
     defaultTheme: 'graphite',
-    defaultLang: 'en',
     kicker: 'Technical White Paper',
     header: {
       left: '{title} · White Paper',
@@ -192,7 +187,6 @@ flowchart LR
     description: 'Engineering RFC / System Design Document for technical teams, utilizing high-energy contrast and monospace detailing.',
     baseLayout: 'report',
     defaultTheme: 'voltage',
-    defaultLang: 'en',
     kicker: 'Engineering Specification',
     header: {
       left: '{preparedBy} / {title}',
@@ -217,7 +211,6 @@ Proposed interfaces, failure domain isolation, and state lifecycle.
     description: 'Stark, authoritative legal agreement or master services contract using high-contrast typography.',
     baseLayout: 'report',
     defaultTheme: 'contrast',
-    defaultLang: 'en',
     kicker: 'Master Services Agreement',
     header: {
       left: '{client} · {title}',
@@ -243,7 +236,6 @@ This Master Services Agreement is entered into by and between the parties named 
     description: 'Streamlined meeting minutes, agenda summary, and action items tracker without a cover sheet.',
     baseLayout: 'simple',
     defaultTheme: 'editorial',
-    defaultLang: 'en',
     header: {
       left: '{title} · Minutes',
       right: '{date}',
@@ -276,7 +268,6 @@ This Master Services Agreement is entered into by and between the parties named 
     description: 'Official payment receipt confirming settled transactions with issuer and recipient details.',
     baseLayout: 'invoice',
     defaultTheme: 'editorial',
-    defaultLang: 'en',
     kicker: 'Receipt',
     fields: [
       { name: 'invoice-number', description: 'Receipt / Transaction ID', required: true },

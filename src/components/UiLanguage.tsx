@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import type { SupportedLanguage } from '../lib/i18n'
 
 const spanish: Record<string, string> = {
+  'Petstore API Documentation': 'Documentación de la API Petstore',
+  'API reference with authentication, endpoints, code examples, and an integration flow.': 'Referencia de API con autenticación, endpoints, ejemplos de código y un flujo de integración.',
   'Save as Folio document…': 'Guardar como documento Folio…',
   'Document history': 'Historial del documento',
   'Saved versions include text, images, and styles. Restoring a version creates an unsaved draft.': 'Las versiones guardadas incluyen texto, imágenes y estilos. Al restaurar una versión se crea un borrador sin guardar.',

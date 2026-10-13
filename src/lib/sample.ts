@@ -106,7 +106,6 @@ By signing below, both parties agree to the scope, schedule, investment, and ass
 export const sampleCvDocument = `---
 layout: cv
 theme: contrast
-lang: en
 ---
 
 # John Doe
@@ -257,7 +256,6 @@ header-right: Reliability Guidelines
 footer-left: Confidential · Internal Use Only
 footer-right: Page {page} of {pages}
 theme: graphite
-lang: en
 ---
 
 # System Architecture & Reliability Guidelines
@@ -324,7 +322,6 @@ tax: "$0.00"
 total: "$28,000.00"
 payment-terms: Net 30 days. Payments received after due date accrue 1.5% interest per month.
 theme: editorial
-lang: en
 ---
 
 ### Professional Services Rendered
@@ -350,3 +347,185 @@ Please remit payment via ACH or wire transfer to:
 `
 
 
+/** A ready-to-edit API reference based on Swagger's public Petstore v3 definition. */
+export const samplePetstoreDocument = `---
+title: Petstore API Documentation
+layout: simple
+theme: slate
+toc: true
+header: true
+header-left: Petstore API
+header-right: Developer reference
+footer: true
+footer-left: API v3 · JSON examples
+footer-right: "{page} / {pages}"
+---
+
+# Petstore API Documentation
+
+A practical reference for integrating a pet catalog, purchase orders, and user accounts. This sample uses the Swagger Petstore demo API and is ready to adapt for your own service.
+
+**Base URL:** https://petstore3.swagger.io/api/v3
+
+[Interactive API explorer](https://petstore3.swagger.io/) · [OpenAPI definition](https://petstore3.swagger.io/api/v3/openapi.json)
+
+## Quick start
+
+Find pets that are available for purchase. The examples use JSON; identifiers and responses are illustrative.
+
+\`\`\`bash
+curl --get \\
+  'https://petstore3.swagger.io/api/v3/pet/findByStatus' \\
+  --data-urlencode 'status=available' \\
+  --header 'Accept: application/json' \\
+  --header "Authorization: Bearer $PETSTORE_TOKEN"
+\`\`\`
+
+\`\`\`json
+[
+  {
+    "id": 42,
+    "name": "Mochi",
+    "category": { "id": 1, "name": "Dogs" },
+    "photoUrls": ["https://example.com/mochi.jpg"],
+    "tags": [{ "id": 1, "name": "friendly" }],
+    "status": "available"
+  }
+]
+\`\`\`
+
+## Authentication
+
+The definition declares OAuth 2.0 with the \`read:pets\` and \`write:pets\` scopes, plus an API key named \`api_key\` sent in a request header. Authentication requirements vary by operation; consult the OpenAPI definition for the endpoint you use.
+
+\`\`\`http
+GET /api/v3/pet/42 HTTP/1.1
+Host: petstore3.swagger.io
+Accept: application/json
+api_key: YOUR_API_KEY
+\`\`\`
+
+## Pets
+
+### Endpoint reference
+
+| Method | Path | Purpose |
+| :--- | :--- | :--- |
+| GET | \`/pet/findByStatus\` | List pets matching a status |
+| GET | \`/pet/findByTags\` | Find pets by tags |
+| GET | \`/pet/{petId}\` | Retrieve one pet |
+| POST | \`/pet\` | Add a pet |
+| PUT | \`/pet\` | Update a pet |
+| POST | \`/pet/{petId}\` | Update name or status using query parameters |
+| DELETE | \`/pet/{petId}\` | Remove a pet |
+| POST | \`/pet/{petId}/uploadImage\` | Upload an image as binary data |
+
+### Add a pet
+
+Send a JSON object to \`POST /pet\`. The Pet schema requires \`name\` and \`photoUrls\`.
+
+\`\`\`bash
+curl 'https://petstore3.swagger.io/api/v3/pet' \\
+  --request POST \\
+  --header 'Content-Type: application/json' \\
+  --header 'Accept: application/json' \\
+  --header "Authorization: Bearer $PETSTORE_TOKEN" \\
+  --data '{"id":42,"name":"Mochi","photoUrls":[],"status":"available"}'
+\`\`\`
+
+| Field | Type | Required | Notes |
+| :--- | :--- | :---: | :--- |
+| \`id\` | integer, int64 | No | Pet identifier |
+| \`name\` | string | Yes | Display name |
+| \`photoUrls\` | array of strings | Yes | Photo locations; an empty array is valid |
+| \`category\` | object | No | Category identifier and name |
+| \`tags\` | array of objects | No | Tag identifiers and names |
+| \`status\` | string | No | \`available\`, \`pending\`, or \`sold\` |
+
+### Read a pet in JavaScript
+
+\`\`\`js
+async function getPet(petId, apiKey) {
+  const response = await fetch(
+    \`https://petstore3.swagger.io/api/v3/pet/\${encodeURIComponent(petId)}\`,
+    { headers: { Accept: 'application/json', api_key: apiKey } }
+  );
+
+  if (!response.ok) {
+    throw new Error(\`Pet lookup failed: HTTP \${response.status}\`);
+  }
+
+  return response.json();
+}
+\`\`\`
+
+## Store and orders
+
+| Method | Path | Purpose |
+| :--- | :--- | :--- |
+| GET | \`/store/inventory\` | Read quantities grouped by status |
+| POST | \`/store/order\` | Place an order |
+| GET | \`/store/order/{orderId}\` | Retrieve an order |
+| DELETE | \`/store/order/{orderId}\` | Delete an order |
+
+An order connects a pet identifier to a quantity, shipping date, completion flag, and status. The status values are \`placed\`, \`approved\`, and \`delivered\`.
+
+\`\`\`json
+{
+  "id": 10,
+  "petId": 42,
+  "quantity": 1,
+  "shipDate": "2026-10-15T09:00:00Z",
+  "status": "placed",
+  "complete": false
+}
+\`\`\`
+
+### Example integration flow
+
+\`\`\`mermaid
+sequenceDiagram
+  participant Client
+  participant API as Petstore API
+  Client->>API: GET /pet/findByStatus?status=available
+  API-->>Client: Pet catalog
+  Client->>API: GET /pet/42
+  API-->>Client: Pet details
+  Client->>API: POST /store/order
+  API-->>Client: Order details
+\`\`\`
+
+## Users
+
+| Method | Path | Purpose |
+| :--- | :--- | :--- |
+| POST | \`/user\` | Create an account |
+| POST | \`/user/createWithList\` | Create accounts from an array |
+| GET | \`/user/login\` | Start a session |
+| GET | \`/user/logout\` | End a session |
+| GET | \`/user/{username}\` | Retrieve an account |
+| PUT | \`/user/{username}\` | Update an account |
+| DELETE | \`/user/{username}\` | Delete an account |
+
+## Response handling
+
+The Petstore definition lists operation-specific responses. For example, \`GET /pet/{petId}\` declares \`200\`, \`400\`, and \`404\`; \`POST /pet\` declares \`200\`, \`400\`, and \`422\`, plus a default error response.
+
+- Parse a response only after checking its HTTP status and content type.
+- Report validation failures beside the input that needs correction.
+- Handle missing pets and orders with a useful empty state.
+- Confirm destructive actions before removing records.
+
+## Integration checklist
+
+- [ ] Configure the base URL and credentials outside source code.
+- [ ] Validate required fields before sending requests.
+- [ ] Exercise empty results, invalid input, and missing records.
+- [ ] Confirm the target deployment's authentication behavior.
+- [ ] Replace demo identifiers and responses with your own examples.
+- [ ] Keep this reference aligned with your published OpenAPI definition.
+
+---
+
+*Source: [Swagger Petstore OpenAPI definition](https://petstore3.swagger.io/api/v3/openapi.json). This is an editable documentation sample, not a complete generated endpoint reference.*
+`

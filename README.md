@@ -35,7 +35,7 @@ pnpm start
 
 `pnpm build` creates the renderer in `dist/` and the Electron main/preload bundles in `dist-electron/`. Packaging commands are listed below.
 
-The theme and language selectors write their choices into the Markdown front matter. Unsaved edits are kept as a local recovery draft and offered for restoration at the next launch.
+The theme selector writes its choice into the Markdown front matter. Unsaved edits are kept as a local recovery draft and offered for restoration at the next launch.
 
 ## Editing tools
 
@@ -63,7 +63,7 @@ Drag the divider to resize the panes, or focus it and use the arrow keys. Double
 
 Open **Settings** (`⌘,`) for appearance, line numbers, folding, current-line and preview-selection highlights, font size, line spacing, text width, spellcheck, and autosave. The status bar shows save state, word count, and caret position. Autosave applies to existing files after a pause in typing. External edits pause autosave and offer Reload, Save my version, or Save As; a stale manual save is also checked before overwriting.
 
-Settings also selects English or Spanish for the interface independently of the document language. Toolbar menus support keyboard navigation and Escape; modal dialogs keep keyboard focus inside them.
+Settings selects 🇺🇸 English or 🇪🇸 Español for the interface. Language is an app preference; it is not written into new documents, and changing it leaves document content and generated labels unchanged. Legacy language frontmatter is ignored. Toolbar menus support keyboard navigation and Escape; modal dialogs keep keyboard focus inside them.
 
 ## Document metadata
 
