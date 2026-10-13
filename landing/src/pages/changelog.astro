@@ -1,0 +1,289 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { changelog } from '../data/changelog'
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+const githubRepo = 'https://github.com/carlosrivera/folio'
+---
+
+<Layout
+  title="Changelog — Folio"
+  description="See what is new in Folio, from the latest work in progress to every public release."
+  canonicalPath="/changelog"
+>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href={`${base}/`} class="brand" aria-label="Folio home">
+        <span class="brand-badge">F/</span>
+        <span class="brand-text">folio.</span>
+        <span class="brand-tag">changelog</span>
+      </a>
+      <nav class="header-links" aria-label="Changelog navigation">
+        <a href={`${base}/docs`}>Documentation</a>
+        <a href={githubRepo} target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href={`${base}/`}>← Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container changelog-shell">
+    <section class="hero">
+      <p class="eyebrow">Product updates</p>
+      <h1>What’s new in Folio</h1>
+      <p>New features, improvements, and fixes—listed in the order they reach the app.</p>
+    </section>
+
+    <div class="timeline">
+      {changelog.map((entry, index) => (
+        <article class="release" aria-labelledby={`release-${index}`}>
+          <div class="release-marker" aria-hidden="true"></div>
+          <div class="release-meta">
+            <h2 id={`release-${index}`}>{entry.version}</h2>
+            {entry.date ? <time>{entry.date}</time> : <span class="status">In development</span>}
+          </div>
+          <div class="release-body">
+            <p class="release-summary">{entry.summary}</p>
+            <ul>
+              {entry.changes.map((change) => <li>{change}</li>)}
+            </ul>
+            {entry.releaseUrl && (
+              <a class="release-link" href={entry.releaseUrl} target="_blank" rel="noopener noreferrer">
+                View release on GitHub <span aria-hidden="true">↗</span>
+              </a>
+            )}
+          </div>
+        </article>
+      ))}
+    </div>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <span>Folio &copy; 2026</span>
+      <div>
+        <a href={`${base}/docs`}>Documentation</a>
+        <a href={`${githubRepo}/releases`} target="_blank" rel="noopener noreferrer">All releases</a>
+      </div>
+    </div>
+  </footer>
+</Layout>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 1px solid var(--border);
+    background: var(--nav-bg);
+    backdrop-filter: blur(18px);
+  }
+
+  .header-inner,
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .header-inner { min-height: 72px; }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .brand-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    background: var(--accent);
+    color: var(--accent-fg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+  }
+
+  .brand-tag,
+  .status {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 8px;
+    color: var(--text-2);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .header-links,
+  .footer-inner div {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .header-links a,
+  footer a {
+    color: var(--text-2);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .header-links a:hover,
+  footer a:hover { color: var(--accent); }
+
+  .changelog-shell {
+    max-width: 900px;
+    padding-top: clamp(72px, 10vw, 128px);
+    padding-bottom: clamp(80px, 12vw, 150px);
+  }
+
+  .hero {
+    max-width: 720px;
+    margin-bottom: clamp(64px, 9vw, 104px);
+  }
+
+  .eyebrow {
+    margin: 0 0 18px;
+    color: var(--accent);
+    font: 700 0.78rem/1 'JetBrains Mono', monospace;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    margin: 0;
+    color: var(--text);
+    font: 700 clamp(2.8rem, 8vw, 5.5rem)/0.96 'Space Grotesk', sans-serif;
+    letter-spacing: -0.065em;
+  }
+
+  .hero > p:last-child {
+    max-width: 620px;
+    margin: 28px 0 0;
+    color: var(--text-2);
+    font-size: clamp(1.05rem, 2vw, 1.25rem);
+    line-height: 1.65;
+  }
+
+  .timeline {
+    position: relative;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    bottom: 0;
+    left: 6px;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .release {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(150px, 0.8fr) minmax(0, 2fr);
+    gap: clamp(28px, 6vw, 72px);
+    padding: 0 0 clamp(64px, 9vw, 96px) 40px;
+  }
+
+  .release-marker {
+    position: absolute;
+    top: 7px;
+    left: 0;
+    width: 13px;
+    height: 13px;
+    border: 3px solid var(--bg);
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+
+  .release-meta h2 {
+    margin: 0 0 12px;
+    color: var(--text);
+    font: 700 1.25rem/1.2 'Space Grotesk', sans-serif;
+    letter-spacing: -0.025em;
+  }
+
+  .release-meta time {
+    color: var(--text-faint);
+    font: 500 0.82rem/1.4 'JetBrains Mono', monospace;
+  }
+
+  .status {
+    display: inline-block;
+    border-color: color-mix(in srgb, var(--accent), transparent 65%);
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
+  .release-summary {
+    margin: 0 0 22px;
+    color: var(--text);
+    font-size: 1.16rem;
+    font-weight: 650;
+    line-height: 1.5;
+  }
+
+  ul {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    position: relative;
+    padding-left: 20px;
+    color: var(--text-2);
+    line-height: 1.65;
+  }
+
+  li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+  }
+
+  .release-link {
+    display: inline-flex;
+    gap: 6px;
+    margin-top: 24px;
+    color: var(--accent);
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .release-link:hover { text-decoration: underline; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 34px 0;
+    color: var(--text-faint);
+    font-size: 0.88rem;
+  }
+
+  @media (max-width: 700px) {
+    .brand-tag,
+    .header-links a:not(:last-child) { display: none; }
+    .release { grid-template-columns: 1fr; gap: 22px; }
+    .release-meta h2 { display: inline-block; margin: 0 12px 0 0; }
+    .footer-inner { align-items: flex-start; }
+    .footer-inner div { gap: 16px; }
+  }
+</style>
