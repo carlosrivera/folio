@@ -17,6 +17,16 @@ describe('upsertLanguage', () => {
 })
 
 describe('parseDocument', () => {
+  it('highlights fenced languages and keeps unsupported code escaped', () => {
+    const highlighted = parseDocument('```js\nconst value = "<hello>";\n```').html
+    expect(highlighted).toContain('class="hljs-keyword"')
+    expect(highlighted).toContain('class="hljs-string"')
+    expect(highlighted).toContain('&lt;hello&gt;')
+    const unknown = parseDocument('```unknown-language\n<script>alert(1)</script>\n```').html
+    expect(unknown).toContain('&lt;script&gt;')
+    expect(unknown).not.toContain('hljs-')
+  })
+
   it('separates metadata from Markdown content', () => {
     const parsed = parseDocument(`---
 title: Product Launch
@@ -169,6 +179,11 @@ describe('upsertThemeOverrides', () => {
     expect(next).toContain('cover-bg: "#101010"')
     expect(next).toContain('# Body')
     expect(parseDocument(next).metadata.themeOverrides).toEqual({ 'cover-bg': '#101010' })
+  })
+
+  it('persists safe code colors and font choices while rejecting injected CSS', () => {
+    const next = upsertThemeOverrides(base, { 'code-bg': '#112233', 'code-keyword': '#aabbcc', 'font-code': 'Menlo, monospace', 'code-string': 'red; } body {display:none}' })
+    expect(parseDocument(next).metadata.themeOverrides).toEqual({ 'code-bg': '#112233', 'code-keyword': '#aabbcc', 'font-code': 'Menlo, monospace' })
   })
 
   it('replaces an existing block rather than appending', () => {
@@ -547,3 +562,27 @@ date: October 9, 2026
 
 
 
+
+
+describe('preview source positions', () => {
+  it('maps repeated paragraphs to distinct source positions after frontmatter and page breaks', () => {
+    const source = '---\ntitle: Test\n---\n\nRepeated text.\n\n<!-- pagebreak -->\n\nRepeated text.\n'
+    const html = parseDocument(source, true).html
+    const first = source.indexOf('Repeated text.')
+    const second = source.lastIndexOf('Repeated text.')
+    expect(html).toContain(`data-source-from="${first}"`)
+    expect(html).toContain(`data-source-from="${second}"`)
+    expect(html).toContain('<div class="folio-page-break"></div>')
+    expect(html).not.toContain('FOLIO_PAGE_BREAK')
+    expect(parseDocument(source).html).not.toContain('data-source-from')
+  })
+
+  it('preserves offsets with Windows line endings and landscape markers', () => {
+    const source = '# Heading\r\n\r\n<!-- landscape -->\r\n\r\nWide text.\r\n\r\n<!-- /landscape -->\r\n\r\nFinal text.'
+    const html = parseDocument(source, true).html
+    expect(html).toContain(`data-source-from="${source.indexOf('Wide text.')}"`)
+    expect(html).toContain(`data-source-from="${source.indexOf('Final text.')}"`)
+    expect(html).toContain('<div class="folio-landscape">')
+    expect(html).not.toContain('FOLIO_LANDSCAPE')
+  })
+})

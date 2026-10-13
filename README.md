@@ -4,7 +4,7 @@ Folio is a macOS-first Markdown document editor built with Electron, React, Code
 
 The first MVP includes:
 
-- Open, edit, and save local `.md` files.
+- Open, edit, save, and Save As local `.md` files, with optional autosave and external-change detection.
 - Optional YAML front matter for SOW metadata.
 - Live A4 page layout with realistic page boundaries.
 - Seven bundled document themes, including a scientific preset for equations, with per-document color and typography overrides.
@@ -23,7 +23,7 @@ pnpm install
 pnpm dev
 ```
 
-The Vite server and Electron application start together. Use `⌘O` to open Markdown, `⌘S` to save, and `⇧⌘E` to export a PDF.
+The Vite server and Electron application start together with a DEV-tagged icon. Use `⌘O` to open Markdown, `⌘S` to save, `⇧⌘S` to Save As, and `⇧⌘E` to export a PDF. On Windows/Linux, use Ctrl in place of Command.
 
 ## Build and verify
 
@@ -33,13 +33,37 @@ pnpm build
 pnpm start
 ```
 
-`pnpm build` creates the renderer in `dist/` and the Electron main/preload bundles in `dist-electron/`. This MVP does not yet package or sign a distributable `.app`.
+`pnpm build` creates the renderer in `dist/` and the Electron main/preload bundles in `dist-electron/`. Packaging commands are listed below.
 
 The theme and language selectors write their choices into the Markdown front matter. Unsaved edits are kept as a local recovery draft and offered for restoration at the next launch.
 
 ## Editing tools
 
-Use the toolbar above the Markdown editor for headings, emphasis, links, lists, quotes, code, and tables. **Find** opens search and replace (`⌘F`). **Outline** lists document headings and jumps to the selected section. **123** toggles line numbers, and **Fold** toggles folding markers; these view choices are remembered locally. Issues with a known line appear in the editor gutter and can still be reviewed in the inspector.
+Use the toolbar above the Markdown editor for headings, emphasis, links, lists, quotes, code, and tables. **Find** opens search and replace (`⌘F`). **Outline** lists document headings and jumps to the selected section. Line numbers and folding markers are controlled in Settings; the section-fold button folds the current section. Issues with a known line appear in the editor gutter and can still be reviewed in the inspector.
+
+Choose headings H1–H6 or return to a paragraph. Emphasis buttons toggle selected formatting and show when it is active; numbered lists use sequential numbers. The **Insert** menu contains links, images, tables, code blocks, and equations. `⌘K` opens the link dialog; pasting a URL over selected text creates a link. Document links open in your default browser.
+
+Fenced code blocks use language-aware syntax colors in the editor, preview, and PDF. Document code blocks follow the selected template, including syntax palette, background, accent border, and monospace face; customize these in the theme editor’s Code and Typography sections. Add the language after the opening backticks (for example `javascript`, `python`, or `sql`); unsupported languages remain plain code.
+
+Paste or drop an image to add alt text before insertion, or choose a file in the image dialog. Unsaved drafts keep image files in Folio's temporary draft storage, which survives restart for recovery. Saving moves their references to a neighboring `.assets/` folder; keep that folder with the Markdown when sharing. Save As copies imported assets when moving to another directory. Images embedded by older versions are extracted to files when saving. Local images, including paths in parent folders, appear in preview and PDF output and scale to fit the page.
+
+The table dialog chooses body rows and columns. Tab and Shift+Tab move between cells, skipping the separator row; Tab in the last cell adds a row. The contextual **Table** menu adds or removes rows and columns.
+
+Enter continues bullet and numbered lists; Enter on an empty item ends the list. Tab and Shift+Tab indent and outdent list items or selected rows. **Tasks** creates Markdown checkboxes (`- [ ]` and `- [x]`); the contextual checkbox button toggles completion, and Enter creates a new unchecked task. Task lists render in preview and PDF. **Insert → Footnote** adds a unique reference and definition; standard `[^name]` references render numbered notes at the end of the document.
+
+Place the caret inside a link or image and choose **Edit link** / **Edit image**, or use the corresponding Insert action again. Reference-style links are converted at that occurrence to inline Markdown, preserving shared definitions. The image dialog edits alt text, destination, caption, and width. Captions use the standard Markdown image title (`![Alt](image.png "Caption")`); an optional `{width=50%}` suffix limits image width to half the page's content area. Captions and sizing carry through PDF export and Save As.
+
+**Document** opens layout-specific metadata and page controls. Edit the title, author, client, CV details or invoice fields, and enable or disable the table of contents, header, and footer. Header/footer text supports `{title}`, `{page}`, and `{pages}` placeholders. **Insert → Page break** inserts a break at the caret. Custom front-matter keys and YAML comments are preserved; invalid YAML must be fixed before applying properties.
+
+The arrow beside **Export PDF** offers **Markdown + assets (.zip)**. It packages the current draft with local images and linked attachments, rewrites destinations to portable asset paths, and retains captions, code examples, and remote URLs. Unsaved temporary images can be packaged without saving first. Missing local files produce an error instead of a broken package. Extract the ZIP before opening its Markdown file.
+
+Code blocks preserve indentation and wrap long lines within the printed margins. Long words and URLs also wrap. Images occupy their own line so surrounding text stays visible.
+
+Drag the divider to resize the panes, or focus it and use the arrow keys. Double-click it to reset the width. Three compact toolbar icons select editor-only, split, or preview-only view; these choices are remembered. Pages fit the preview pane by default. In split view, the preview follows the current paragraph, and clicking a preview paragraph moves the editor caret to its source. Preview-only mode stays focused on reading when you click or select text.
+
+Open **Settings** (`⌘,`) for appearance, line numbers, folding, current-line and preview-selection highlights, font size, line spacing, text width, spellcheck, and autosave. The status bar shows save state, word count, and caret position. Autosave applies to existing files after a pause in typing. External edits pause autosave and offer Reload, Save my version, or Save As; a stale manual save is also checked before overwriting.
+
+Settings also selects English or Spanish for the interface independently of the document language. Toolbar menus support keyboard navigation and Escape; modal dialogs keep keyboard focus inside them.
 
 ## Document metadata
 
@@ -70,7 +94,7 @@ flowchart LR
 
 ## LaTeX equations
 
-Use `$...$` or `\(...\)` for inline math. Put `$$...$$` or `\[...\]` on their own lines for display equations. A fenced `math` block also works. The editor's **Math** and **Equation** buttons insert editable examples. Equations render in the preview and PDF using bundled KaTeX fonts.
+Use `$...$` or `\(...\)` for inline math. Put `$$...$$` or `\[...\]` on their own lines for display equations. A fenced `math` block also works. The editor's **Insert** menu offers inline and display equations with editable examples. Equations render in the preview and PDF using bundled KaTeX fonts.
 
 ````markdown
 The energy is $E = mc^2$.
@@ -143,4 +167,3 @@ pnpm landing:preview  # Preview production build
 ```
 
 Merged commits on `main` automatically deploy the landing site to GitHub Pages via `.github/workflows/deploy-pages.yml`.
-

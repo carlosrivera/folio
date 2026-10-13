@@ -61,6 +61,14 @@ export function useAppTheme() {
     return () => query.removeEventListener('change', onChange)
   }, [preference])
 
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === STORAGE_KEY || event.key === null) setPreference(readStoredPreference())
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
   const cycle = useCallback(() => {
     setPreference((current) => PREFERENCES[(PREFERENCES.indexOf(current) + 1) % PREFERENCES.length])
   }, [])

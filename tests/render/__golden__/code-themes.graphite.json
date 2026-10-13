@@ -1,0 +1,128 @@
+{
+  "codePalette": [
+    {
+      "background": "rgb(28, 32, 38)",
+      "color": "rgb(230, 233, 239)",
+      "keyword": "rgb(163, 230, 53)",
+      "string": "rgb(152, 195, 121)",
+      "number": "rgb(229, 184, 125)",
+      "comment": "rgb(154, 164, 178)",
+      "accent": "rgb(163, 230, 53)",
+      "font": "\"JetBrains Mono\", Menlo, Consolas, monospace"
+    },
+    {
+      "background": "rgb(28, 32, 38)",
+      "color": "rgb(230, 233, 239)",
+      "keyword": "rgb(163, 230, 53)",
+      "string": "rgb(152, 195, 121)",
+      "number": "rgb(229, 184, 125)",
+      "comment": "rgb(154, 164, 178)",
+      "accent": "rgb(163, 230, 53)",
+      "font": "\"JetBrains Mono\", Menlo, Consolas, monospace"
+    },
+    {
+      "background": "rgb(28, 32, 38)",
+      "color": "rgb(230, 233, 239)",
+      "keyword": null,
+      "string": null,
+      "number": null,
+      "comment": null,
+      "accent": "rgb(163, 230, 53)",
+      "font": "\"JetBrains Mono\", Menlo, Consolas, monospace"
+    }
+  ],
+  "pageCount": 3,
+  "diagramErrors": 0,
+  "palette": {
+    "coverBackground": "rgb(16, 17, 19)",
+    "coverTitle": "rgb(255, 255, 255)",
+    "coverTitleFont": "Barlow, Inter, sans-serif",
+    "coverTitleWeight": "800",
+    "coverKicker": "rgb(163, 230, 53)",
+    "coverKickerFont": "\"JetBrains Mono\", Menlo, monospace",
+    "coverClient": "rgb(161, 161, 170)",
+    "coverRule": "rgba(63, 63, 70, 0.6)",
+    "coverDt": "rgb(113, 113, 122)",
+    "coverDd": "rgb(244, 244, 245)",
+    "coverRingBorder": "rgba(163, 230, 53, 0.35)",
+    "bodyText": "rgb(24, 24, 27)",
+    "bodyFont": "Inter, -apple-system, sans-serif",
+    "kicker": "rgb(77, 124, 15)",
+    "heading": "rgb(9, 9, 11)",
+    "headingFont": "Barlow, Inter, sans-serif",
+    "headingWeight": "700",
+    "subheading": null,
+    "subheadingFont": null,
+    "subheadingTransform": null,
+    "quoteBorder": null,
+    "quoteBackground": null,
+    "quoteText": null,
+    "quoteFont": null,
+    "tableHeadBorder": null,
+    "tableHeadText": null,
+    "tableHeadFont": null,
+    "tableBorder": null,
+    "link": null,
+    "figureBorder": null,
+    "figureBackground": null,
+    "figureRadius": null,
+    "runningChrome": "rgb(140, 137, 128)",
+    "tocHeading": "rgb(9, 9, 11)"
+  },
+  "pages": [
+    {
+      "index": 1,
+      "classes": [
+        "folio-cover-sheet",
+        "pagedjs_cover_first_page",
+        "pagedjs_cover_page",
+        "pagedjs_first_page",
+        "pagedjs_named_page",
+        "pagedjs_right_page",
+        "theme-graphite"
+      ],
+      "orientation": "portrait",
+      "header": null,
+      "footer": null,
+      "outline": [
+        "h1 Code in context"
+      ]
+    },
+    {
+      "index": 2,
+      "classes": [
+        "folio-toc-sheet",
+        "pagedjs_left_page"
+      ],
+      "orientation": "portrait",
+      "header": "Your studio / ReportDOC-001",
+      "footer": "FolioPage 2 / 3",
+      "outline": [
+        "h2 Table of Contents"
+      ]
+    },
+    {
+      "index": 3,
+      "classes": [
+        "pagedjs_right_page"
+      ],
+      "orientation": "portrait",
+      "header": "Your studio / ReportDOC-001",
+      "footer": "FolioPage 3 / 3",
+      "outline": [
+        "h1 Code in context",
+        "h2 JavaScript",
+        "pre // Return a greeting with a safe default. functi",
+        "h2 Python",
+        "pre # Count only successful results. def count_resul",
+        "h2 Plain code",
+        "pre Code without a language still follows the docume"
+      ]
+    }
+  ],
+  "index": [
+    "JavaScript → #javascript",
+    "Python → #python",
+    "Plain code → #plain-code"
+  ]
+}

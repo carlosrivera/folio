@@ -1,10 +1,12 @@
 import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, nativeTheme, shell } from 'electron'
-import { existsSync } from 'node:fs'
+import { copyDocumentAssets, externalizeDocumentImages, importDocumentImage, promoteDraftImages, readDiskDocument, resolveDocumentImages, saveDocumentFile } from './document-files'
+import { existsSync, watchFile, unwatchFile } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { PDFDocument, PDFName, PDFNumber, PDFString, degrees, type PDFDocument as PDFDoc, type PDFRef } from 'pdf-lib'
 import { checkForUpdates, initAutoUpdater } from './updater'
+import { packageDocument } from './document-package'
 
 // Set application name early so macOS registers the application menu correctly
 app.name = 'Folio'
@@ -14,14 +16,22 @@ if (process.platform === 'darwin') {
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url))
 const devServerUrl = process.env.VITE_DEV_SERVER_URL
+// Our renamed local Electron launcher reports isPackaged=true; the CLI flag
+// still distinguishes pnpm dev/start from installed release builds.
+const isDevelopment = !app.isPackaged || process.defaultApp === true
 const RECENT_DOCUMENT_LIMIT = 10
 let mainWindow: BrowserWindow | null = null
+let settingsWindow: BrowserWindow | null = null
 let recentDocumentPaths: string[] = []
 let documentEdited = false
 let allowClose = false
+let watchedPath: string | null = null
+let watchedContent: string | null = null
+const savingPaths = new Set<string>()
 
 function getIconPath() {
   const candidates = [
+    ...(isDevelopment ? [path.join(app.getAppPath(), 'build/icon-dev.png'), path.join(moduleDir, '../build/icon-dev.png')] : []),
     path.join(app.getAppPath(), 'build/icon.png'),
     path.join(moduleDir, '../build/icon.png'),
     path.join(app.getAppPath(), 'assets/icon.png'),
@@ -86,7 +96,7 @@ function openRecentDocument(filePath: string) {
   mainWindow?.webContents.send('document:open-recent-request', filePath)
 }
 
-function rendererUrl(mode?: 'print') {
+function rendererUrl(mode?: 'print' | 'settings') {
   const suffix = mode ? `?mode=${mode}` : ''
   return devServerUrl ? `${devServerUrl}/${suffix}` : `file://${path.join(moduleDir, '../dist/index.html')}${suffix}`
 }
@@ -129,12 +139,44 @@ function createWindow() {
     }
   })
 
+  // Keep document links from replacing the editor or creating Electron windows.
+  const openExternalLink = (url: string) => {
+    if (/^https?:|^mailto:/i.test(url)) {
+      void shell.openExternal(url).catch((error) => console.warn('Could not open link:', error))
+    }
+  }
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    openExternalLink(url)
+    return { action: 'deny' }
+  })
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    const current = new URL(mainWindow!.webContents.getURL())
+    const destination = new URL(url)
+    // In-document anchors stay inside the preview.
+    current.hash = ''
+    destination.hash = ''
+    if (current.href === destination.href) return
+    event.preventDefault()
+    openExternalLink(url)
+  })
+
+  mainWindow.webContents.on('context-menu', (_event, params) => {
+    if (!params.isEditable || !mainWindow) return
+    const items: Electron.MenuItemConstructorOptions[] = []
+    if (params.misspelledWord) {
+      items.push(...params.dictionarySuggestions.map(suggestion => ({ label: suggestion, click: () => mainWindow?.webContents.replaceMisspelling(suggestion) })))
+      items.push({ label: 'Add to Dictionary', click: () => mainWindow?.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord) }, { type: 'separator' })
+    }
+    items.push({ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' })
+    Menu.buildFromTemplate(items).popup({ window: mainWindow })
+  })
+
   mainWindow.loadURL(rendererUrl())
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show()
     if (mainWindow) {
       try {
-        initAutoUpdater(mainWindow)
+        initAutoUpdater(mainWindow, () => { allowClose = true }, () => { allowClose = false })
       } catch (err) {
         console.warn('Auto-updater init bypassed:', err)
       }
@@ -146,8 +188,31 @@ function createWindow() {
       mainWindow?.webContents.send('document:close-request')
     }
   })
-  mainWindow.on('closed', () => { mainWindow = null })
+  mainWindow.on('closed', () => {
+    if (watchedPath) unwatchFile(watchedPath)
+    watchedPath = null
+    mainWindow = null
+  })
 }
+
+function openSettings() {
+  if (settingsWindow && !settingsWindow.isDestroyed()) {
+    settingsWindow.show()
+    settingsWindow.focus()
+    return
+  }
+  settingsWindow = new BrowserWindow({
+    title: 'Folio Settings', width: 560, height: 620, minWidth: 480, minHeight: 560,
+    parent: mainWindow ?? undefined, show: false, autoHideMenuBar: true,
+    backgroundColor: nativeTheme.shouldUseDarkColors ? '#141416' : '#ebeae6',
+    webPreferences: { preload: path.join(moduleDir, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true },
+  })
+  settingsWindow.loadURL(rendererUrl('settings'))
+  settingsWindow.once('ready-to-show', () => settingsWindow?.show())
+  settingsWindow.on('closed', () => { settingsWindow = null })
+}
+
+ipcMain.handle('settings:open', openSettings)
 
 function sendMenuCommand(command: string) {
   mainWindow?.webContents.send('menu:command', command)
@@ -173,6 +238,7 @@ function installMenu() {
             label: 'Folio',
             submenu: [
               { role: 'about' as const },
+              { label: 'Settings…', accelerator: 'CmdOrCtrl+,', click: openSettings },
               { label: 'Check for Updates…', click: () => checkForUpdates(true) },
               { type: 'separator' as const },
               { role: 'services' as const },
@@ -193,6 +259,8 @@ function installMenu() {
         { label: 'Open…', accelerator: 'CmdOrCtrl+O', click: () => sendMenuCommand('open') },
         { label: 'Open Recent', submenu: recentItems },
         { label: 'Save', accelerator: 'CmdOrCtrl+S', click: () => sendMenuCommand('save') },
+        { label: 'Save As…', accelerator: 'CmdOrCtrl+Shift+S', click: () => sendMenuCommand('save-as') },
+        ...(!isMac ? [{ label: 'Settings…', accelerator: 'CmdOrCtrl+,', click: openSettings }] : []),
         { type: 'separator' },
         { label: 'Export PDF…', accelerator: 'CmdOrCtrl+Shift+E', click: () => sendMenuCommand('export') },
         { type: 'separator' },
@@ -290,20 +358,66 @@ ipcMain.handle('file:launch', async (_event, filePath: unknown) => {
   return error ? { opened: false, error } : { opened: true }
 })
 
-ipcMain.handle('file:save', async (_event, payload: { path: string | null; content: string }) => {
+ipcMain.handle('file:save', async (_event, payload: { path: string | null; content: string; saveAs?: boolean; expectedContent?: string; overwrite?: boolean }) => {
   let filePath = payload.path
-  if (!filePath) {
+  if (!filePath || payload.saveAs) {
     const selection = await dialog.showSaveDialog(mainWindow!, {
       title: 'Save Markdown Document',
-      defaultPath: 'statement-of-work.md',
+      defaultPath: filePath ?? 'Untitled.md',
       filters: [{ name: 'Markdown', extensions: ['md'] }],
     })
     if (selection.canceled || !selection.filePath) return { canceled: true }
     filePath = selection.filePath
   }
-  await writeFile(filePath, payload.content, 'utf8')
+  savingPaths.add(filePath)
+  let content = payload.content
+  try {
+    if (payload.saveAs && payload.path) await copyDocumentAssets(payload.path, filePath, payload.content)
+    content = await promoteDraftImages(filePath, payload.content, path.join(app.getPath('userData'), 'draft-assets'))
+    content = await externalizeDocumentImages(filePath, content)
+    const result = await saveDocumentFile(filePath, content, !payload.saveAs && payload.path ? payload.expectedContent : undefined, payload.overwrite)
+    if (!result.saved) return { canceled: true, conflict: result.conflict }
+    if (watchedPath === filePath) watchedContent = content
+  } finally { savingPaths.delete(filePath) }
   await rememberDocument(filePath)
-  return { canceled: false, path: filePath }
+  return { canceled: false, path: filePath, content }
+})
+
+ipcMain.handle('file:watch', (event, payload: { path: string | null; content: string }) => {
+  if (event.sender !== mainWindow?.webContents) return
+  if (watchedPath) unwatchFile(watchedPath)
+  watchedPath = payload.path
+  watchedContent = payload.content
+  if (!watchedPath) return
+  const filePath = watchedPath
+  watchFile(filePath, { interval: 750, persistent: false }, async () => {
+    if (savingPaths.has(filePath)) return
+    try {
+      const content = await readDiskDocument(filePath)
+      if (watchedPath !== filePath || content === watchedContent || savingPaths.has(filePath)) return
+      watchedContent = content
+      mainWindow?.webContents.send('document:disk-changed', { path: filePath, content })
+    } catch (error) { console.warn('Could not check document changes:', error) }
+  })
+})
+
+ipcMain.handle('file:import-image', async (_event, payload: { documentPath: string | null; name: string; bytes: number[] }) => {
+  return importDocumentImage(payload.documentPath, payload.name, Buffer.from(payload.bytes), path.join(app.getPath('userData'), 'draft-assets'))
+})
+ipcMain.handle('file:resolve-images', async (_event, payload: { documentPath: string | null; sources: string[] }) => {
+  return resolveDocumentImages(payload.documentPath, payload.sources, path.join(app.getPath('userData'), 'draft-assets'))
+})
+
+ipcMain.handle('document:export-package', async (event, payload: { markdown: string; documentPath: string | null; name: string }) => {
+  if (event.sender !== mainWindow?.webContents) throw new Error('Document export is only available from the editor.')
+  const selection = await dialog.showSaveDialog(mainWindow!, {
+    title: 'Export Markdown Package', defaultPath: `${path.basename(payload.name, path.extname(payload.name))}.zip`,
+    filters: [{ name: 'Markdown and assets', extensions: ['zip'] }],
+  })
+  if (selection.canceled || !selection.filePath) return { canceled: true }
+  const bytes = await packageDocument(payload.markdown, payload.documentPath, path.join(app.getPath('userData'), 'draft-assets'), payload.name)
+  await writeFile(selection.filePath, bytes)
+  return { canceled: false, path: selection.filePath }
 })
 
 ipcMain.on('document:set-edited', (event, edited: boolean) => {
@@ -404,7 +518,7 @@ function attachOutline(pdf: PDFDoc, nodes: OutlineNode[]) {
   pdf.catalog.set(PDFName.of('PageMode'), PDFName.of('UseOutlines'))
 }
 
-ipcMain.handle('document:export-pdf', async (_event, payload: { markdown: string; suggestedName: string; theme?: string; lang?: string }) => {
+ipcMain.handle('document:export-pdf', async (_event, payload: { markdown: string; suggestedName: string; theme?: string; lang?: string; documentPath?: string }) => {
   const selection = await dialog.showSaveDialog(mainWindow!, {
     title: 'Export PDF',
     defaultPath: `${payload.suggestedName || 'document'}.pdf`,
@@ -450,7 +564,7 @@ ipcMain.handle('document:export-pdf', async (_event, payload: { markdown: string
       // loadURL resolves on did-finish-load, which can precede React mounting
       // and subscribing to this channel. A single send is silently dropped in
       // that window, so keep offering the payload until the renderer answers.
-      const message = { markdown: payload.markdown, theme: payload.theme, lang: payload.lang }
+      const message = { markdown: payload.markdown, theme: payload.theme, lang: payload.lang, documentPath: payload.documentPath }
       const resend = setInterval(() => {
         if (!settled) printWindow.webContents.send('export:payload', message)
       }, 250)

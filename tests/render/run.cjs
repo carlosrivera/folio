@@ -21,6 +21,7 @@ const UPDATE = process.env.UPDATE_GOLDEN === '1'
 const LAYOUT_TIMEOUT_MS = 25_000
 
 const CASES = [
+  ...['editorial', 'voltage', 'graphite', 'contrast', 'slate', 'nocturne', 'scientific'].map(theme => ({ name: `code-themes.${theme}`, fixture: 'code-themes.md', theme, lang: 'en' })),
   { name: 'kitchen-sink.editorial', fixture: 'kitchen-sink.md', theme: 'editorial', lang: 'es' },
   { name: 'kitchen-sink.voltage', fixture: 'kitchen-sink.md', theme: 'voltage', lang: 'es' },
   { name: 'kitchen-sink.graphite', fixture: 'kitchen-sink.md', theme: 'graphite', lang: 'en' },
@@ -199,7 +200,7 @@ app.whenReady().then(async () => {
         )
       }
       // The print fingerprint is the one that matches the exported PDF.
-      const actual = fingerprint(reports.print)
+      const actual = fingerprint(reports.print, testCase)
       const goldenPath = path.join(GOLDEN_DIR, `${testCase.name}.json`)
       if (UPDATE || !existsSync(goldenPath)) {
         await writeFile(goldenPath, `${JSON.stringify(actual, null, 2)}\n`)

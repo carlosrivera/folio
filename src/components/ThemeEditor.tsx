@@ -1,3 +1,4 @@
+import { useUi } from './UiLanguage'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { RotateCcw } from 'lucide-react'
 import type { DocumentTheme } from '../lib/document'
@@ -28,6 +29,7 @@ function toHexInput(value: string): string | null {
 }
 
 export function ThemeEditor({ theme, overrides, onChange }: Props) {
+  const { tr } = useUi()
   const probeRef = useRef<HTMLSpanElement>(null)
   const [defaults, setDefaults] = useState<Record<string, string>>({})
 
@@ -74,31 +76,31 @@ export function ThemeEditor({ theme, overrides, onChange }: Props) {
       <div className="theme-editor-head">
         <span>
           {overrideCount === 0
-            ? 'Using the template defaults. Any change is written into this document’s frontmatter.'
-            : `${overrideCount} value${overrideCount === 1 ? '' : 's'} overridden in this document.`}
+            ? tr('Using the template defaults. Any change is written into this document’s frontmatter.')
+            : `${tr('Custom changes')}: ${overrideCount}`}
         </span>
-        <button type="button" className="inspector-clear" onClick={() => onChange({})} disabled={overrideCount === 0} title="Reset all">
+        <button type="button" className="inspector-clear" onClick={() => onChange({})} disabled={overrideCount === 0} title={tr('Reset all')}>
           <RotateCcw size={12} />
         </button>
       </div>
 
       {grouped.map(({ group, tokens }) => (
         <section key={group} className="theme-editor-group">
-          <h4>{group}</h4>
+          <h4>{tr(group)}</h4>
           {tokens.map((token) => {
             const current = overrides[token.name] ?? defaults[token.name] ?? ''
             const isOverridden = token.name in overrides
             const hex = token.kind === 'color' ? toHexInput(current) : null
             return (
               <label key={token.name} className={`theme-field${isOverridden ? ' is-overridden' : ''}`}>
-                <span className="theme-field-label">{token.label}</span>
+                <span className="theme-field-label">{tr(token.label)}</span>
                 {token.kind === 'color' ? (
                   <span className="theme-field-controls">
                     <input
                       type="color"
                       value={hex ?? '#000000'}
                       onChange={(event) => set(token.name, event.target.value)}
-                      aria-label={`${token.label} colour`}
+                      aria-label={`${tr(token.label)} ${tr('colour')}`}
                     />
                     <input
                       type="text"
@@ -122,7 +124,7 @@ export function ThemeEditor({ theme, overrides, onChange }: Props) {
                   className="theme-field-reset"
                   onClick={() => reset(token.name)}
                   disabled={!isOverridden}
-                  title="Back to the template value"
+                  title={tr('Back to the template value')}
                 >
                   <RotateCcw size={11} />
                 </button>

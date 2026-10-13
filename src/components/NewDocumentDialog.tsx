@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useUi } from './UiLanguage'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowRight, Briefcase, Clock, FileCode, FileText, FolderOpen, ReceiptText, Sparkles, UserRound, X } from 'lucide-react'
 import { sampleCvDocument, sampleDocument, sampleInvoiceDocument, sampleSimpleDocument } from '../lib/sample'
 import type { DocumentLayout, DocumentTheme } from '../lib/document'
@@ -259,6 +260,9 @@ export function NewDocumentDialog({
   onOpenRecent,
   onClose,
 }: NewDocumentDialogProps) {
+  const { tr } = useUi()
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  useEffect(() => { dialogRef.current?.showModal() }, [])
   const [activeCategory, setActiveCategory] = useState<TemplateCategory>('all')
   const [recentPaths, setRecentPaths] = useState<string[]>([])
 
@@ -322,7 +326,7 @@ export function NewDocumentDialog({
 
   return (
     <div className="folio-dialog-backdrop" onClick={(e) => { if (e.target === e.currentTarget && canDismiss) onClose() }}>
-      <div
+      <dialog ref={dialogRef} onCancel={event => { event.preventDefault(); if (canDismiss) onClose() }}
         className="folio-dialog folio-new-dialog"
         role="dialog"
         aria-modal="true"
@@ -330,10 +334,10 @@ export function NewDocumentDialog({
       >
         <header className="folio-new-header">
           <div>
-            <span className="folio-dialog-kicker">Welcome to Folio</span>
-            <h2 id="new-document-title">Start a document</h2>
+            <span className="folio-dialog-kicker">{tr('Welcome to Folio')}</span>
+            <h2 id="new-document-title">{tr('Start a document')}</h2>
             <p className="folio-new-subtitle">
-              Choose a template, start with plain Markdown, or pick a recent file.
+              {tr('Choose a template, start with plain Markdown, or pick a recent file.')}
             </p>
           </div>
           {canDismiss && (
@@ -341,8 +345,8 @@ export function NewDocumentDialog({
               type="button"
               className="folio-dialog-close"
               onClick={onClose}
-              title="Close (Esc)"
-              aria-label="Close"
+              title={tr('Close (Esc)')}
+              aria-label={tr('Close')}
             >
               <X size={16} />
             </button>
@@ -353,8 +357,15 @@ export function NewDocumentDialog({
           {/* Main Templates Column */}
           <section className="folio-new-templates-section">
             <div className="folio-new-filter-bar">
-              <span className="folio-new-section-label">Templates & Starters</span>
-              <div className="folio-new-tabs" role="tablist">
+              <span className="folio-new-section-label">{tr('Templates & Starters')}</span>
+              <div className="folio-new-tabs" role="tablist" aria-label={tr('Templates & Starters')} onKeyDown={event => {
+                if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+                event.preventDefault()
+                const tabs = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'))
+                const index = tabs.indexOf(document.activeElement as HTMLButtonElement)
+                const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length
+                tabs[next]?.click(); tabs[next]?.focus()
+              }}>
                 <button
                   type="button"
                   role="tab"
@@ -362,7 +373,7 @@ export function NewDocumentDialog({
                   className={`folio-new-tab${activeCategory === 'all' ? ' is-active' : ''}`}
                   onClick={() => setActiveCategory('all')}
                 >
-                  All ({TEMPLATES.length})
+                  {tr('All')} ({TEMPLATES.length})
                 </button>
                 <button
                   type="button"
@@ -371,7 +382,7 @@ export function NewDocumentDialog({
                   className={`folio-new-tab${activeCategory === 'starters' ? ' is-active' : ''}`}
                   onClick={() => setActiveCategory('starters')}
                 >
-                  Starters
+                  {tr('Starters')}
                 </button>
                 <button
                   type="button"
@@ -380,7 +391,7 @@ export function NewDocumentDialog({
                   className={`folio-new-tab${activeCategory === 'samples' ? ' is-active' : ''}`}
                   onClick={() => setActiveCategory('samples')}
                 >
-                  Samples
+                  {tr('Samples')}
                 </button>
               </div>
             </div>
@@ -407,15 +418,15 @@ export function NewDocumentDialog({
                         <IconComponent size={18} strokeWidth={1.8} />
                       </div>
                       <span className={`folio-template-badge is-${template.badgeVariant || 'neutral'}`}>
-                        {template.badge}
+                        {tr(template.badge)}
                       </span>
                     </div>
                     <div className="folio-template-card-text">
-                      <h3 className="folio-template-card-title">{template.title}</h3>
-                      <p className="folio-template-card-desc">{template.subtitle}</p>
+                      <h3 className="folio-template-card-title">{tr(template.title)}</h3>
+                      <p className="folio-template-card-desc">{tr(template.subtitle)}</p>
                     </div>
                     <div className="folio-template-card-action">
-                      <span>Create</span>
+                      <span>{tr('Create')}</span>
                       <ArrowRight size={13} aria-hidden="true" />
                     </div>
                   </div>
@@ -429,7 +440,7 @@ export function NewDocumentDialog({
             <div className="folio-new-sidebar-header">
               <span className="folio-new-sidebar-title">
                 <Clock size={13} aria-hidden="true" />
-                Recent Documents
+                {tr('Recent Documents')}
               </span>
             </div>
 
@@ -457,8 +468,8 @@ export function NewDocumentDialog({
                   <div className="folio-recent-empty-icon">
                     <Clock size={20} strokeWidth={1.5} />
                   </div>
-                  <p>No recent documents yet.</p>
-                  <span>Opened documents will appear here.</span>
+                  <p>{tr('No recent documents yet.')}</p>
+                  <span>{tr('Opened documents will appear here.')}</span>
                 </div>
               )}
             </div>
@@ -470,7 +481,7 @@ export function NewDocumentDialog({
                 onClick={onOpenDocument}
               >
                 <FolderOpen size={15} />
-                Open Existing File…
+                {tr('Open Existing File…')}
               </button>
               {canDismiss && (
                 <button
@@ -478,13 +489,13 @@ export function NewDocumentDialog({
                   className="folio-sidebar-cancel-btn"
                   onClick={onClose}
                 >
-                  Cancel
+                  {tr('Cancel')}
                 </button>
               )}
             </div>
           </aside>
         </div>
-      </div>
+      </dialog>
     </div>
   )
 }

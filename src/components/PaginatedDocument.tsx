@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { prepareDocumentImages, documentOverflowRange } from '../lib/document-images'
+import { usePreviewSelection } from '../lib/use-preview-selection'
 import { Previewer } from 'pagedjs'
 import { AlertTriangle } from 'lucide-react'
 import { parseDocument, formatChromeText, type DocumentTheme } from '../lib/document'
@@ -58,6 +60,8 @@ const PX_TO_MM = 25.4 / 96
 
 type Props = {
   markdown: string
+  documentPath?: string
+  selection?: { from: number; to: number } | null
   overrideTheme?: DocumentTheme
   overrideLang?: SupportedLanguage
   onReady?: (pages: number) => void
@@ -559,6 +563,8 @@ function releasePreviewer(previewer: Previewer | null) {
 
 export function PaginatedDocument({
   markdown,
+  documentPath,
+  selection = null,
   overrideTheme,
   overrideLang,
   onReady,
@@ -568,6 +574,7 @@ export function PaginatedDocument({
   const pagesRef = useRef<HTMLDivElement>(null)
   const backbufferRef = useRef<HTMLDivElement>(null)
   const runRef = useRef(0)
+  const layoutQueueRef = useRef<Promise<void>>(Promise.resolve())
   const activePreviewerRef = useRef<Previewer | null>(null)
   const stagingPreviewerRef = useRef<Previewer | null>(null)
   const hasEverRenderedRef = useRef(false)
@@ -578,7 +585,9 @@ export function PaginatedDocument({
   const [renderError, setRenderError] = useState<string | null>(null)
   const [retryNonce, setRetryNonce] = useState(0)
 
-  const document = useMemo(() => parseDocument(markdown), [markdown])
+  const document = useMemo(() => parseDocument(markdown, true), [markdown])
+
+  usePreviewSelection(pagesRef, markdown, layingOut ? null : selection)
 
   const activeTheme = overrideTheme || document.metadata.theme || 'editorial'
   const activeLang = overrideLang || document.metadata.lang || 'en'
@@ -607,120 +616,129 @@ export function PaginatedDocument({
     // or immediate if retry was requested or first mount.
     const debounceMs = isFirstRender || retryNonce > 0 ? 0 : 250
 
-    const timer = window.setTimeout(async () => {
-      if (!sourceRef.current || !pagesRef.current || !backbufferRef.current) {
-        if (run === runRef.current) {
-          setShowIndicator(false)
-          setLayingOut(false)
-        }
-        return
-      }
-
-      const scrollContainer = pagesRef.current.closest('.preview-scroll')
-      const previousScroll = scrollContainer ? scrollContainer.scrollTop : 0
-
-      // Clean up any stale staging previewer from a previously cancelled run
-      if (stagingPreviewerRef.current) {
-        releasePreviewer(stagingPreviewerRef.current)
-        stagingPreviewerRef.current = null
-      }
-      backbufferRef.current.replaceChildren()
-
-      let previewer: Previewer | null = null
-
-      try {
-        previewer = new Previewer()
-        stagingPreviewerRef.current = previewer
-
-        const template = window.document.createElement('div')
-        template.innerHTML = sourceRef.current.innerHTML
-        await renderMermaidDiagrams(template, run, activeTheme)
-        if (run !== runRef.current) {
-          releasePreviewer(previewer)
-          return
-        }
-
-        // On first render or export, render directly to pagesRef for exact geometry matching.
-        // On live edits, render to backbufferRef to prevent any flicker while typing.
-        const targetContainer = isFirstRender ? pagesRef.current : backbufferRef.current
-
-        // Layout into target container
-        const layoutPromise = previewer.preview(
-          template.innerHTML,
-          [{ 'folio-paged.css': pagedStylesheet }],
-          targetContainer,
-        )
-
-        // Safety timeout against Paged.js infinite break loops (e.g. pathological markup)
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          window.setTimeout(() => reject(new Error('Layout timed out after 15 seconds')), 15000)
-        })
-
-        const flow = await Promise.race([layoutPromise, timeoutPromise])
-        if (run !== runRef.current) {
-          releasePreviewer(previewer)
-          return
-        }
-
-        addPageChrome(
-          targetContainer,
-          document,
-          activeLang,
-          activeTheme,
-        )
-
-        const generatedPages = targetContainer.querySelectorAll('.pagedjs_page')
-        if (generatedPages.length === 0) {
-          throw new Error('No pages were generated')
-        }
-
-        // On live edits, atomically swap the completed sheets into the visible output
-        if (!isFirstRender) {
-          pagesRef.current.replaceChildren(...Array.from(backbufferRef.current.childNodes))
-        }
-
-        // Tear down old previewer stylesheet now that new pages are in place
-        releasePreviewer(activePreviewerRef.current)
-        activePreviewerRef.current = previewer
-        stagingPreviewerRef.current = null
-
-        hasEverRenderedRef.current = true
-        setRenderError(null)
-
-        const count = flow.total || generatedPages.length
-        onPageCount?.(count)
-        onReady?.(count)
-
-        if (scrollContainer) {
-          requestAnimationFrame(() => {
-            scrollContainer.scrollTop = previousScroll
-          })
-        }
-      } catch (error) {
-        console.error('Unable to paginate document', error)
-        if (previewer) {
-          releasePreviewer(previewer)
-        }
-        stagingPreviewerRef.current = null
-        if (backbufferRef.current) {
-          backbufferRef.current.replaceChildren()
-        }
-
-        if (run === runRef.current) {
-          setRenderError(
-            error instanceof Error ? error.message : 'Unable to lay out document',
-          )
-        }
-      } finally {
-        if (run === runRef.current) {
-          if (indicatorTimerRef.current !== null) {
-            window.clearTimeout(indicatorTimerRef.current)
-            indicatorTimerRef.current = null
+    const timer = window.setTimeout(() => {
+      // Paged.js owns shared layout handlers; let cancelled layouts finish
+      // before another run clears their staging DOM or stylesheet.
+      const render = async () => {
+        if (run !== runRef.current) return
+        if (!sourceRef.current || !pagesRef.current || !backbufferRef.current) {
+          if (run === runRef.current) {
+            setShowIndicator(false)
+            setLayingOut(false)
           }
-          setShowIndicator(false)
-          setLayingOut(false)
+          return
+        }
+
+        const scrollContainer = pagesRef.current.closest('.preview-scroll')
+        const previousScroll = scrollContainer ? scrollContainer.scrollTop : 0
+
+        // Clean up any stale staging previewer from a previously cancelled run
+        if (stagingPreviewerRef.current) {
+          releasePreviewer(stagingPreviewerRef.current)
+          stagingPreviewerRef.current = null
+        }
+        backbufferRef.current.replaceChildren()
+
+        let previewer: Previewer | null = null
+
+        try {
+          previewer = new Previewer()
+          previewer.chunker?.hooks.onOverflow.register(documentOverflowRange)
+          stagingPreviewerRef.current = previewer
+
+          const template = window.document.createElement('div')
+          template.innerHTML = sourceRef.current.innerHTML
+          const images = Array.from(template.querySelectorAll<HTMLImageElement>('img'))
+          if (images.length && window.folio?.resolveImages) {
+            const resolved = await window.folio.resolveImages(documentPath ?? null, images.map(image => image.getAttribute('src') ?? ''))
+            images.forEach(image => { const src = image.getAttribute('src') ?? ''; if (resolved[src]) image.src = resolved[src] })
+          }
+          await prepareDocumentImages(template)
+          await renderMermaidDiagrams(template, run, activeTheme)
+          if (run !== runRef.current) {
+            releasePreviewer(previewer)
+            return
+          }
+
+          // On first render or export, render directly to pagesRef for exact geometry matching.
+          // On live edits, render to backbufferRef to prevent any flicker while typing.
+          const targetContainer = isFirstRender ? pagesRef.current : backbufferRef.current
+
+          // Layout into target container
+          const layoutPromise = previewer.preview(
+            template.innerHTML,
+            [{ 'folio-paged.css': pagedStylesheet }],
+            targetContainer,
+          )
+
+          // Safety timeout against Paged.js infinite break loops (e.g. pathological markup)
+          let layoutTimeout: number | undefined
+          const timeoutPromise = new Promise<never>((_, reject) => {
+            layoutTimeout = window.setTimeout(() => reject(new Error('Layout timed out after 15 seconds')), 15000)
+          })
+
+          const flow = await Promise.race([layoutPromise, timeoutPromise]).finally(() => window.clearTimeout(layoutTimeout))
+          if (run !== runRef.current) {
+            releasePreviewer(previewer)
+            return
+          }
+
+          addPageChrome(
+            targetContainer,
+            document,
+            activeLang,
+            activeTheme,
+          )
+
+          const generatedPages = targetContainer.querySelectorAll('.pagedjs_page')
+          if (generatedPages.length === 0) {
+            throw new Error('No pages were generated')
+          }
+
+          // On live edits, atomically swap the completed sheets into the visible output
+          if (!isFirstRender) {
+            pagesRef.current.replaceChildren(...Array.from(backbufferRef.current.childNodes))
+          }
+
+          // Tear down old previewer stylesheet now that new pages are in place
+          releasePreviewer(activePreviewerRef.current)
+          activePreviewerRef.current = previewer
+          stagingPreviewerRef.current = null
+
+          hasEverRenderedRef.current = true
+          setRenderError(null)
+
+          const count = flow.total || generatedPages.length
+          if (scrollContainer) scrollContainer.scrollTop = previousScroll
+          onPageCount?.(count)
+          onReady?.(count)
+        } catch (error) {
+          if (run === runRef.current) console.error('Unable to paginate document', error)
+          if (previewer) {
+            releasePreviewer(previewer)
+          }
+          stagingPreviewerRef.current = null
+          if (backbufferRef.current) {
+            backbufferRef.current.replaceChildren()
+          }
+
+          if (run === runRef.current) {
+            setRenderError(
+              error instanceof Error ? error.message : 'Unable to lay out document',
+            )
+          }
+        } finally {
+          if (run === runRef.current) {
+            if (indicatorTimerRef.current !== null) {
+              window.clearTimeout(indicatorTimerRef.current)
+              indicatorTimerRef.current = null
+            }
+            setShowIndicator(false)
+            setLayingOut(false)
+          }
         }
       }
+      layoutQueueRef.current = layoutQueueRef.current.then(render, render)
     }, debounceMs)
 
     return () => {
@@ -730,9 +748,10 @@ export function PaginatedDocument({
         indicatorTimerRef.current = null
       }
     }
-  }, [document, activeTheme, activeLang, retryNonce, onPageCount, onReady])
+  }, [document, documentPath, activeTheme, activeLang, retryNonce, onPageCount, onReady])
 
   useEffect(() => () => {
+    runRef.current++
     releasePreviewer(activePreviewerRef.current)
     activePreviewerRef.current = null
     releasePreviewer(stagingPreviewerRef.current)

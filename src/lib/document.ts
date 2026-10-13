@@ -1,4 +1,6 @@
 import MarkdownIt from 'markdown-it'
+import footnote from 'markdown-it-footnote'
+import hljs from 'highlight.js/lib/common'
 import { katex } from '@mdit/plugin-katex'
 import { parse as parseYaml } from 'yaml'
 import { type SupportedLanguage, getTranslations } from './i18n'
@@ -165,6 +167,11 @@ const markdown = new MarkdownIt({
   html: false,
   linkify: true,
   typographer: true,
+  highlight(code, info) {
+    const language = info.trim().split(/\s+/)[0].toLowerCase()
+    if (!language || !hljs.getLanguage(language)) return ''
+    return hljs.highlight(code, { language, ignoreIllegals: true }).value
+  },
 })
 
 markdown.use(katex, {
@@ -172,6 +179,37 @@ markdown.use(katex, {
   mathFence: true,
   throwOnError: false,
   trust: false,
+})
+
+// The plugin typings use the CJS MarkdownIt shape; runtime supports the ESM shape.
+markdown.use(footnote as unknown as (md: MarkdownIt) => void)
+markdown.core.ruler.after('inline', 'folio-writing', state => {
+  for (let i = 0; i < state.tokens.length; i++) {
+    const token = state.tokens[i]
+    if (token.type !== 'inline' || !token.children) continue
+    const first = token.children[0]
+    if (first?.type === 'text' && /^\[[ xX]\] /.test(first.content) && state.tokens[i - 1]?.type === 'paragraph_open') {
+      let parent = i - 2
+      while (parent >= 0 && state.tokens[parent].type !== 'list_item_open' && state.tokens[parent].type !== 'paragraph_close') parent--
+      if (state.tokens[parent]?.type === 'list_item_open') {
+        state.tokens[parent].attrJoin('class', 'task-list-item')
+        const checked = /^\[[xX]\]/.test(first.content)
+        first.content = first.content.slice(4)
+        const checkbox = new state.Token('html_inline', '', 0)
+        checkbox.content = `<input class="task-checkbox" type="checkbox" disabled${checked ? ' checked' : ''} aria-label="${checked ? 'Completed' : 'Incomplete'} task"> `
+        token.children.unshift(checkbox)
+      }
+    }
+    token.children.forEach((child, index) => {
+      if (child.type !== 'image') return
+      const next = token.children![index + 1]
+      const size = next?.type === 'text' && next.content.match(/^\s*\{width=(\d{1,3})%\}/)
+      if (size) {
+        child.attrSet('data-image-width', String(Math.max(10, Math.min(100, Number(size[1])))))
+        next.content = next.content.slice(size[0].length)
+      }
+    })
+  }
 })
 
 function safeBase64Encode(str: string): string {
@@ -353,11 +391,59 @@ const LANDSCAPE_CLOSE_MARKER = ':::FOLIO_LANDSCAPE_CLOSE:::'
  *   \pagebreak
  *   {.pagebreak}
  */
+const markdownReplacements: [RegExp, string][] = [
+  [/(?:^|\n)[ \t]*(?:<!--\s*page-?break\s*-->|\\\\pagebreak|\\pagebreak|\{\.pagebreak\})[ \t]*(?:\r?\n|$)/gi, `\n\n${PAGE_BREAK_MARKER}\n\n`],
+  [/(?:^|\n)[ \t]*<!--\s*\/\s*landscape\s*-->[ \t]*(?:\r?\n|$)/gi, `\n\n${LANDSCAPE_CLOSE_MARKER}\n\n`],
+  [/(?:^|\n)[ \t]*<!--\s*landscape\s*-->[ \t]*(?:\r?\n|$)/gi, `\n\n${LANDSCAPE_OPEN_MARKER}\n\n`],
+]
+
 export function preprocessMarkdown(content: string): string {
-  return content
-    .replace(/(?:^|\n)[ \t]*(?:<!--\s*page-?break\s*-->|\\\\pagebreak|\\pagebreak|\{\.pagebreak\})[ \t]*(?:\n|$)/gi, `\n\n${PAGE_BREAK_MARKER}\n\n`)
-    .replace(/(?:^|\n)[ \t]*<!--\s*\/\s*landscape\s*-->[ \t]*(?:\n|$)/gi, `\n\n${LANDSCAPE_CLOSE_MARKER}\n\n`)
-    .replace(/(?:^|\n)[ \t]*<!--\s*landscape\s*-->[ \t]*(?:\n|$)/gi, `\n\n${LANDSCAPE_OPEN_MARKER}\n\n`)
+  return markdownReplacements.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), content)
+}
+
+/** Preserve original character offsets when pagination markers add blank lines. */
+function preprocessWithOffsets(content: string) {
+  let text = content
+  let offsets = Array.from({ length: content.length + 1 }, (_, index) => index)
+  for (const [pattern, replacement] of markdownReplacements) {
+    const nextOffsets: number[] = []
+    let cursor = 0
+    text = text.replace(pattern, (match, index: number) => {
+      for (let i = cursor; i < index; i++) nextOffsets.push(offsets[i])
+      for (let i = 0; i < replacement.length; i++) nextOffsets.push(offsets[index])
+      cursor = index + match.length
+      return replacement
+    })
+    for (let i = cursor; i < offsets.length; i++) nextOffsets.push(offsets[i])
+    offsets = nextOffsets
+  }
+  return { text, offsets }
+}
+
+markdown.core.ruler.after('inline', 'folio-source-positions', (state) => {
+  const locate = state.env?.sourcePosition as ((line: number) => number) | undefined
+  if (!locate) return
+  for (const token of state.tokens) {
+    if (token.map && token.nesting === 1) {
+      token.attrSet('data-source-from', String(locate(token.map[0])))
+      token.attrSet('data-source-to', String(locate(token.map[1])))
+    }
+  }
+})
+
+export function renderSelectionFragment(source: string, context?: string) {
+  if (context) {
+    // A partial selection can start or end inside emphasis/code delimiters.
+    // Only remove delimiters known to be formatting in the containing block.
+    const delimiters = new Set<string>()
+    for (const token of markdown.parse(context, {})) {
+      for (const child of token.children ?? []) {
+        if (['strong_open', 'em_open', 's_open', 'code_inline'].includes(child.type) && child.markup) delimiters.add(child.markup)
+      }
+    }
+    for (const delimiter of [...delimiters].sort((a, b) => b.length - a.length)) source = source.replaceAll(delimiter, '')
+  }
+  return markdown.render(source)
 }
 
 /**
@@ -381,7 +467,7 @@ export function formatChromeText(
     .replace(/\{(?:documentId|document-id|invoiceNumber|invoice-number|id)\}/gi, meta.invoiceNumber || meta.documentId || '')
 }
 
-export function parseDocument(source: string): ParsedDocument {
+export function parseDocument(source: string, sourcePositions = false): ParsedDocument {
   let body = source
   let raw: Record<string, unknown> = {}
   const frontmatter = source.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/)
@@ -505,6 +591,8 @@ export function parseDocument(source: string): ParsedDocument {
   }
 
   const themeOverrides = sanitizeThemeOverrides(raw['theme-overrides'] ?? raw.themeOverrides)
+  if (raw.header === false) headerEnabled = false
+  if (raw.footer === false) footerEnabled = false
 
   const name = value('name')
   const role = value('role') || value('subtitle') || value('tagline')
@@ -607,21 +695,28 @@ export function parseDocument(source: string): ParsedDocument {
   }
 
   // Preprocess body so markers are safely rendered
-  const processedBody = preprocessMarkdown(body)
+  const mapped = sourcePositions ? preprocessWithOffsets(body) : null
+  const processedBody = mapped?.text ?? preprocessMarkdown(body)
+  const lineStarts = [0]
+  for (let i = 0; i < processedBody.length; i++) if (processedBody[i] === '\n') lineStarts.push(i + 1)
+  const sourcePosition = (line: number) => {
+    const offset = lineStarts[line] ?? processedBody.length
+    return source.length - body.length + (mapped?.offsets[offset] ?? offset)
+  }
   const toc = extractToc(body)
 
-  let html = markdown.render(processedBody)
+  let html = markdown.render(processedBody, sourcePositions ? { sourcePosition } : {})
   // Replace the paragraph containing the marker with our clean folio-page-break element
   html = html.replace(
-    new RegExp(`<p>\\s*${PAGE_BREAK_MARKER}\\s*<\\/p>|${PAGE_BREAK_MARKER}`, 'g'),
+    new RegExp(`<p[^>]*>\\s*${PAGE_BREAK_MARKER}\\s*<\\/p>|${PAGE_BREAK_MARKER}`, 'g'),
     '<div class="folio-page-break"></div>'
   )
   html = html.replace(
-    new RegExp(`<p>\\s*${LANDSCAPE_OPEN_MARKER}\\s*<\\/p>|${LANDSCAPE_OPEN_MARKER}`, 'g'),
+    new RegExp(`<p[^>]*>\\s*${LANDSCAPE_OPEN_MARKER}\\s*<\\/p>|${LANDSCAPE_OPEN_MARKER}`, 'g'),
     '<div class="folio-landscape">',
   )
   html = html.replace(
-    new RegExp(`<p>\\s*${LANDSCAPE_CLOSE_MARKER}\\s*<\\/p>|${LANDSCAPE_CLOSE_MARKER}`, 'g'),
+    new RegExp(`<p[^>]*>\\s*${LANDSCAPE_CLOSE_MARKER}\\s*<\\/p>|${LANDSCAPE_CLOSE_MARKER}`, 'g'),
     '</div>',
   )
   // A break that would land where a page already starts just makes a blank

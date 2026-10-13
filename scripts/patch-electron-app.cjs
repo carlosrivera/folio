@@ -57,7 +57,8 @@ if (fs.existsSync(plistPath)) {
 }
 
 // 5. Update bundle icon
-const iconSrc = path.join(root, 'build/icon.icns')
+const devIcon = path.join(root, 'build/icon-dev.icns')
+const iconSrc = fs.existsSync(devIcon) ? devIcon : path.join(root, 'build/icon.icns')
 const resourcesPath = path.join(targetAppPath, 'Contents/Resources')
 if (fs.existsSync(iconSrc) && fs.existsSync(resourcesPath)) {
   fs.copyFileSync(iconSrc, path.join(resourcesPath, 'electron.icns'))

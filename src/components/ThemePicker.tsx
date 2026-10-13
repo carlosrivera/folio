@@ -1,3 +1,5 @@
+import { useMenuKeyboard } from './use-menu-keyboard'
+import { useUi } from './UiLanguage'
 import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown, SlidersHorizontal } from 'lucide-react'
 import type { DocumentTheme } from '../lib/document'
@@ -43,8 +45,10 @@ type Props = {
 }
 
 export function ThemePicker({ value, onChange, onCustomise, customised }: Props) {
+  const { tr } = useUi()
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  useMenuKeyboard(containerRef, open, setOpen)
   const active = DOCUMENT_THEMES.find((theme) => theme.id === value) ?? DOCUMENT_THEMES[0]
 
   useEffect(() => {
@@ -71,19 +75,19 @@ export function ThemePicker({ value, onChange, onCustomise, customised }: Props)
         onClick={() => setOpen((on) => !on)}
         aria-expanded={open}
         aria-haspopup="true"
-        title="Document template"
+        title={tr('Document template')}
       >
         <ThemeSwatch id={value} />
         <span className="theme-picker-label">
-          {active.label}
-          {customised && <em title="This document overrides template values">edited</em>}
+          {tr(active.label)}
+          {customised && <em title={tr('This document overrides template values')}>{tr('edited')}</em>}
         </span>
         <ChevronDown size={13} />
       </button>
 
       {open && (
         <div className="theme-popover" role="menu">
-          <p className="theme-popover-heading">Document template</p>
+          <p className="theme-popover-heading">{tr('Document template')}</p>
           {DOCUMENT_THEMES.map((theme) => (
             <button
               type="button"
@@ -99,7 +103,7 @@ export function ThemePicker({ value, onChange, onCustomise, customised }: Props)
               <ThemeSwatch id={theme.id} />
               <span className="theme-option-text">
                 <strong>{theme.label}</strong>
-                <span>{theme.note}</span>
+                <span>{tr(theme.note)}</span>
               </span>
               {theme.id === value && <Check size={13} />}
             </button>
@@ -112,7 +116,7 @@ export function ThemePicker({ value, onChange, onCustomise, customised }: Props)
               setOpen(false)
             }}
           >
-            <SlidersHorizontal size={13} /> Customise this template…
+            <SlidersHorizontal size={13} /> {tr('Customise this template…')}
           </button>
         </div>
       )}

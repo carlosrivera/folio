@@ -1,3 +1,4 @@
+import { useUi } from './UiLanguage'
 import { AlertTriangle, ChevronDown, ChevronUp, CircleAlert, FileDiff, Info, X } from 'lucide-react'
 import type { DocumentDiff } from '../lib/diff'
 import type { DocumentTheme } from '../lib/document'
@@ -51,12 +52,13 @@ export function DocumentInspector({
   themeOverrides,
   onThemeOverridesChange,
 }: Props) {
+  const { tr } = useUi()
   const errors = findings.filter((finding) => finding.severity === 'error').length
   const warnings = findings.filter((finding) => finding.severity === 'warning').length
   const changed = diff ? diff.summary.added + diff.summary.removed + diff.summary.changed : 0
 
   return (
-    <section className={`inspector${open ? ' is-open' : ''}`} aria-label="Document inspector">
+    <section className={`inspector${open ? ' is-open' : ''}`} aria-label={tr('Document inspector')}>
       <header className="inspector-bar">
         <button
           type="button"
@@ -98,7 +100,7 @@ export function DocumentInspector({
           )}
         </button>
         <span className="inspector-spacer" />
-        <button type="button" className="inspector-collapse" onClick={onToggleOpen} aria-expanded={open}>
+        <button type="button" className="inspector-collapse" onClick={onToggleOpen} aria-expanded={open} aria-label={tr(open ? 'Hide inspector' : 'Show inspector')}>
           {open ? <ChevronDown size={13} /> : <ChevronUp size={13} />}
         </button>
       </header>
@@ -107,7 +109,7 @@ export function DocumentInspector({
         <div className="inspector-body">
           {tab === 'issues' &&
             (findings.length === 0 ? (
-              <p className="inspector-empty">Nothing to flag in this document.</p>
+              <p className="inspector-empty">{tr('Nothing to flag in this document.')}</p>
             ) : (
               <ul className="inspector-list">
                 {findings.map((finding, index) => {
@@ -139,9 +141,9 @@ export function DocumentInspector({
           {tab === 'changes' &&
             (!diff ? (
               <div className="inspector-empty">
-                <p>Compare this document against an earlier revision to see what moved.</p>
+                <p>{tr('Compare this document against an earlier revision to see what moved.')}</p>
                 <button type="button" className="inspector-action" onClick={onPickComparison}>
-                  <FileDiff size={13} /> Choose a revision…
+                  <FileDiff size={13} /> {tr('Choose a revision…')}
                 </button>
               </div>
             ) : (
@@ -151,7 +153,7 @@ export function DocumentInspector({
                     Compared with <strong>{comparedWith}</strong> · {diff.summary.added} new ·{' '}
                     {diff.summary.changed} edited · {diff.summary.removed} dropped
                   </span>
-                  <button type="button" className="inspector-clear" onClick={onClearComparison} title="Stop comparing">
+                  <button type="button" className="inspector-clear" onClick={onClearComparison} title={tr('Stop comparing')}>
                     <X size={12} />
                   </button>
                 </div>
@@ -161,7 +163,7 @@ export function DocumentInspector({
                     .map((section) => (
                       <li key={`${section.status}-${section.id}`}>
                         <div className={`inspector-section is-${section.status}`}>
-                          <span className="inspector-section-status">{STATUS_LABEL[section.status]}</span>
+                          <span className="inspector-section-status">{tr(STATUS_LABEL[section.status])}</span>
                           <span className="inspector-section-title">{section.title}</span>
                         </div>
                         {section.status === 'changed' && (

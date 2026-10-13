@@ -22,6 +22,7 @@ export type PreviewViewport = {
   toggleFitToWidth: () => void
   goToPage: (page: number) => void
   revealAnchor: (id: string) => void
+  revealPosition: (position: number) => void
 }
 
 /**
@@ -32,7 +33,7 @@ export type PreviewViewport = {
 export function usePreviewViewport(pageCount: number): PreviewViewport {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const [zoom, setZoom] = useState(1)
-  const [fitToWidth, setFitToWidth] = useState(false)
+  const [fitToWidth, setFitToWidth] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
 
   const pagesOf = useCallback(
@@ -65,7 +66,7 @@ export function usePreviewViewport(pageCount: number): PreviewViewport {
     const measure = () => {
       queued = false
       const pages = pagesOf()
-      if (pages.length === 0) return
+      if (pages.length === 0 || !container.clientWidth || container.closest('[inert]')) return
       const top = container.getBoundingClientRect().top + SCROLL_MARGIN_PX
       let nearest = 1
       for (let i = 0; i < pages.length; i++) {
@@ -88,7 +89,7 @@ export function usePreviewViewport(pageCount: number): PreviewViewport {
 
   const scrollTo = useCallback((element: HTMLElement | undefined, margin: number) => {
     const container = scrollRef.current
-    if (!container || !element) return
+    if (!container || !element || !container.clientWidth || container.closest('[inert]')) return
     const delta = element.getBoundingClientRect().top - container.getBoundingClientRect().top
     container.scrollTop += delta - margin
   }, [])
@@ -113,6 +114,19 @@ export function usePreviewViewport(pageCount: number): PreviewViewport {
     [scrollTo],
   )
 
+  const revealPosition = useCallback((position: number) => {
+    const container = scrollRef.current
+    if (!container) return
+    const blocks = Array.from(container.querySelectorAll<HTMLElement>('.pagination-output [data-source-from][data-source-to]'))
+    const target = blocks.filter(block => Number(block.dataset.sourceFrom) <= position && Number(block.dataset.sourceTo) > position)
+      .sort((a, b) => (Number(a.dataset.sourceTo) - Number(a.dataset.sourceFrom)) - (Number(b.dataset.sourceTo) - Number(b.dataset.sourceFrom)))[0]
+    if (!target) return
+    const box = target.getBoundingClientRect()
+    const viewport = container.getBoundingClientRect()
+    // Leave visible paragraphs in place instead of jumping on each caret move.
+    if (box.top < viewport.top + SCROLL_MARGIN_PX || box.bottom > viewport.bottom - SCROLL_MARGIN_PX) scrollTo(target, SCROLL_MARGIN_PX * 2)
+  }, [scrollTo])
+
   const step = useCallback((direction: 1 | -1) => {
     setFitToWidth(false)
     setZoom((current) => round(clampZoom(current + direction * ZOOM_STEP)))
@@ -133,5 +147,6 @@ export function usePreviewViewport(pageCount: number): PreviewViewport {
     }, []),
     goToPage,
     revealAnchor,
+    revealPosition,
   }
 }

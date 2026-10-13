@@ -4,7 +4,7 @@ export type ThemeTokenDef = {
   /** Custom property name without the leading dashes. */
   name: string
   label: string
-  group: 'Cover' | 'Body' | 'Typography'
+  group: 'Cover' | 'Body' | 'Code' | 'Typography'
   kind: ThemeTokenKind
 }
 
@@ -34,12 +34,23 @@ export const THEME_TOKENS: ThemeTokenDef[] = [
   { name: 'th-fg', label: 'Table heads', group: 'Body', kind: 'color' },
   { name: 'figure-bg', label: 'Figure background', group: 'Body', kind: 'color' },
 
+  { name: 'code-bg', label: 'Background', group: 'Code', kind: 'color' },
+  { name: 'code-fg', label: 'Text', group: 'Code', kind: 'color' },
+  { name: 'code-border', label: 'Border', group: 'Code', kind: 'color' },
+  { name: 'code-accent', label: 'Accent rule', group: 'Code', kind: 'color' },
+  { name: 'code-keyword', label: 'Keywords', group: 'Code', kind: 'color' },
+  { name: 'code-string', label: 'Strings', group: 'Code', kind: 'color' },
+  { name: 'code-number', label: 'Numbers and literals', group: 'Code', kind: 'color' },
+  { name: 'code-function', label: 'Functions and types', group: 'Code', kind: 'color' },
+  { name: 'code-comment', label: 'Comments', group: 'Code', kind: 'color' },
+
   { name: 'font-body', label: 'Body face', group: 'Typography', kind: 'font' },
   { name: 'font-display', label: 'Display face', group: 'Typography', kind: 'font' },
+  { name: 'font-code', label: 'Code face', group: 'Typography', kind: 'font' },
   { name: 'font-mono', label: 'Mono face', group: 'Typography', kind: 'font' },
 ]
 
-export const THEME_TOKEN_GROUPS = ['Cover', 'Body', 'Typography'] as const
+export const THEME_TOKEN_GROUPS = ['Cover', 'Body', 'Code', 'Typography'] as const
 
 const TOKEN_NAMES = new Set(THEME_TOKENS.map((token) => token.name))
 

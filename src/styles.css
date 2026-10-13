@@ -68,8 +68,8 @@
   --ui-section-changed: #b1730f;
   --ui-editor-bg: #fcfbf8;
   --ui-editor-text: #282824;
-  --ui-editor-active-line: #f4f0e9;
-  --ui-editor-selection: #d8e3df;
+  --ui-editor-active-line: #91867512;
+  --ui-editor-selection: #b5d6fb;
 }
 
 /* Dark shell. `data-ui-theme` is stamped on <html> at boot, with "system"
@@ -131,8 +131,8 @@
   --ui-section-changed: #e0a94a;
   --ui-editor-bg: #1b1b1e;
   --ui-editor-text: #dedcd5;
-  --ui-editor-active-line: #24242a;
-  --ui-editor-selection: #2f4a45;
+  --ui-editor-active-line: #ffffff08;
+  --ui-editor-selection: #315f94;
 }
 
 :root {
@@ -149,6 +149,19 @@ html, body, #root { width: 100%; margin: 0; }
 button, select { font: inherit; }
 
 .app-shell { display: flex; height: 100%; flex-direction: column; background: var(--ui-shell); }
+
+/* Keep interface labels out of drag selections while preserving copyable content. */
+.app-shell, .settings-window {
+  -webkit-user-select: none;
+  user-select: none;
+}
+.pagination-output, .cm-content, [contenteditable="true"],
+input:not([type]), input[type="text"], input[type="search"], input[type="url"],
+input[type="email"], input[type="number"], textarea,
+.inspector-diff, .inspector-finding-message, .folio-dialog [role="alert"], .toast {
+  -webkit-user-select: text;
+  user-select: text;
+}
 .toolbar {
   -webkit-app-region: drag;
   height: 54px;
@@ -192,16 +205,22 @@ button, select { font: inherit; }
 
 .toolbar-actions { -webkit-app-region: no-drag; display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .toolbar-divider { width: 1px; height: 20px; margin: 0 2px; background: var(--ui-toolbar-border); }
-/* Direct children only: the toolbar also hosts the template picker and the
-   appearance toggle, which carry their own styling. */
-.toolbar-actions > button {
+/* Style action buttons without affecting the view switcher or dropdown menu. */
+.toolbar-actions > button, .save-control > button {
   display: flex; height: 28px; align-items: center; gap: 6px; padding: 0 11px; border: 1px solid var(--ui-control-border); border-radius: 7px;
   color: var(--ui-button-text); background: linear-gradient(var(--ui-button-top), var(--ui-button-bottom)); box-shadow: 0 1px 2px var(--ui-button-shadow); font-size: 11px; font-weight: 500;
   cursor: pointer;
 }
-.toolbar-actions > button:hover:not(:disabled) { border-color: var(--ui-button-border-hover); background: var(--ui-control-bg); }
+.toolbar-actions > button:hover:not(:disabled), .save-control > button:hover:not(:disabled) { border-color: var(--ui-button-border-hover); background: var(--ui-control-bg); }
 .toolbar-actions > button:active:not(:disabled) { transform: translateY(1px); }
-.toolbar-actions > button:disabled { opacity: .55; cursor: default; }
+.toolbar-actions > button:disabled, .save-control > button:disabled { opacity: .55; cursor: default; }
+.save-control { position: relative; display: flex; }
+.save-control > .save-main { border-radius: 7px 0 0 7px; box-shadow: none; }
+.save-control > .save-dropdown { width: 23px; padding: 0; justify-content: center; border-left: 0; border-radius: 0 7px 7px 0; box-shadow: none; }
+.save-control button:focus-visible { outline: 2px solid var(--ui-accent); outline-offset: -2px; }
+.save-menu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 100; min-width: 140px; padding: 4px; border: 1px solid var(--ui-control-border); border-radius: 8px; background: var(--ui-panel-bg); box-shadow: 0 6px 20px var(--ui-button-shadow); }
+.save-menu > button { width: 100%; padding: 8px 10px; border: 0; border-radius: 4px; color: var(--ui-button-text); background: transparent; text-align: left; font-size: 11px; cursor: pointer; }
+.save-menu > button:hover, .save-menu > button:focus-visible { background: var(--ui-surface-hover); }
 .toolbar-actions > .primary-action { border-color: var(--ui-accent-border); color: var(--ui-accent-text); background: linear-gradient(var(--ui-accent-top), var(--ui-accent-bottom)); box-shadow: 0 1px 2px var(--ui-accent-shadow); }
 /* Must out-specify the generic button hover above, which would otherwise paint
    the primary action with the plain control background. */
@@ -247,7 +266,7 @@ button, select { font: inherit; }
 .editor-main .cm-search button[name="close"] { margin-left: auto; }
 .editor-main .cm-lintRange-error { background: color-mix(in srgb, var(--ui-error) 17%, transparent); }
 .editor-main .cm-lintRange-warning { background: color-mix(in srgb, var(--ui-warning) 15%, transparent); }
-.editor-main .cm-activeLine { box-shadow: inset 2px 0 var(--ui-active); }
+.editor-main .cm-line.cm-activeLine { margin-left: -6px; padding-left: 6px; box-shadow: inset 2px 0 var(--ui-active); }
 .pane-caption { color: var(--ui-text-faint); font-size: 10px; font-weight: 500; letter-spacing: .03em; }
 .preview-heading { background: var(--ui-heading-bg-alt); border-color: var(--ui-heading-border-alt); }
 .preview-heading > span:first-child { flex: none; }
@@ -2050,10 +2069,17 @@ a.cv-contact-item:hover {
 }
 
 /* Document Body Elements */
+.sow-document, .cv-document, .simple-document, .invoice-document { overflow-wrap: anywhere; }
+.document-body { overflow-wrap: anywhere; word-break: normal; }
+.document-body pre { max-width: 100%; margin: 4mm 0; padding: 4mm; border: .25mm solid var(--code-border); border-left: 1mm solid var(--code-accent); border-radius: var(--code-radius); background: var(--code-bg); color: var(--code-fg); font: 8.5pt/1.5 var(--font-code); white-space: pre-wrap; overflow-wrap: anywhere; box-decoration-break: clone; }
+.document-body code { font-family: var(--font-code); font-size: .88em; overflow-wrap: anywhere; }
+.document-body :not(pre) > code { padding: .12em .3em; border-radius: .5mm; background: var(--figure-bg); color: var(--heading); }
+.document-body pre code { font: inherit; white-space: inherit; }
 .document-body > h1:first-child { margin: 0 0 11mm; font-size: 8pt; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
 .document-body h2 { margin: 10mm 0 4mm; break-after: avoid; font-size: 20pt; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
 .document-body h3 { margin: 6mm 0 2mm; break-after: avoid; font-size: 10.5pt; font-weight: 700; letter-spacing: .02em; }
 .document-body p { margin: 0 0 4mm; orphans: 3; widows: 3; }
+.document-body img { display: block; max-width: 100%; max-height: 200mm; width: auto; height: auto; margin: 4mm 0; object-fit: contain; break-inside: avoid; }
 .document-body .katex-block { margin: 6mm 0; break-inside: avoid; text-align: center; }
 .document-body .katex-display { margin: 0; max-width: 100%; overflow-x: auto; overflow-y: hidden; }
 .document-body .katex { color: inherit; }
@@ -2122,6 +2148,18 @@ a.cv-contact-item:hover {
    document styles. Genuine one-offs stay as explicit overrides at the end.
    ========================================================================== */
 .theme-editorial {
+  --code-bg: #f6f3ec;
+  --code-fg: #262620;
+  --code-border: #ded8cb;
+  --code-accent: #b84f32;
+  --code-keyword: #8b3f2a;
+  --code-string: #35604f;
+  --code-number: #845414;
+  --code-function: #325c65;
+  --code-comment: #71685c;
+  --code-radius: 2mm;
+  --font-code: "SFMono-Regular", Menlo, Consolas, monospace;
+
   --cover-bg: #172d29;
   --cover-fg: #f6f1e8;
   --cover-title: #fffaf1;
@@ -2174,6 +2212,18 @@ a.cv-contact-item:hover {
 }
 
 .theme-voltage {
+  --code-bg: #111311;
+  --code-fg: #eff1eb;
+  --code-border: #30362c;
+  --code-accent: #d4ff2b;
+  --code-keyword: #d4ff2b;
+  --code-string: #8be9fd;
+  --code-number: #ffb86c;
+  --code-function: #ffffff;
+  --code-comment: #a1a99b;
+  --code-radius: .5mm;
+  --font-code: "JetBrains Mono", Menlo, Consolas, monospace;
+
   --cover-bg: #000000;
   --cover-fg: #ffffff;
   --cover-title: #ffffff;
@@ -2225,6 +2275,18 @@ a.cv-contact-item:hover {
 }
 
 .theme-graphite {
+  --code-bg: #1c2026;
+  --code-fg: #e6e9ef;
+  --code-border: #343b45;
+  --code-accent: #a3e635;
+  --code-keyword: #a3e635;
+  --code-string: #98c379;
+  --code-number: #e5b87d;
+  --code-function: #82aaff;
+  --code-comment: #9aa4b2;
+  --code-radius: 2mm;
+  --font-code: "JetBrains Mono", Menlo, Consolas, monospace;
+
   --cover-bg: #101113;
   --cover-fg: #f4f4f5;
   --cover-title: #ffffff;
@@ -2276,6 +2338,18 @@ a.cv-contact-item:hover {
 }
 
 .theme-contrast {
+  --code-bg: #f5f5f5;
+  --code-fg: #111111;
+  --code-border: #bdbdbd;
+  --code-accent: #111111;
+  --code-keyword: #111111;
+  --code-string: #404040;
+  --code-number: #525252;
+  --code-function: #222222;
+  --code-comment: #626262;
+  --code-radius: 0;
+  --font-code: Menlo, Consolas, monospace;
+
   --cover-bg: #000000;
   --cover-fg: #fafafa;
   --cover-title: #ffffff;
@@ -2327,6 +2401,18 @@ a.cv-contact-item:hover {
 }
 
 .theme-slate {
+  --code-bg: #0f172a;
+  --code-fg: #e2e8f0;
+  --code-border: #334155;
+  --code-accent: #38bdf8;
+  --code-keyword: #38bdf8;
+  --code-string: #5eead4;
+  --code-number: #fbbf24;
+  --code-function: #93c5fd;
+  --code-comment: #94a3b8;
+  --code-radius: 2.5mm;
+  --font-code: "JetBrains Mono", Menlo, Consolas, monospace;
+
   --cover-bg: #0f172a;
   --cover-fg: #e2e8f0;
   --cover-title: #f8fafc;
@@ -2378,6 +2464,18 @@ a.cv-contact-item:hover {
 }
 
 .theme-nocturne {
+  --code-bg: #282a36;
+  --code-fg: #f8f8f2;
+  --code-border: #484c62;
+  --code-accent: #bd93f9;
+  --code-keyword: #ff79c6;
+  --code-string: #f1fa8c;
+  --code-number: #bd93f9;
+  --code-function: #50fa7b;
+  --code-comment: #a3acc2;
+  --code-radius: 2mm;
+  --font-code: "JetBrains Mono", Menlo, Consolas, monospace;
+
   --cover-bg: #282a36;
   --cover-fg: #f8f8f2;
   --cover-title: #f8f8f2;
@@ -2429,6 +2527,18 @@ a.cv-contact-item:hover {
 }
 
 .theme-scientific {
+  --code-bg: #f5f8f9;
+  --code-fg: #202a32;
+  --code-border: #cbd5dc;
+  --code-accent: #61717b;
+  --code-keyword: #275b7a;
+  --code-string: #35604f;
+  --code-number: #845414;
+  --code-function: #27465b;
+  --code-comment: #60717c;
+  --code-radius: 0;
+  --font-code: "SFMono-Regular", Menlo, Consolas, monospace;
+
   --cover-bg: #ffffff;
   --cover-fg: #202a32;
   --cover-title: #172b3a;
@@ -2722,3 +2832,94 @@ a.cv-contact-item:hover {
   .toolbar { gap: 11px; }
   .document-title span { max-width: 140px; }
 }
+
+/* Selection is blue; the current-line guide stays neutral. */
+.editor-main .cm-content ::selection { background: var(--ui-editor-selection); }
+::highlight(folio-selection) { background-color: #b5d6fb; color: #142e4d; }
+@media print { ::highlight(folio-selection) { background-color: transparent; color: inherit; } }
+.settings-window { height: 100%; overflow: auto; padding: 28px; background: var(--ui-shell); color: var(--ui-text); }
+.settings-window h1 { margin: 0 0 8px; font-size: 24px; }
+.settings-window header p { color: var(--ui-text-muted); font-size: 13px; line-height: 1.5; }
+.settings-window section { margin-top: 24px; }
+.settings-window h2 { margin: 0 0 8px; font-size: 13px; color: var(--ui-text-muted); }
+.settings-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 14px 0; border-bottom: 1px solid var(--ui-pane-border); font-size: 14px; }
+.settings-row small { display: block; margin-top: 5px; color: var(--ui-text-muted); font-size: 12px; line-height: 1.5; }
+.settings-row input { flex: none; width: 16px; height: 16px; accent-color: var(--ui-active); }
+
+/* Markdown writing controls */
+.pane-divider { background: var(--ui-pane-border); cursor: col-resize; touch-action: none; }
+.pane-divider:hover, .pane-divider:focus-visible { background: var(--ui-active); outline: none; }
+.workspace > .pane { min-width: 0; min-height: 0; }
+.view-switcher { display: inline-flex; flex: none; gap: 1px; padding: 2px; border: 1px solid var(--ui-control-border); border-radius: 6px; background: var(--ui-control-bg); }
+.view-switcher button { display: grid; place-items: center; width: 25px; height: 25px; padding: 0; border: 0; border-radius: 3px; color: var(--ui-text-muted); background: transparent; cursor: pointer; }
+.view-switcher button:hover { background: var(--ui-surface-hover); color: var(--ui-text); }
+.view-switcher button[aria-pressed="true"] { background: var(--ui-active); color: var(--ui-active-text); }
+.view-switcher button:focus-visible { outline: 2px solid var(--ui-accent); outline-offset: 1px; }
+.preview-pane { container-type: inline-size; }
+@container (max-width: 520px) { .preview-heading .pane-caption { display: none; } }
+@container (max-width: 360px) { .preview-heading > span:first-child { display: none; } .preview-heading { padding: 0 6px; } .preview-controls { gap: 4px; } }
+.workspace[data-mode="preview"] .editor-pane, .workspace:not([data-mode="split"]) .pane-divider { display: none; }
+/* Paged.js needs measurable page geometry while edits happen in editor-only mode. */
+.workspace[data-mode="editor"] .preview-pane { position: fixed; left: -10000px; top: 0; width: 900px; height: 900px; visibility: hidden; pointer-events: none; }
+.editor-status { display: flex; flex: none; gap: 20px; padding: 5px 14px; border-top: 1px solid var(--ui-pane-border); background: var(--ui-heading-bg); color: var(--ui-text-muted); font-size: 11px; }
+.editor-status > span:first-child { flex: 1; }
+.editor-toolbar select { height: 25px; max-width: 82px; padding: 0 4px; border: 1px solid var(--ui-control-border); border-radius: 4px; background: var(--ui-control-bg); color: var(--ui-text); font-size: 10px; }
+.editor-toolbar-divider { flex: none; height: 16px; width: 1px; background: var(--ui-pane-border); margin: 0 3px; }
+.editor-format-actions { overflow: visible; }
+.editor-insert-menu { position: relative; flex: none; font-size: 10px; }
+.editor-insert-menu summary { cursor: pointer; padding: 5px; border-radius: 4px; }
+.editor-insert-menu[open] summary { background: var(--ui-surface-hover); }
+.editor-insert-menu > div { position: absolute; top: 100%; right: 0; min-width: 145px; z-index: 50; display: flex; flex-direction: column; padding: 5px; background: var(--ui-panel-bg); border: 1px solid var(--ui-control-border); border-radius: 6px; box-shadow: 0 8px 25px #0003; }
+.editor-insert-menu > div button { text-align: left; text-transform: capitalize; }
+.insert-dialog { border: 1px solid var(--ui-control-border); color: var(--ui-text); background: var(--ui-panel-bg); max-width: min(480px, 90vw); }
+.insert-dialog::backdrop { background: #0008; }
+.insert-dialog form > label, .insert-table-size label { display: flex; flex-direction: column; gap: 7px; margin: 16px 0; font-size: 13px; }
+.insert-dialog input { padding: 8px; width: 100%; border: 1px solid var(--ui-control-border); border-radius: 5px; background: var(--ui-control-bg); color: var(--ui-text); font: inherit; }
+.insert-table-size { display: flex; gap: 16px; }
+.settings-row input[type="number"] { width: 80px; height: 30px; padding: 4px; border: 1px solid var(--ui-control-border); border-radius: 4px; background: var(--ui-control-bg); color: var(--ui-text); }
+.settings-row input[type="range"] { width: 120px; }
+.disk-change-banner { display: flex; flex: none; align-items: center; gap: 12px; padding: 9px 14px; background: var(--ui-panel-bg); color: var(--ui-text); font-size: 12px; border-bottom: 1px solid var(--ui-warning); }
+.disk-change-banner span { flex: 1; }
+.disk-change-banner button { padding: 5px 8px; border: 1px solid var(--ui-control-border); background: var(--ui-control-bg); color: var(--ui-text); border-radius: 4px; cursor: pointer; }
+@media screen and (max-width: 1200px) { .toolbar { gap: 8px; } .brand > span:last-child { display: none; } .document-title span { max-width: 110px; } .toolbar-actions { gap: 4px; } .toolbar-actions > button, .save-control > .save-main { padding: 0 7px; } }
+
+.editor-pane { grid-template-rows: 39px auto minmax(0, 1fr) auto; }
+.editor-toolbar { min-height: 62px; }
+.editor-format-actions { flex-wrap: wrap; }
+
+/* Colors belong to the document, so preview and exported PDFs agree. */
+.document-body pre .hljs-keyword, .document-body pre .hljs-selector-tag { color: var(--code-keyword); font-weight: 600; }
+.document-body pre .hljs-string, .document-body pre .hljs-regexp, .document-body pre .hljs-addition { color: var(--code-string); }
+.document-body pre .hljs-number, .document-body pre .hljs-literal, .document-body pre .hljs-attr { color: var(--code-number); }
+.document-body pre .hljs-title, .document-body pre .hljs-built_in, .document-body pre .hljs-type { color: var(--code-function); }
+.document-body pre .hljs-comment, .document-body pre .hljs-quote { color: var(--code-comment); font-style: italic; }
+.document-body pre .hljs-meta, .document-body pre .hljs-symbol { color: var(--code-number); }
+.document-body pre .hljs-deletion { color: var(--code-keyword); }
+.document-body .document-image { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; margin: 4mm 0; padding: 0; max-width: 100%; break-inside: avoid; }
+.document-body .document-image img { margin: 0; }
+
+.document-image figcaption { width: 100%; padding-top: 2mm; color: var(--body-fg); font: 9pt/1.4 var(--font-body); overflow-wrap: anywhere; }
+.document-body .task-list-item { list-style: none; }
+.document-body .task-checkbox { appearance: auto; width: 3mm; height: 3mm; margin: 0 1mm 0 -4mm; vertical-align: middle; accent-color: var(--code-accent); opacity: 1; }
+.document-body .footnotes { border-top: .25mm solid var(--code-border); margin-top: 6mm; padding-top: 3mm; font-size: 9pt; }
+.document-body .footnote-ref { font-size: .75em; vertical-align: super; line-height: 0; }
+.document-body .footnote-backref { font-size: .85em; }
+.document-properties { width: min(600px, calc(100vw - 48px)); max-height: calc(100vh - 80px); overflow-y: auto; }
+.properties-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
+.document-properties label { display: flex; flex-direction: column; gap: 5px; margin: 8px 0; color: var(--ui-text-muted); font-size: 12px; }
+.document-properties input:not([type=checkbox]) { width: 100%; min-width: 0; padding: 7px 9px; border: 1px solid var(--ui-control-border); border-radius: 5px; background: var(--ui-control-bg); color: var(--ui-text); }
+.document-properties details { margin: 15px 0; }
+.document-properties summary { cursor: pointer; font-size: 13px; }
+.document-properties .properties-toggle { flex-direction: row; align-items: center; }
+.document-properties fieldset { border: 1px solid var(--ui-control-border); border-radius: 6px; }
+.document-properties fieldset .properties-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.document-properties small { color: var(--ui-text-muted); font-size: 11px; }
+.settings-row select { padding: 6px; border: 1px solid var(--ui-control-border); border-radius: 5px; color: var(--ui-text); background: var(--ui-control-bg); }
+.export-control > button { border-color: var(--ui-accent-border); color: var(--ui-accent-text); background: linear-gradient(var(--ui-accent-top), var(--ui-accent-bottom)); }
+.export-control > button:hover:not(:disabled) { border-color: var(--ui-accent-border); background: linear-gradient(var(--ui-accent-top-hover), var(--ui-accent-bottom-hover)); }
+.editor-insert-menu > div[popover] { position: fixed; inset: auto; margin: 0; color: var(--ui-text); }
+.editor-insert-menu > div[popover]:not(:popover-open) { display: none; }
+dialog.folio-new-dialog { color: var(--ui-text); margin: auto; }
+dialog.folio-new-dialog::backdrop { background: rgba(12, 14, 14, .62); }
+.export-control .save-menu { width: 235px; }
+.save-menu small { display: block; padding: 3px 10px 7px; color: var(--ui-text-muted); font-size: 10px; line-height: 1.4; }

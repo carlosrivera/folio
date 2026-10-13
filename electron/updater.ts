@@ -35,8 +35,10 @@ function getAutoUpdater(): AppUpdater | null {
 let updateCheckInProgress = false
 let updateIsManual = false
 let windowRef: BrowserWindow | null = null
+let initialized = false
+let updateReady = false
 
-export function initAutoUpdater(mainWindow: BrowserWindow) {
+export function initAutoUpdater(mainWindow: BrowserWindow, beforeInstall: () => void, installFailed: () => void) {
   windowRef = mainWindow
 
   // Always register IPC handlers safely so the renderer never hangs
@@ -47,9 +49,14 @@ export function initAutoUpdater(mainWindow: BrowserWindow) {
 
   ipcMain.removeHandler('updater:install')
   ipcMain.handle('updater:install', () => {
+    if (!updateReady) return
+    const updater = getAutoUpdater()
+    if (!updater) return
     try {
-      getAutoUpdater()?.quitAndInstall()
+      beforeInstall()
+      updater.quitAndInstall(false, true)
     } catch (err) {
+      installFailed()
       console.warn('Failed to quit and install update:', err)
     }
   })
@@ -60,7 +67,8 @@ export function initAutoUpdater(mainWindow: BrowserWindow) {
   }
 
   const autoUpdater = getAutoUpdater()
-  if (!autoUpdater) return
+  if (!autoUpdater || initialized) return
+  initialized = true
 
   try {
     autoUpdater.autoDownload = true
@@ -117,6 +125,7 @@ export function initAutoUpdater(mainWindow: BrowserWindow) {
     })
 
     autoUpdater.on('update-downloaded', (info) => {
+      updateReady = true
       updateCheckInProgress = false
       windowRef?.webContents.send('updater:status', {
         state: 'downloaded',
@@ -134,13 +143,14 @@ export function initAutoUpdater(mainWindow: BrowserWindow) {
           cancelId: 1,
         }).then(({ response }) => {
           if (response === 0) {
-            getAutoUpdater()?.quitAndInstall()
+            windowRef?.webContents.send('updater:install-request')
           }
         })
       }
     })
 
     autoUpdater.on('error', (err) => {
+      installFailed()
       updateCheckInProgress = false
       windowRef?.webContents.send('updater:status', {
         state: 'error',

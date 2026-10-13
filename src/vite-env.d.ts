@@ -1,11 +1,11 @@
 /// <reference types="vite/client" />
 
 type OpenFileResult = { canceled: true } | { canceled: false; path: string; content: string }
-type SaveFileResult = { canceled: true } | { canceled: false; path: string }
+type SaveFileResult = { canceled: true; conflict?: { path: string; content: string | null } } | { canceled: false; path: string; content?: string }
 type ExportResult = { canceled: true } | { canceled: false; path: string }
 type LaunchFileResult = { opened: true } | { opened: false; error: string }
 
-type ExportPayload = string | { markdown: string; theme?: string; lang?: string }
+type ExportPayload = string | { markdown: string; theme?: string; lang?: string; documentPath?: string }
 
 type ExportOutlineEntry = { title: string; level: number; page: number }
 
@@ -21,6 +21,7 @@ type ExportReport = {
 
 interface Window {
   folio?: {
+    openSettings?(): Promise<void>
     openMarkdown(): Promise<OpenFileResult>
     confirmOpen(path: string): Promise<void>
     getStartupDocument(): Promise<OpenFileResult>
@@ -29,9 +30,14 @@ interface Window {
     onRecentDocumentsUpdated?(callback: (list: string[]) => void): () => void
     closeAfterConfirmation(): Promise<void>
     readComparison(): Promise<OpenFileResult>
-    saveMarkdown(path: string | null, content: string): Promise<SaveFileResult>
+    saveMarkdown(path: string | null, content: string, saveAs?: boolean, options?: { expectedContent?: string; overwrite?: boolean }): Promise<SaveFileResult>
+    exportPackage?(markdown: string, documentPath: string | null, name: string): Promise<ExportResult>
+    watchDocument?(path: string | null, content: string): Promise<void>
+    onDiskChanged?(callback: (change: { path: string; content: string | null }) => void): () => void
+    importImage?(documentPath: string | null, name: string, bytes: number[]): Promise<string>
+    resolveImages?(documentPath: string | null, sources: string[]): Promise<Record<string, string>>
     launchFile(path: string): Promise<LaunchFileResult>
-    exportPdf(markdown: string, suggestedName: string, theme?: string, lang?: string): Promise<ExportResult>
+    exportPdf(markdown: string, suggestedName: string, theme?: string, lang?: string, documentPath?: string): Promise<ExportResult>
     setDocumentEdited(edited: boolean): void
     onMenuCommand(callback: (command: string) => void): () => void
     onRecentDocument(callback: (document: Extract<OpenFileResult, { canceled: false }>) => void): () => void
@@ -43,6 +49,7 @@ interface Window {
     onExportProgress(callback: (message: string) => void): () => void
     checkForUpdates?(): Promise<void>
     installUpdate?(): Promise<void>
+    onInstallUpdateRequest?(callback: () => void): () => void
     onUpdaterStatus?(callback: (status: { state: string; version?: string; percent?: number; message?: string }) => void): () => void
   }
 }

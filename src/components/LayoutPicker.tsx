@@ -1,3 +1,5 @@
+import { useMenuKeyboard } from './use-menu-keyboard'
+import { useUi } from './UiLanguage'
 import { useEffect, useRef, useState } from 'react'
 import { Briefcase, Check, ChevronDown, FileText, ReceiptText, User } from 'lucide-react'
 import type { DocumentLayout } from '../lib/document'
@@ -53,8 +55,10 @@ type Props = {
 }
 
 export function LayoutPicker({ value, onChange }: Props) {
+  const { tr } = useUi()
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  useMenuKeyboard(containerRef, open, setOpen)
   const active = DOCUMENT_LAYOUTS.find((l) => l.id === value) ?? DOCUMENT_LAYOUTS[0]
 
   useEffect(() => {
@@ -81,20 +85,20 @@ export function LayoutPicker({ value, onChange }: Props) {
         onClick={() => setOpen((on) => !on)}
         aria-expanded={open}
         aria-haspopup="true"
-        title="Document layout template"
+        title={tr('Document layout template')}
       >
         <span className="layout-picker-icon" aria-hidden="true">
           <LayoutIcon id={active.id} size={13} />
         </span>
         <span className="layout-picker-label">
-          {active.label}
+          {tr(active.label)}
         </span>
         <ChevronDown size={13} />
       </button>
 
       {open && (
         <div className="theme-popover layout-popover" role="menu">
-          <p className="theme-popover-heading">Document layout</p>
+          <p className="theme-popover-heading">{tr('Document layout')}</p>
           {DOCUMENT_LAYOUTS.map((layout) => (
             <button
               type="button"
@@ -111,8 +115,8 @@ export function LayoutPicker({ value, onChange }: Props) {
                 <LayoutIcon id={layout.id} size={15} />
               </span>
               <span className="theme-option-text">
-                <strong>{layout.title} ({layout.label})</strong>
-                <span>{layout.note}</span>
+                <strong>{tr(layout.title)} ({tr(layout.label)})</strong>
+                <span>{tr(layout.note)}</span>
               </span>
               {layout.id === value && <Check size={13} />}
             </button>

@@ -145,3 +145,9 @@ payment-terms: Net 30
   })
 })
 
+
+it('does not mistake Markdown destinations or theme overrides for issues', () => {
+  expect(rules('![Image](<image.png> "Caption") {width=50%}\n\n[File](<report.pdf>)\n\n[ref]: <photo.png>\n\n<https://example.com>')).not.toContain('raw-html')
+  expect(rules('---\ntheme-overrides:\n  code-bg: "#ffffff"\n---\n# Title')).not.toContain('frontmatter-unknown-key')
+  expect(rules('<script>alert(1)</script>')).toContain('raw-html')
+})

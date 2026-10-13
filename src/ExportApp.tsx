@@ -78,6 +78,7 @@ function collectExportReport(markdown: string) {
 
 export function ExportApp() {
   const [markdown, setMarkdown] = useState<string | null>(null)
+  const [documentPath, setDocumentPath] = useState<string | undefined>()
   const [theme, setTheme] = useState<DocumentTheme | undefined>()
   const [lang, setLang] = useState<SupportedLanguage | undefined>()
 
@@ -87,6 +88,7 @@ export function ExportApp() {
         setMarkdown(payload)
       } else if (payload && typeof payload === 'object') {
         setMarkdown(payload.markdown)
+        setDocumentPath(payload.documentPath)
         if (payload.theme) setTheme(payload.theme as DocumentTheme)
         if (payload.lang) setLang(payload.lang as SupportedLanguage)
       }
@@ -103,6 +105,7 @@ export function ExportApp() {
   return (
     <PaginatedDocument
       markdown={markdown}
+      documentPath={documentPath}
       overrideTheme={theme}
       overrideLang={lang}
       onReady={onReady}

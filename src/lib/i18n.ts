@@ -15,6 +15,7 @@ export interface I18nTranslations {
   untitledDocument: string
   previewCaption: string
   open: string
+  saveAs: string
   save: string
   saving: string
   exportPdf: string
@@ -50,6 +51,7 @@ export const translations: Record<SupportedLanguage, I18nTranslations> = {
     previewCaption: 'Editorial',
     open: 'Open',
     save: 'Save',
+    saveAs: 'Save as…',
     saving: 'Saving…',
     exportPdf: 'Export PDF',
     exporting: 'Exporting…',
@@ -82,6 +84,7 @@ export const translations: Record<SupportedLanguage, I18nTranslations> = {
     previewCaption: 'Editorial',
     open: 'Abrir',
     save: 'Guardar',
+    saveAs: 'Guardar como…',
     saving: 'Guardando…',
     exportPdf: 'Exportar PDF',
     exporting: 'Exportando…',

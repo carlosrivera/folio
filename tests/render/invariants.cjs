@@ -17,6 +17,23 @@ function checkInvariants(report, context) {
 
   const [cover, ...rest] = report.pages
 
+  if (context.name.startsWith('code-themes.')) {
+    if (report.codeBlocks.length !== 3) fail('expected three complete code blocks')
+    const linear = n => { const s = n / 255; return s <= .04045 ? s / 12.92 : ((s + .055) / 1.055) ** 2.4 }
+    const luminance = color => {
+      const [r, g, b] = color.match(/[\d.]+/g).slice(0, 3).map(Number).map(linear)
+      return .2126 * r + .7152 * g + .0722 * b
+    }
+    for (const block of report.codeBlocks) {
+      for (const color of [block.color, block.keyword, block.string, block.number, block.comment].filter(Boolean)) {
+        const fg = luminance(color), bg = luminance(block.background)
+        if ((Math.max(fg, bg) + .05) / (Math.min(fg, bg) + .05) < 4.5) fail(`code color ${color} lacks contrast on ${block.background}`)
+      }
+      if (!/mono|Menlo|Consolas/i.test(block.font)) fail('code lost its monospace font')
+    }
+    if (JSON.stringify(report.codeBlocks).includes('rgba(0, 0, 0, 0)')) fail('code background is missing')
+  }
+
   if (!cover.classes.includes('folio-cover-sheet')) {
     fail(`page 1 is not marked as the cover (classes: ${cover.classes.join(' ') || 'none'})`)
   }
@@ -114,8 +131,9 @@ function checkInvariants(report, context) {
 }
 
 /** Stable, diffable summary of which content landed on which page. */
-function fingerprint(report) {
+function fingerprint(report, context = {}) {
   return {
+    ...(context.name?.startsWith('code-themes.') ? { codePalette: report.codeBlocks } : {}),
     pageCount: report.pageCount,
     diagramErrors: report.diagramErrors,
     palette: report.palette,

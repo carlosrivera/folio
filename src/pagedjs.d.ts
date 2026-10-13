@@ -4,7 +4,10 @@ declare module 'pagedjs' {
 
   export class Previewer {
     polisher?: { destroy(): void }
-    chunker?: { destroy(): void }
+    chunker?: {
+      destroy(): void
+      hooks: { onOverflow: { register(callback: (overflow: Range | undefined, rendered: HTMLElement, bounds: DOMRect) => Range | undefined): void } }
+    }
     preview(
       content: HTMLElement | string,
       stylesheets: PagedStylesheet[],

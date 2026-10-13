@@ -45,6 +45,8 @@ const KNOWN_FRONTMATTER_KEYS = new Set([
   'lang',
   'language',
   'theme',
+  'theme-overrides',
+  'themeOverrides',
   'toc',
   'table-of-contents',
   'header',
@@ -323,7 +325,11 @@ export function lintDocument(source: string, parsed: ParsedDocument, now = new D
     // One finding per tag name per line: an element contributes an opening and
     // a closing tag, and reporting both says nothing extra.
     const reportedTags = new Set<string>()
+    const destinations = [...line.matchAll(/\]\(\s*<[^>\n]*>|^ {0,3}\[[^\]\n]+\]:\s*<[^>\n]*>/g)]
+      .map(match => ({ from: match.index!, to: match.index! + match[0].length }))
     for (const match of line.matchAll(/<\/?([A-Za-z][A-Za-z0-9]*)\b[^>]*>/g)) {
+      if (destinations.some(range => match.index! >= range.from && match.index! < range.to)) continue
+      if (/^<(?:https?:\/\/|mailto:)/i.test(match[0])) continue
       const tag = match[1].toLowerCase()
       if (ALLOWED_INLINE_TAGS.has(tag) || reportedTags.has(tag)) continue
       if (/^<!--/.test(match[0])) continue

@@ -1,18 +1,28 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronDown, Download, FileText, FolderOpen, PanelLeft, Plus, Save } from 'lucide-react'
-import { Editor, openSearchPanel, runEditorFormat, toggleFold } from './components/Editor'
+import { BookOpen, ChevronDown, Columns2, Download, FileText, FolderOpen, PanelLeft, Plus, Settings, SquarePen } from 'lucide-react'
+import { SaveButton, SplitButton } from './components/SaveButton'
+import { DocumentProperties } from './components/DocumentProperties'
+import { updateDocumentProperties } from './lib/document-properties'
+import { editableInlineAt } from './lib/markdown-editing'
+import { useUi } from './components/UiLanguage'
+import { useModalFocus } from './components/use-modal-focus'
+import { Editor, applyEditorResult, openSearchPanel, runEditorFormat, toggleFold } from './components/Editor'
 import { EditorToolbar } from './components/EditorToolbar'
 import { PaginatedDocument } from './components/PaginatedDocument'
 import type { EditorView } from '@codemirror/view'
-import { AppThemeToggle } from './components/AppThemeToggle'
 import { DocumentInspector, type InspectorTab } from './components/DocumentInspector'
 import { PreviewControls } from './components/PreviewControls'
 import { ThemePicker, themeLabel } from './components/ThemePicker'
-import { LayoutPicker } from './components/LayoutPicker'
+import { LayoutPicker, layoutLabel } from './components/LayoutPicker'
 import { NewDocumentDialog } from './components/NewDocumentDialog'
 import { headingAnchors, parseDocument, suggestedFileName, upsertLanguage, upsertLayout, upsertTheme, upsertThemeOverrides, type DocumentLayout, type DocumentTheme } from './lib/document'
 import { diffDocuments } from './lib/diff'
 import { lintDocument } from './lib/lint'
+import { Workspace, type ViewMode } from './components/Workspace'
+import { InsertDialog, type InsertKind, type InsertValues } from './components/InsertDialog'
+import { createMarkdownTable, editMarkdownTable, tableAt, type TableAction } from './lib/markdown-table'
+import { activeFormats, insertMarkdownLink } from './lib/editor-format'
+import { useEditorPreference, useNumberPreference } from './lib/use-editor-preference'
 import { useAppTheme } from './lib/use-app-theme'
 import { usePreviewViewport } from './lib/use-preview-viewport'
 import { sampleCvDocument, sampleDocument } from './lib/sample'
@@ -40,14 +50,9 @@ function fileName(path: string | null) {
   return path?.split(/[\\/]/).pop() || 'Untitled.md'
 }
 
-function editorPreference(name: string, fallback: boolean) {
-  try {
-    const value = localStorage.getItem(`folio:editor:${name}`)
-    return value === null ? fallback : value === 'true'
-  } catch { return fallback }
-}
-
 export default function App() {
+  const { tr, language: uiLanguage } = useUi()
+  const [propertiesOpen, setPropertiesOpen] = useState(false)
   const [markdown, setMarkdown] = useState(sampleDocument)
   const [savedMarkdown, setSavedMarkdown] = useState(sampleDocument)
   const [path, setPath] = useState<string | null>(null)
@@ -61,9 +66,31 @@ export default function App() {
   const startupInterrupted = useRef(false)
   const [welcome, setWelcome] = useState<'loading' | 'start' | 'recover' | null>('loading')
   const [confirmation, setConfirmation] = useState<{ reason: string; resolve: (proceed: boolean) => void } | null>(null)
-  const [outlineOpen, setOutlineOpen] = useState(() => editorPreference('outline', false))
-  const [lineNumbersEnabled, setLineNumbersEnabled] = useState(() => editorPreference('line-numbers', true))
-  const [foldingEnabled, setFoldingEnabled] = useState(() => editorPreference('folding', true))
+  const [outlineOpen, setOutlineOpen] = useEditorPreference('outline', false)
+  const [lineNumbersEnabled] = useEditorPreference('line-numbers', true)
+  const [foldingEnabled] = useEditorPreference('folding', true)
+  const [activeLineEnabled] = useEditorPreference('active-line', true)
+  const [previewSelectionEnabled] = useEditorPreference('preview-selection', true)
+  const [editorSelection, setEditorSelection] = useState<{ from: number; to: number } | null>(null)
+  const [fontSize] = useNumberPreference('font-size', 16, 12, 24)
+  const [lineSpacing] = useNumberPreference('line-spacing', 1.68, 1.2, 2.2)
+  const [textWidth] = useNumberPreference('text-width', 90, 40, 140)
+  const [paneWidth, setPaneWidth] = useNumberPreference('pane-width', 46, 25, 75)
+  const [spellcheck] = useEditorPreference('spellcheck', true)
+  const [autosave] = useEditorPreference('autosave', false)
+  const [viewMode, setViewMode] = useState<ViewMode>(() => { try { const stored = localStorage.getItem('folio:view-mode'); return stored === 'editor' || stored === 'preview' ? stored : 'split' } catch { return 'split' } })
+  const viewModeRef = useRef(viewMode)
+  viewModeRef.current = viewMode
+  useEffect(() => {
+    if (viewMode === 'preview') return
+    const frame = requestAnimationFrame(() => editorViewRef.current?.requestMeasure())
+    return () => cancelAnimationFrame(frame)
+  }, [viewMode])
+  const [cursor, setCursor] = useState({ from: 0, to: 0, line: 1, column: 1 })
+  const [insertion, setInsertion] = useState<{ kind: InsertKind; label: string; file?: File; source?: string; caption?: string; width?: number; editing?: boolean; from: number; to: number; document: string } | null>(null)
+  const [diskChange, setDiskChange] = useState<{ path: string; content: string | null } | null>(null)
+  const saveInFlight = useRef(false)
+  const [saveError, setSaveError] = useState(false)
   const [caretLine, setCaretLine] = useState(0)
 
   const dirty = markdown !== savedMarkdown
@@ -75,7 +102,7 @@ export default function App() {
   const currentLang: SupportedLanguage = parsed.metadata.lang || 'en'
   const currentTheme: DocumentTheme = parsed.metadata.theme || 'editorial'
   const currentLayout: DocumentLayout = parsed.metadata.layout || 'report'
-  const t = useMemo(() => getTranslations(currentLang), [currentLang])
+  const t = useMemo(() => getTranslations(uiLanguage), [uiLanguage])
 
   const selectLayout = useCallback((layout: DocumentLayout) => {
     setMarkdown((current) => upsertLayout(current, layout))
@@ -107,6 +134,9 @@ export default function App() {
     setSavedMarkdown(document.content)
     setPath(document.path)
     setComparison(null)
+    setDiskChange(null)
+    setSaveError(false)
+    setEditorSelection(null)
     setWelcome(null)
     if (notify) showToast(`Opened ${fileName(document.path)}`)
   }, [showToast])
@@ -124,25 +154,45 @@ export default function App() {
     }
   }, [showToast])
 
-  const saveDocument = useCallback(async () => {
-    if (!window.folio) return false
+  const saveDocument = useCallback(async (saveAs = false, overwrite = false, silent = false) => {
+    if (!window.folio || saveInFlight.current) return false
+    saveInFlight.current = true
+    setSaveError(false)
     setAction('saving')
     try {
-      const result = await window.folio.saveMarkdown(path, markdown)
+      const result = await window.folio.saveMarkdown(path, markdown, saveAs, { expectedContent: savedMarkdown, overwrite })
       if (!result.canceled) {
         setPath(result.path)
-        setSavedMarkdown(markdown)
+        const content = result.content ?? markdown
+        setSavedMarkdown(content)
+        if (content !== markdown) setMarkdown(current => current === markdown ? content : current)
         try { localStorage.removeItem(DRAFT_KEY) } catch { /* Storage may be unavailable. */ }
-        showToast(`Saved ${fileName(result.path)}`)
+        setDiskChange(null)
+        if (!silent) showToast(`Saved ${fileName(result.path)}`)
         return true
       }
+      if (result.conflict) setDiskChange(result.conflict)
     } catch (error) {
+      setSaveError(true)
       showToast(error instanceof Error ? error.message : 'Could not save the document')
     } finally {
+      saveInFlight.current = false
       setAction(null)
     }
     return false
-  }, [markdown, path, showToast])
+  }, [markdown, path, savedMarkdown, showToast])
+
+  useEffect(() => {
+    if (window.folio?.watchDocument) void window.folio.watchDocument(path, savedMarkdown).catch(() => {})
+    return () => { if (window.folio?.watchDocument) void window.folio.watchDocument(null, '').catch(() => {}) }
+  }, [path, savedMarkdown])
+  useEffect(() => window.folio?.onDiskChanged?.(change => { if (change.path === path) setDiskChange(change) }), [path])
+  useEffect(() => { try { localStorage.setItem('folio:view-mode', viewMode) } catch { /* Session only. */ } }, [viewMode])
+  useEffect(() => {
+    if (!autosave || !path || !dirty || action || welcome || confirmation || diskChange || insertion || propertiesOpen || saveError) return
+    const timer = window.setTimeout(() => { void saveDocument(false, false, true) }, 1500)
+    return () => window.clearTimeout(timer)
+  }, [autosave, path, dirty, markdown, action, welcome, confirmation, diskChange, insertion, propertiesOpen, saveError, saveDocument])
 
   const requestProceed = useCallback((reason: string) => {
     if (!dirty) return Promise.resolve(true)
@@ -165,18 +215,6 @@ export default function App() {
     const frame = requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('.folio-dialog .dialog-primary')?.focus())
     return () => cancelAnimationFrame(frame)
   }, [welcome, confirmation])
-
-  useEffect(() => {
-    if (!confirmation) return
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault()
-        void resolveConfirmation('cancel')
-      }
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [confirmation, resolveConfirmation])
 
   const openDocument = useCallback(async () => {
     if (!window.folio) return
@@ -219,6 +257,9 @@ export default function App() {
     setSavedMarkdown(nextMarkdown)
     setPath(null)
     setComparison(null)
+    setDiskChange(null)
+    setSaveError(false)
+    setEditorSelection(null)
     setWelcome(null)
   }, [requestProceed])
 
@@ -231,7 +272,7 @@ export default function App() {
     setAction('exporting')
     setExportProgress('Preparing document…')
     try {
-      const result = await window.folio.exportPdf(markdown, suggestedFileName(title), currentTheme, currentLang)
+      const result = await window.folio.exportPdf(markdown, suggestedFileName(title), currentTheme, currentLang, path ?? undefined)
       if (!result.canceled) {
         showToast(`Exported ${fileName(result.path)}`, {
           duration: 5000,
@@ -248,7 +289,7 @@ export default function App() {
     // currentTheme and currentLang belong here: without them the callback keeps
     // the theme captured when it was last rebuilt, and picking a different one
     // in the toolbar exports the previous template.
-  }, [markdown, showToast, title, currentTheme, currentLang, launchFile])
+  }, [markdown, path, showToast, title, currentTheme, currentLang, launchFile])
 
   useEffect(() => window.folio?.onExportProgress(setExportProgress), [])
 
@@ -266,24 +307,23 @@ export default function App() {
     }
   }, [dirty, markdown, savedMarkdown, path, welcome])
 
-  useEffect(() => {
-    try {
-      localStorage.setItem('folio:editor:outline', String(outlineOpen))
-      localStorage.setItem('folio:editor:line-numbers', String(lineNumbersEnabled))
-      localStorage.setItem('folio:editor:folding', String(foldingEnabled))
-    } catch { /* Preferences remain active for this session. */ }
-  }, [outlineOpen, lineNumbersEnabled, foldingEnabled])
-
   useEffect(() => window.folio?.onMenuCommand((command) => {
     if (command === 'new') requestNewDocument()
     if (command === 'open') void openDocument()
     if (command === 'save') void saveDocument()
+    if (command === 'save-as') void saveDocument(true)
     if (command === 'export') void exportDocument()
     if (command === 'find') {
       const view = editorViewRef.current
       if (view) openSearchPanel(view)
     }
   }), [exportDocument, requestNewDocument, openDocument, saveDocument])
+
+  useEffect(() => window.folio?.onInstallUpdateRequest?.(() => {
+    void requestProceed('Restart Folio to install the update?').then((proceed) => {
+      if (proceed) void window.folio?.installUpdate?.()
+    })
+  }), [requestProceed])
 
   useEffect(() => window.folio?.onCloseRequest(() => {
     void requestProceed('Close this document?').then((proceed) => {
@@ -364,10 +404,79 @@ export default function App() {
     view.focus()
   }, [])
 
+  const openInsert = useCallback((kind: InsertKind, file?: File) => {
+    const view = editorViewRef.current
+    if (!view) return
+    const selection = view.state.selection.main
+    const existing = !file && editableInlineAt(view.state.doc.toString(), selection.head)
+    if (existing && existing.kind === kind) {
+      setInsertion({ ...existing, editing: true, document: view.state.doc.toString() })
+      return
+    }
+    setInsertion({ kind, file, label: file ? file.name.replace(/\.[^.]+$/, '') : view.state.sliceDoc(selection.from, selection.to), from: selection.from, to: selection.to, document: view.state.doc.toString() })
+  }, [])
+  const insertLink = useCallback(() => openInsert('link'), [openInsert])
+  const insertImageFile = useCallback((file: File) => openInsert('image', file), [openInsert])
+  const submitInsertion = useCallback(async (values: InsertValues) => {
+    const view = editorViewRef.current
+    if (!view || !insertion) return
+    if (view.state.doc.toString() !== insertion.document) throw new Error('The document changed while this dialog was open. Close it and try again.')
+    let inserted = ''
+    if (insertion.kind === 'link') {
+      inserted = insertMarkdownLink(values.label, values.source)
+      if (insertion.caption) inserted = inserted.slice(0, -1) + ` "${insertion.caption.replace(/(["\\])/g, '\\$1')}"` + ')'
+    }
+    if (insertion.kind === 'table') inserted = createMarkdownTable(values.rows, values.columns)
+    if (insertion.kind === 'image') {
+      let source = values.source.trim()
+      const imageDocumentPath = path
+      if (values.file) {
+        if (!window.folio?.importImage) throw new Error('Restart Folio to enable image import.')
+        if (values.file.size > 20 * 1024 * 1024) throw new Error('Images must be smaller than 20 MB.')
+        source = await window.folio.importImage(imageDocumentPath, values.file.name, Array.from(new Uint8Array(await values.file.arrayBuffer())))
+      }
+      if (/^data:image\//i.test(source)) {
+        const embedded = source.match(/^data:image\/(png|jpeg|gif|webp|avif);base64,([a-z\d+/=]+)$/i)
+        if (!embedded || !window.folio?.importImage) throw new Error('Choose an image file or enter a web image URL.')
+        source = await window.folio.importImage(imageDocumentPath, `image.${embedded[1]}`, Array.from(atob(embedded[2]), character => character.charCodeAt(0)))
+      }
+      if (!source || /[\r\n]/.test(source) || (/^[a-z][a-z\d+.-]*:/i.test(source) && !/^(https?:|folio-draft:\/\/)/i.test(source))) throw new Error('Enter an image URL or choose an image file.')
+      const caption = values.caption.trim().replace(/[\r\n]+/g, ' ').replace(/(["\\])/g, '\\$1')
+      inserted = `![${values.label.replace(/([\[\]\\])/g, '\\$1')}](<${source.replace(/</g, '%3C').replace(/>/g, '%3E')}>${caption ? ` "${caption}"` : ''})${values.width < 100 ? ` {width=${Math.max(10, Math.min(100, values.width))}%}` : ''}`
+    }
+    const block = insertion.kind !== 'link' && !insertion.editing
+    const before = insertion.document.slice(0, insertion.from)
+    const after = insertion.document.slice(insertion.to)
+    const prefix = block && before ? '\n'.repeat(Math.max(0, 2 - (before.match(/\n*$/)?.[0].length ?? 0))) : ''
+    const suffix = block && after ? '\n'.repeat(Math.max(0, 2 - (inserted.match(/\n*$/)?.[0].length ?? 0) - (after.match(/^\n*/)?.[0].length ?? 0))) : ''
+    inserted = prefix + inserted + suffix
+    if (view.state.doc.toString() !== insertion.document) throw new Error('The document changed during import. Close this dialog and try again.')
+    applyEditorResult(view, { text: insertion.document.slice(0, insertion.from) + inserted + insertion.document.slice(insertion.to), from: insertion.from + inserted.length, to: insertion.from + inserted.length })
+    setInsertion(null)
+  }, [insertion, path])
+  const editTable = useCallback((action: TableAction) => {
+    const view = editorViewRef.current
+    if (!view) return
+    const result = editMarkdownTable(view.state.doc.toString(), view.state.selection.main.head, action)
+    if (result) applyEditorResult(view, result)
+    else showToast('This table needs at least one body row and one column.')
+  }, [showToast])
+
   const formatSelection = useCallback((format: FormatAction) => {
     const view = editorViewRef.current
     if (view) runEditorFormat(view, format)
   }, [])
+
+  const exportPackage = async () => {
+    if (!window.folio?.exportPackage || action) return
+    setAction('exporting')
+    setExportProgress(tr('Markdown + assets (.zip)'))
+    try {
+      const result = await window.folio.exportPackage(markdown, path, path ? fileName(path) : `${suggestedFileName(title)}.md`)
+      if (!result.canceled) showToast(`${tr('Exported package')}: ${fileName(result.path)}`)
+    } catch (error) { showToast(error instanceof Error ? error.message : tr('Could not export package')) }
+    finally { setAction(null); setExportProgress('') }
+  }
 
   const findInDocument = useCallback(() => {
     const view = editorViewRef.current
@@ -393,21 +502,23 @@ export default function App() {
   const [syncScroll, setSyncScroll] = useState(true)
   const anchors = useMemo(() => headingAnchors(markdown), [markdown])
 
-  // Follow the caret: scroll the preview to the heading the caret sits under.
-  const onCaretLineChange = useCallback(
-    (line: number) => {
-      setCaretLine(line)
-      if (!syncScroll) return
-      let target: string | null = null
-      for (const anchor of anchors) {
-        if (anchor.line > line) break
-        target = anchor.id
-      }
-      if (target) preview.revealAnchor(target)
-    },
-    [anchors, preview, syncScroll],
-  )
+  const onCaretLineChange = useCallback((line: number) => setCaretLine(line), [])
+  useEffect(() => { if (syncScroll && viewModeRef.current === 'split') preview.revealPosition(cursor.from) }, [cursor.from, syncScroll, preview.revealPosition])
+  const onPreviewReady = useCallback(() => {
+    if (syncScroll && viewModeRef.current === 'split') preview.revealPosition(editorViewRef.current?.state.selection.main.head ?? 0)
+  }, [syncScroll, preview.revealPosition])
+  const active = useMemo(() => activeFormats(markdown, cursor.from, cursor.to), [markdown, cursor.from, cursor.to])
+  const inTable = useMemo(() => !!tableAt(markdown, cursor.from), [markdown, cursor.from])
+  const editableKind = useMemo(() => editableInlineAt(markdown, cursor.from)?.kind ?? null, [markdown, cursor.from])
+  const wordCount = useMemo(() => {
+    const body = parsed.body
+      .replace(/!\[([^\]]*)\]\([^\n]*?\)/g, '$1')
+      .replace(/\[([^\]]*)\]\([^\n]*?\)/g, '$1')
+      .replace(/<!--[^]*?-->/g, '')
+    return (body.match(/[\p{L}\p{N}]+(?:['’][\p{L}\p{N}]+)*/gu) ?? []).length
+  }, [parsed.body])
   const currentHeading = [...anchors].reverse().find((heading) => heading.line <= caretLine)?.line
+  useModalFocus(confirmation !== null || welcome === 'recover', () => { if (confirmation) void resolveConfirmation('cancel') })
 
 
   return (
@@ -446,7 +557,7 @@ export default function App() {
               className="toolbar-select"
               value={currentLang}
               onChange={(e) => setMarkdown((current) => upsertLanguage(current, e.target.value as SupportedLanguage))}
-              title="Document language (saved in Markdown)"
+              title={tr('Document language (saved in Markdown)')}
             >
               <option value="es">ES</option>
               <option value="en">EN</option>
@@ -456,26 +567,32 @@ export default function App() {
         </div>
 
         <div className="toolbar-actions">
-          {/* Appearance is an app setting, not a document one, so it sits with
-              the app-level actions rather than the template and language. */}
-          <AppThemeToggle value={appTheme.preference} onChange={appTheme.setPreference} />
+          <button onClick={() => void window.folio?.openSettings?.()} title={`${tr('Settings')} (Cmd/Ctrl+,)`} aria-label={tr('Settings')}><Settings size={15} /></button>
+          <div className="view-switcher" role="group" aria-label={tr('Document view')}>
+            {([{ mode: 'editor', label: 'Editor only', Icon: SquarePen }, { mode: 'split', label: 'Split view', Icon: Columns2 }, { mode: 'preview', label: 'Preview only', Icon: BookOpen }] as const).map(({ mode, label, Icon }) => <button key={mode} type="button" aria-label={tr(label)} title={tr(label)} aria-pressed={viewMode === mode} onClick={() => setViewMode(mode)}><Icon size={14} aria-hidden="true" /></button>)}
+          </div>
           <span className="toolbar-divider" aria-hidden="true" />
           <button onClick={requestNewDocument} disabled={action !== null} title="New document">
-            <Plus size={15} />New
+            <Plus size={15} />{tr('New')}
           </button>
           <button onClick={openDocument} disabled={action !== null}>
             <FolderOpen size={15} />{t.open}
           </button>
-          <button onClick={saveDocument} disabled={action !== null}>
-            <Save size={15} />{action === 'saving' ? t.saving : t.save}
-          </button>
-          <button className="primary-action" onClick={exportDocument} disabled={action !== null}>
-            <Download size={15} />{action === 'exporting' ? t.exporting : t.exportPdf}
-          </button>
+          <SaveButton label={action === 'saving' ? t.saving : t.save} saveAsLabel={t.saveAs}
+            disabled={action !== null} onSave={(saveAs) => void saveDocument(saveAs)} />
+          <SplitButton label={action === 'exporting' ? t.exporting : t.exportPdf} alternativeLabel={tr('Markdown + assets (.zip)')}
+            alternativeNote={tr('Images and local attachments are included. Web URLs remain links.')}
+            optionsLabel="Export options" primary disabled={action !== null} icon={<Download size={15} aria-hidden="true" />}
+            onPrimary={() => void exportDocument()} onAlternative={() => void exportPackage()} />
         </div>
       </header>
 
-      <section className="workspace">
+      {diskChange && <div className="disk-change-banner" role="alert"><span>{tr(diskChange.content === null ? 'This file was deleted or moved outside Folio.' : 'This file changed outside Folio. Autosave is paused.')}</span>
+        {diskChange.content !== null && <button onClick={() => loadDocument({ canceled: false, path: diskChange.path, content: diskChange.content! })}>{tr('Reload from disk')}</button>}
+        {diskChange.content !== null && <button onClick={() => void saveDocument(false, true)}>{tr('Save my version')}</button>}
+        <button onClick={() => void saveDocument(true)}>{tr('Save as…')}</button>
+      </div>}
+      <Workspace mode={viewMode} width={paneWidth} onWidthChange={setPaneWidth}>
         <div className="pane editor-pane">
           <div className="pane-heading">
             <span><PanelLeft size={14} /> Markdown</span>
@@ -487,27 +604,30 @@ export default function App() {
                 setInspectorOpen(true)
                 if (actionableFindings[0]?.line !== undefined) goToLine(actionableFindings[0].line)
               }}
-              title={actionableFindings.length ? 'Show issues and jump to the first one' : 'Show document issues'}
+              title={tr(actionableFindings.length ? 'Show issues and jump to the first one' : 'Show document issues')}
             >
-              {findings.length ? `${findings.length} issue${findings.length === 1 ? '' : 's'}` : 'No issues'}
+              {findings.length ? `${findings.length} ${tr('Issues').toLowerCase()}` : tr('No issues')}
             </button>
           </div>
           <EditorToolbar
+            onProperties={() => setPropertiesOpen(true)}
+            editableKind={editableKind}
             onFormat={formatSelection}
+            onInsert={openInsert}
+            onTableAction={editTable}
+            active={active}
+            inTable={inTable}
             onFind={findInDocument}
             onToggleFold={foldCurrentSection}
             outlineOpen={outlineOpen}
             onToggleOutline={() => setOutlineOpen((open) => !open)}
-            lineNumbersEnabled={lineNumbersEnabled}
-            onToggleLineNumbers={() => setLineNumbersEnabled((enabled) => !enabled)}
             foldingEnabled={foldingEnabled}
-            onToggleFolding={() => setFoldingEnabled((enabled) => !enabled)}
           />
           <div className="editor-main">
             {outlineOpen && (
-              <nav className="editor-outline" aria-label="Document outline">
-                <strong>Sections</strong>
-                {anchors.length === 0 ? <p>No headings yet.</p> : anchors.map((heading, index) => (
+              <nav className="editor-outline" aria-label={tr('Document outline')}>
+                <strong>{tr('Sections')}</strong>
+                {anchors.length === 0 ? <p>{tr('No headings yet.')}</p> : anchors.map((heading, index) => (
                   <button
                     key={`${heading.line}-${index}`}
                     type="button"
@@ -522,6 +642,15 @@ export default function App() {
               value={markdown}
               onChange={setMarkdown}
               onCaretLineChange={onCaretLineChange}
+              onSelectionChange={setEditorSelection}
+              onCursorChange={setCursor}
+              onInsertLink={insertLink}
+              onImageFile={insertImageFile}
+              fontSize={fontSize}
+              lineSpacing={lineSpacing}
+              textWidth={textWidth}
+              spellcheck={spellcheck}
+              activeLineEnabled={activeLineEnabled}
               dark={appTheme.resolved === 'dark'}
               findings={findings}
               lineNumbersEnabled={lineNumbersEnabled}
@@ -547,9 +676,9 @@ export default function App() {
             onThemeOverridesChange={setThemeOverrides}
           />
         </div>
-        <div className="pane preview-pane">
+        <div className="pane preview-pane" aria-hidden={viewMode === 'editor'} inert={viewMode === 'editor'}>
           <div className="pane-heading preview-heading">
-            <span>Preview</span>
+            <span>{tr('Preview')}</span>
             <PreviewControls
               zoom={preview.zoom}
               fitToWidth={preview.fitToWidth}
@@ -562,22 +691,46 @@ export default function App() {
               onGoToPage={preview.goToPage}
               onToggleSync={() => setSyncScroll((on) => !on)}
             />
-            <span className="pane-caption">{currentLayout.toUpperCase()} · {themeLabel(currentTheme)} · {pageCount || '—'} {t.page.toLowerCase()}s</span>
+            <span className="pane-caption">{tr(layoutLabel(currentLayout)).toUpperCase()} · {themeLabel(currentTheme)} · {pageCount || '—'} {t.page.toLowerCase()}s</span>
           </div>
           <div
             className="preview-scroll"
             ref={preview.scrollRef}
+            onClick={event => {
+              if (viewMode !== 'split' || !window.getSelection()?.isCollapsed) return
+              if (!(event.target instanceof Element) || event.target.closest('a, button, input')) return
+              const block = event.target.closest<HTMLElement>('.pagination-output [data-source-from]')
+              const view = editorViewRef.current
+              if (!block || !view) return
+              const position = Math.min(view.state.doc.length, Number(block.dataset.sourceFrom))
+              view.dispatch({ selection: { anchor: position }, scrollIntoView: true })
+              requestAnimationFrame(() => view.focus())
+            }}
             style={{ ['--preview-zoom' as string]: preview.zoom }}
           >
             <PaginatedDocument 
-              markdown={previewMarkdown} 
+              markdown={previewMarkdown}
+              documentPath={path ?? undefined}
+              selection={previewSelectionEnabled && previewMarkdown === markdown ? editorSelection : null}
               overrideTheme={currentTheme}
               overrideLang={currentLang}
-              onPageCount={onPageCount} 
+              onPageCount={onPageCount}
+              onReady={onPreviewReady}
             />
           </div>
         </div>
-      </section>
+      </Workspace>
+      <footer className="editor-status"><span role="status">{tr(action === 'saving' ? 'Saving…' : saveError ? 'Save failed · use Save to retry' : diskChange ? 'External changes · save paused' : dirty ? 'Unsaved changes' : path ? 'Saved' : 'Not saved to a file')}{autosave && path && !diskChange ? ` · ${tr('Autosave on')}` : ''}</span><span>{wordCount.toLocaleString()} {tr('words')}</span><span>Ln {cursor.line}, Col {cursor.column}</span></footer>
+      {insertion && <InsertDialog kind={insertion.kind} initialLabel={insertion.label} initialFile={insertion.file} initialSource={insertion.source} initialCaption={insertion.caption} initialWidth={insertion.width} editing={insertion.editing} onSubmit={submitInsertion} onClose={() => { setInsertion(null); editorViewRef.current?.focus() }} />}
+      {propertiesOpen && <DocumentProperties metadata={parsed.metadata} onApply={values => {
+        const view = editorViewRef.current
+        if (!view) return
+        const text = updateDocumentProperties(view.state.doc.toString(), values)
+        const bodyOffset = (source: string) => source.match(/^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/)?.[0].length ?? 0
+        const anchor = Math.max(bodyOffset(text), view.state.selection.main.head + bodyOffset(text) - bodyOffset(view.state.doc.toString()))
+        applyEditorResult(view, { text, from: Math.min(anchor, text.length), to: Math.min(anchor, text.length) })
+        setPropertiesOpen(false)
+      }} onClose={() => { setPropertiesOpen(false); editorViewRef.current?.focus() }} onPageBreak={() => { setPropertiesOpen(false); formatSelection('page-break') }} />}
       {welcome === 'start' && (
         <NewDocumentDialog
           canDismiss={path !== null || dirty || (markdown !== sampleDocument && markdown !== sampleCvDocument)}
@@ -592,9 +745,9 @@ export default function App() {
       {welcome === 'recover' && (
         <div className="folio-dialog-backdrop">
           <div className="folio-dialog" role="dialog" aria-modal="true" aria-labelledby="recover-title">
-            <span className="folio-dialog-kicker">Recovered work</span>
-            <h2 id="recover-title">Restore your unsaved changes?</h2>
-            <p>Folio found an unfinished draft{recoveryDraft.current?.path ? ` for ${fileName(recoveryDraft.current.path)}` : ''}.</p>
+            <span className="folio-dialog-kicker">{tr('Recovered work')}</span>
+            <h2 id="recover-title">{tr('Restore your unsaved changes?')}</h2>
+            <p>{tr('Folio found an unfinished draft.')} {recoveryDraft.current?.path ? `(${fileName(recoveryDraft.current.path)})` : ''}</p>
             <div className="folio-dialog-actions">
               <button className="dialog-primary" onClick={() => {
                 const draft = recoveryDraft.current
@@ -603,12 +756,12 @@ export default function App() {
                 setSavedMarkdown(draft.savedMarkdown)
                 setPath(draft.path)
                 setWelcome(null)
-              }}>Restore draft</button>
+              }}>{tr('Restore draft')}</button>
               <button onClick={() => {
                 try { localStorage.removeItem(DRAFT_KEY) } catch { /* Storage may be unavailable. */ }
                 recoveryDraft.current = null
                 setWelcome('start')
-              }}>Discard draft</button>
+              }}>{tr('Discard draft')}</button>
             </div>
           </div>
         </div>
@@ -616,13 +769,13 @@ export default function App() {
       {confirmation && (
         <div className="folio-dialog-backdrop">
           <div className="folio-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
-            <span className="folio-dialog-kicker">Unsaved changes</span>
+            <span className="folio-dialog-kicker">{tr('Unsaved changes')}</span>
             <h2 id="confirm-title">{confirmation.reason}</h2>
-            <p>Your changes to {fileName(path)} have not been saved.</p>
+            <p>{tr('Your changes have not been saved.')} ({fileName(path)})</p>
             <div className="folio-dialog-actions">
-              <button className="dialog-primary" onClick={() => void resolveConfirmation('save')}>Save and continue</button>
-              <button onClick={() => void resolveConfirmation('discard')}>Discard changes</button>
-              <button onClick={() => void resolveConfirmation('cancel')}>Cancel</button>
+              <button className="dialog-primary" onClick={() => void resolveConfirmation('save')}>{tr('Save and continue')}</button>
+              <button onClick={() => void resolveConfirmation('discard')}>{tr('Discard changes')}</button>
+              <button onClick={() => void resolveConfirmation('cancel')}>{tr('Cancel')}</button>
             </div>
           </div>
         </div>
@@ -640,10 +793,10 @@ export default function App() {
             void toast.action?.()
           }}
         >
-          <span>{toast.message}</span><strong>Open PDF</strong>
+          <span>{tr(toast.message)}</span><strong>{tr('Open PDF')}</strong>
         </button>
       ) : (
-        <div className="toast" role="status">{toast.message}</div>
+        <div className="toast" role="status">{tr(toast.message)}</div>
       ))}
     </main>
   )

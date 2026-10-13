@@ -184,6 +184,19 @@
   })()
 
   return {
+    codeBlocks: Array.from(output.querySelectorAll('pre')).map(pre => {
+      const style = getComputedStyle(pre)
+      const colorOf = selector => {
+        const node = pre.querySelector(selector)
+        return node ? getComputedStyle(node).color : null
+      }
+      return {
+        background: style.backgroundColor, color: style.color,
+        keyword: colorOf('.hljs-keyword'), string: colorOf('.hljs-string'),
+        number: colorOf('.hljs-number'), comment: colorOf('.hljs-comment'),
+        accent: style.borderLeftColor, font: style.fontFamily,
+      }
+    }),
     palette,
     pageCount: pages.length,
     pages: pageReports,
