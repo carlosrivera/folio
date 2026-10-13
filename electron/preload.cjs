@@ -10,6 +10,8 @@ contextBridge.exposeInMainWorld('folio', {
   closeAfterConfirmation: () => ipcRenderer.invoke('file:close-after-confirmation'),
   readComparison: () => ipcRenderer.invoke('file:read-comparison'),
   saveMarkdown: (path, content, saveAs = false, options = {}) => ipcRenderer.invoke('file:save', { path, content, saveAs, ...options }),
+  getHistory: (path) => ipcRenderer.invoke('file:history', path),
+  readRevision: (path, id) => ipcRenderer.invoke('file:revision', path, id),
   exportPackage: (markdown, documentPath, name) => ipcRenderer.invoke('document:export-package', { markdown, documentPath, name }),
   watchDocument: (path, content) => ipcRenderer.invoke('file:watch', { path, content }),
   importImage: (documentPath, name, bytes) => ipcRenderer.invoke('file:import-image', { documentPath, name, bytes }),
@@ -20,7 +22,7 @@ contextBridge.exposeInMainWorld('folio', {
     return () => ipcRenderer.removeListener('document:disk-changed', listener)
   },
   launchFile: (path) => ipcRenderer.invoke('file:launch', path),
-  exportPdf: (markdown, suggestedName, theme, lang, documentPath) => ipcRenderer.invoke('document:export-pdf', { markdown, suggestedName, theme, lang, documentPath }),
+  exportPdf: (markdown, suggestedName, theme, lang, documentPath, styles) => ipcRenderer.invoke('document:export-pdf', { markdown, suggestedName, theme, lang, documentPath, styles }),
   setDocumentEdited: (edited) => ipcRenderer.send('document:set-edited', edited),
   onMenuCommand: (callback) => {
     const listener = (_event, command) => callback(command)

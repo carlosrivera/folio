@@ -167,3 +167,24 @@ pnpm landing:preview  # Preview production build
 ```
 
 Merged commits on `main` automatically deploy the landing site to GitHub Pages via `.github/workflows/deploy-pages.yml`.
+
+### Folio documents
+
+Use **Save options → Save as Folio document…** to create a portable `.folio` file.
+It stores ordinary Markdown, local images and attachments, the theme's color/font
+and other token values, and the latest 100 saved versions. Each version retains
+its text, assets, and styles. Unchanged saves do not create duplicate versions.
+The history button opens saved versions; restoring one creates a draft, which
+can be saved as a new version. **Save a copy without history…** includes only the
+current version and its assets, keeping previous drafts out of shared copies.
+
+Markdown files remain supported. Save As can convert a Folio document back to
+`.md`, placing its assets beside it in `.assets/` and preserving supported style
+values in frontmatter. PDF and portable Markdown ZIP export work with both
+formats. ZIP export includes the current document and assets, without history.
+
+A `.folio` file is a ZIP archive with `manifest.json` (format version and document
+identity), `document.md`, `styles.json`, `assets/`, and `history/<revision-id>/`.
+Assets use content hashes and are shared between revisions. Theme snapshots store
+validated values rather than executable stylesheets. Future changes to layout
+rendering or unavailable system fonts may still affect appearance.

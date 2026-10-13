@@ -3,15 +3,16 @@ import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, Save } from 'lucide-react'
 import type { ReactNode } from 'react'
 
-type Props = { label: string; saveAsLabel: string; disabled: boolean; onSave: (saveAs: boolean) => void }
+type Props = { label: string; saveAsLabel: string; disabled: boolean; onSave: (saveAs: boolean) => void; onSaveFolio?: () => void }
 
-export function SaveButton({ label, saveAsLabel, disabled, onSave }: Props) {
+export function SaveButton({ label, saveAsLabel, disabled, onSave, onSaveFolio }: Props) {
+  const { tr } = useUi()
   return <SplitButton label={label} alternativeLabel={saveAsLabel} disabled={disabled} icon={<Save size={15} aria-hidden="true" />}
-    optionsLabel="Save options" onPrimary={() => onSave(false)} onAlternative={() => onSave(true)} />
+    extraLabel={tr("Save as Folio document…")} onExtra={onSaveFolio} optionsLabel="Save options" onPrimary={() => onSave(false)} onAlternative={() => onSave(true)} />
 }
 
-export function SplitButton({ label, alternativeLabel, alternativeNote, disabled, icon, optionsLabel, primary = false, onPrimary, onAlternative }: {
-  label: string; alternativeLabel: string; alternativeNote?: string; disabled: boolean; icon: ReactNode; optionsLabel: string; primary?: boolean; onPrimary: () => void; onAlternative: () => void
+export function SplitButton({ label, alternativeLabel, alternativeNote, disabled, icon, optionsLabel, primary = false, onPrimary, onAlternative, extraLabel, onExtra }: {
+  extraLabel?: string; onExtra?: () => void; label: string; alternativeLabel: string; alternativeNote?: string; disabled: boolean; icon: ReactNode; optionsLabel: string; primary?: boolean; onPrimary: () => void; onAlternative: () => void
 }) {
   const { tr } = useUi()
   const [open, setOpen] = useState(false)
@@ -27,6 +28,13 @@ export function SplitButton({ label, alternativeLabel, alternativeNote, disabled
       if (!container.current?.contains(event.target as Node)) setOpen(false)
     }
     const escape = (event: KeyboardEvent) => {
+      if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+        event.preventDefault()
+        const items = Array.from(container.current?.querySelectorAll<HTMLButtonElement>('[role=menuitem]') ?? [])
+        const index = items.indexOf(document.activeElement as HTMLButtonElement)
+        items[event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : (index + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus()
+        return
+      }
       if (event.key !== 'Escape') return
       event.preventDefault()
       setOpen(false)
@@ -59,6 +67,7 @@ export function SplitButton({ label, alternativeLabel, alternativeNote, disabled
           trigger.current?.focus()
           onAlternative()
         }}>{alternativeLabel}</button>
+        {onExtra && <button role="menuitem" onClick={() => { setOpen(false); trigger.current?.focus(); onExtra() }}>{extraLabel}</button>}
         {alternativeNote && <small>{alternativeNote}</small>}
       </div>}
     </div>

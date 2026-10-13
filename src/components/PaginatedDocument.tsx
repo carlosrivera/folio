@@ -11,6 +11,7 @@ import { InvoiceTemplate } from './InvoiceTemplate'
 import { getTranslations, type SupportedLanguage } from '../lib/i18n'
 import { transformCvHtml } from '../lib/cv-html'
 import { themeOverrideCss } from '../lib/theme-tokens'
+import { folioStylesCss, type FolioStyles } from '../lib/folio-styles'
 import appStyles from '../styles.css?inline'
 
 /**
@@ -60,6 +61,7 @@ const PX_TO_MM = 25.4 / 96
 
 type Props = {
   markdown: string
+  styles?: FolioStyles | null
   documentPath?: string
   selection?: { from: number; to: number } | null
   overrideTheme?: DocumentTheme
@@ -569,6 +571,7 @@ export function PaginatedDocument({
   overrideLang,
   onReady,
   onPageCount,
+  styles,
 }: Props) {
   const sourceRef = useRef<HTMLDivElement>(null)
   const pagesRef = useRef<HTMLDivElement>(null)
@@ -748,7 +751,7 @@ export function PaginatedDocument({
         indicatorTimerRef.current = null
       }
     }
-  }, [document, documentPath, activeTheme, activeLang, retryNonce, onPageCount, onReady])
+  }, [document, documentPath, styles, activeTheme, activeLang, retryNonce, onPageCount, onReady])
 
   useEffect(() => () => {
     runRef.current++
@@ -761,7 +764,7 @@ export function PaginatedDocument({
   // Emitted inside the stage so it reaches both the hidden measurement source
   // and the rendered sheets — and, because ExportApp renders this component,
   // the export window as well.
-  const overrideCss = themeOverrideCss(activeTheme, document.metadata.themeOverrides)
+  const overrideCss = folioStylesCss(styles, activeTheme) + themeOverrideCss(activeTheme, document.metadata.themeOverrides)
 
   return (
     <div className={`pagination-stage theme-${activeTheme}`} aria-busy={layingOut}>

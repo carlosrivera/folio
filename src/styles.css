@@ -2923,3 +2923,9 @@ dialog.folio-new-dialog { color: var(--ui-text); margin: auto; }
 dialog.folio-new-dialog::backdrop { background: rgba(12, 14, 14, .62); }
 .export-control .save-menu { width: 235px; }
 .save-menu small { display: block; padding: 3px 10px 7px; color: var(--ui-text-muted); font-size: 10px; line-height: 1.4; }
+
+.document-history { width: min(560px, 90vw); max-height: 80vh; color: var(--ui-text); }
+.document-history ol { list-style: none; padding: 0; max-height: 45vh; overflow: auto; }
+.document-history li { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--ui-control-border); }
+.document-history li span { display: flex; flex: 1; flex-direction: column; gap: 4px; }
+.document-history time, .document-history small { color: var(--ui-text-muted); font-size: 11px; }

@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
+import { createHash } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 import MarkdownIt from 'markdown-it'
 import { zip, strToU8 } from 'fflate/node'
@@ -7,7 +8,7 @@ import { zip, strToU8 } from 'fflate/node'
 const markdown = new MarkdownIt()
 
 /** Package the current draft, including local images and linked attachments. */
-export async function packageDocument(content: string, documentPath: string | null, draftDirectory: string, name: string) {
+export async function packageDocument(content: string, documentPath: string | null, draftDirectory: string, name: string, options: { stableAssets?: boolean; assetDirectory?: string } = {}) {
   const tokens = markdown.parse(content, {})
   const sources = new Set<string>()
   for (const token of tokens) for (const child of token.children ?? []) {
@@ -18,12 +19,14 @@ export async function packageDocument(content: string, documentPath: string | nu
   const replacements = new Map<string, string>()
   const resolved = new Map<string, string>()
   let index = 0
+  const assetName = (bytes: Uint8Array, name: string) => `${options.assetDirectory ?? 'assets'}/${options.stableAssets ? createHash('sha256').update(bytes).digest('hex') + path.extname(name).toLowerCase() : `${++index}-${name.replace(/[^a-zA-Z0-9._-]/g, '_')}`}`
   for (const source of sources) {
     if (source.startsWith('data:image/')) {
       const embedded = source.match(/^data:image\/(png|jpeg|gif|webp|avif);base64,([a-z\d+/=]+)$/i)
       if (!embedded) throw new Error('Could not include embedded image.')
-      const bundled = `assets/${++index}-image.${embedded[1]}`
-      files[bundled] = Buffer.from(embedded[2], 'base64')
+      const bytes = Buffer.from(embedded[2], 'base64')
+      const bundled = assetName(bytes, `image.${embedded[1]}`)
+      files[bundled] = bytes
       replacements.set(source, bundled)
       continue
     }
@@ -41,8 +44,7 @@ export async function packageDocument(content: string, documentPath: string | nu
     }
     let bundled = resolved.get(file)
     if (!bundled) {
-      bundled = `assets/${++index}-${path.basename(file).replace(/[^a-zA-Z0-9._-]/g, '_')}`
-      try { files[bundled] = await readFile(file) }
+      try { const bytes = await readFile(file); bundled = assetName(bytes, path.basename(file)); files[bundled] = bytes }
       catch { throw new Error(`Could not include local attachment: ${source}`) }
       resolved.set(file, bundled)
     }
@@ -96,7 +98,7 @@ export async function packageDocument(content: string, documentPath: string | nu
   const bundledTokens = markdown.parse(bundledContent, {})
   for (const token of bundledTokens) for (const child of token.children ?? []) {
     const source = child.attrGet(child.type === 'image' ? 'src' : child.type === 'link_open' ? 'href' : '')
-    if (source && replacements.has(source)) throw new Error(`Could not package this Markdown destination: ${source}`)
+    if (source && replacements.has(source) && replacements.get(source) !== source) throw new Error(`Could not package this Markdown destination: ${source}`)
   }
   const basename = path.basename(name, path.extname(name)).replace(/[\\/:]/g, '-') || 'document'
   files[`${basename}.md`] = strToU8(bundledContent)

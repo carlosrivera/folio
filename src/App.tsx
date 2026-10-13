@@ -1,5 +1,8 @@
+import appStyles from './styles.css?inline'
+import { captureFolioStyles, type FolioStyles, type FolioRevision } from './lib/folio-styles'
+import { DocumentHistory } from './components/DocumentHistory'
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, ChevronDown, Columns2, Download, FileText, FolderOpen, PanelLeft, Plus, Settings, SquarePen } from 'lucide-react'
+import { BookOpen, ChevronDown, Columns2, Download, FileText, FolderOpen, History, PanelLeft, Plus, Settings, SquarePen } from 'lucide-react'
 import { SaveButton, SplitButton } from './components/SaveButton'
 import { DocumentProperties } from './components/DocumentProperties'
 import { updateDocumentProperties } from './lib/document-properties'
@@ -35,7 +38,7 @@ type Toast = {
   action?: () => void | Promise<void>
   actionLabel?: string
 }
-type Draft = { markdown: string; savedMarkdown: string; path: string | null }
+type Draft = { markdown: string; savedMarkdown: string; path: string | null; styles?: FolioStyles | null; savedStyles?: FolioStyles | null }
 const DRAFT_KEY = 'folio:recovery-draft'
 
 function readDraft(): Draft | null {
@@ -52,6 +55,10 @@ function fileName(path: string | null) {
 
 export default function App() {
   const { tr, language: uiLanguage } = useUi()
+  const [styles, setStyles] = useState<FolioStyles | null>(null)
+  const [savedStyles, setSavedStyles] = useState<FolioStyles | null>(null)
+  const [history, setHistory] = useState<FolioRevision[]>([])
+  const [historyOpen, setHistoryOpen] = useState(false)
   const [propertiesOpen, setPropertiesOpen] = useState(false)
   const [markdown, setMarkdown] = useState(sampleDocument)
   const [savedMarkdown, setSavedMarkdown] = useState(sampleDocument)
@@ -88,12 +95,12 @@ export default function App() {
   }, [viewMode])
   const [cursor, setCursor] = useState({ from: 0, to: 0, line: 1, column: 1 })
   const [insertion, setInsertion] = useState<{ kind: InsertKind; label: string; file?: File; source?: string; caption?: string; width?: number; editing?: boolean; from: number; to: number; document: string } | null>(null)
-  const [diskChange, setDiskChange] = useState<{ path: string; content: string | null } | null>(null)
+  const [diskChange, setDiskChange] = useState<DiskChange | null>(null)
   const saveInFlight = useRef(false)
   const [saveError, setSaveError] = useState(false)
   const [caretLine, setCaretLine] = useState(0)
 
-  const dirty = markdown !== savedMarkdown
+  const dirty = markdown !== savedMarkdown || (!!path?.toLowerCase().endsWith('.folio') && JSON.stringify(styles) !== JSON.stringify(savedStyles))
   const previewMarkdown = useDeferredValue(markdown)
   const parsed = useMemo(() => parseDocument(markdown), [markdown])
   const title = parsed.metadata.title
@@ -101,6 +108,7 @@ export default function App() {
   // Active language, theme & layout
   const currentLang: SupportedLanguage = parsed.metadata.lang || 'en'
   const currentTheme: DocumentTheme = parsed.metadata.theme || 'editorial'
+  const currentStyles = useMemo(() => captureFolioStyles(appStyles, currentTheme, styles), [currentTheme, styles])
   const currentLayout: DocumentLayout = parsed.metadata.layout || 'report'
   const t = useMemo(() => getTranslations(uiLanguage), [uiLanguage])
 
@@ -133,6 +141,10 @@ export default function App() {
     setMarkdown(document.content)
     setSavedMarkdown(document.content)
     setPath(document.path)
+    setStyles(document.styles ?? null)
+    setSavedStyles(document.styles ?? null)
+    setHistory(document.history ?? [])
+    setHistoryOpen(false)
     setComparison(null)
     setDiskChange(null)
     setSaveError(false)
@@ -154,15 +166,18 @@ export default function App() {
     }
   }, [showToast])
 
-  const saveDocument = useCallback(async (saveAs = false, overwrite = false, silent = false) => {
+  const saveDocument = useCallback(async (saveAs = false, overwrite = false, silent = false, format?: 'folio', includeHistory = true) => {
     if (!window.folio || saveInFlight.current) return false
     saveInFlight.current = true
     setSaveError(false)
     setAction('saving')
     try {
-      const result = await window.folio.saveMarkdown(path, markdown, saveAs, { expectedContent: savedMarkdown, overwrite })
+      const result = await window.folio.saveMarkdown(path, markdown, saveAs, { expectedContent: savedMarkdown, overwrite, styles: currentStyles, expectedStyles: savedStyles, format, includeHistory })
       if (!result.canceled) {
         setPath(result.path)
+        setStyles(result.styles ?? null)
+        setSavedStyles(result.styles ?? null)
+        setHistory(result.history ?? [])
         const content = result.content ?? markdown
         setSavedMarkdown(content)
         if (content !== markdown) setMarkdown(current => current === markdown ? content : current)
@@ -180,7 +195,7 @@ export default function App() {
       setAction(null)
     }
     return false
-  }, [markdown, path, savedMarkdown, showToast])
+  }, [markdown, path, savedMarkdown, showToast, currentStyles, savedStyles])
 
   useEffect(() => {
     if (window.folio?.watchDocument) void window.folio.watchDocument(path, savedMarkdown).catch(() => {})
@@ -189,10 +204,10 @@ export default function App() {
   useEffect(() => window.folio?.onDiskChanged?.(change => { if (change.path === path) setDiskChange(change) }), [path])
   useEffect(() => { try { localStorage.setItem('folio:view-mode', viewMode) } catch { /* Session only. */ } }, [viewMode])
   useEffect(() => {
-    if (!autosave || !path || !dirty || action || welcome || confirmation || diskChange || insertion || propertiesOpen || saveError) return
+    if (!autosave || !path || !dirty || action || welcome || confirmation || diskChange || insertion || propertiesOpen || historyOpen || saveError) return
     const timer = window.setTimeout(() => { void saveDocument(false, false, true) }, 1500)
     return () => window.clearTimeout(timer)
-  }, [autosave, path, dirty, markdown, action, welcome, confirmation, diskChange, insertion, propertiesOpen, saveError, saveDocument])
+  }, [autosave, path, dirty, markdown, action, welcome, confirmation, diskChange, insertion, propertiesOpen, historyOpen, saveError, saveDocument])
 
   const requestProceed = useCallback((reason: string) => {
     if (!dirty) return Promise.resolve(true)
@@ -256,6 +271,10 @@ export default function App() {
     setMarkdown(nextMarkdown)
     setSavedMarkdown(nextMarkdown)
     setPath(null)
+    setStyles(null)
+    setSavedStyles(null)
+    setHistory([])
+    setHistoryOpen(false)
     setComparison(null)
     setDiskChange(null)
     setSaveError(false)
@@ -272,7 +291,7 @@ export default function App() {
     setAction('exporting')
     setExportProgress('Preparing document…')
     try {
-      const result = await window.folio.exportPdf(markdown, suggestedFileName(title), currentTheme, currentLang, path ?? undefined)
+      const result = await window.folio.exportPdf(markdown, suggestedFileName(title), currentTheme, currentLang, path ?? undefined, currentStyles)
       if (!result.canceled) {
         showToast(`Exported ${fileName(result.path)}`, {
           duration: 5000,
@@ -289,7 +308,7 @@ export default function App() {
     // currentTheme and currentLang belong here: without them the callback keeps
     // the theme captured when it was last rebuilt, and picking a different one
     // in the toolbar exports the previous template.
-  }, [markdown, path, showToast, title, currentTheme, currentLang, launchFile])
+  }, [markdown, path, showToast, title, currentTheme, currentLang, launchFile, currentStyles])
 
   useEffect(() => window.folio?.onExportProgress(setExportProgress), [])
 
@@ -300,12 +319,12 @@ export default function App() {
   useEffect(() => {
     if (welcome !== null) return
     try {
-      if (dirty) localStorage.setItem(DRAFT_KEY, JSON.stringify({ markdown, savedMarkdown, path }))
+      if (dirty) localStorage.setItem(DRAFT_KEY, JSON.stringify({ markdown, savedMarkdown, path, styles, savedStyles }))
       else localStorage.removeItem(DRAFT_KEY)
     } catch {
       // Editing remains available if browser storage is unavailable.
     }
-  }, [dirty, markdown, savedMarkdown, path, welcome])
+  }, [dirty, markdown, savedMarkdown, path, welcome, styles, savedStyles])
 
   useEffect(() => window.folio?.onMenuCommand((command) => {
     if (command === 'new') requestNewDocument()
@@ -578,8 +597,9 @@ export default function App() {
           <button onClick={openDocument} disabled={action !== null}>
             <FolderOpen size={15} />{t.open}
           </button>
+          {path?.toLowerCase().endsWith('.folio') && <button aria-label={tr('Document history')} title={tr('Document history')} disabled={action !== null} onClick={async () => { try { setHistory(await window.folio?.getHistory?.(path) ?? []); setHistoryOpen(true) } catch (error) { showToast(String(error)) } }}><History size={15} /></button>}
           <SaveButton label={action === 'saving' ? t.saving : t.save} saveAsLabel={t.saveAs}
-            disabled={action !== null} onSave={(saveAs) => void saveDocument(saveAs)} />
+            disabled={action !== null} onSave={(saveAs) => void saveDocument(saveAs)} onSaveFolio={() => void saveDocument(true, false, false, 'folio')} />
           <SplitButton label={action === 'exporting' ? t.exporting : t.exportPdf} alternativeLabel={tr('Markdown + assets (.zip)')}
             alternativeNote={tr('Images and local attachments are included. Web URLs remain links.')}
             optionsLabel="Export options" primary disabled={action !== null} icon={<Download size={15} aria-hidden="true" />}
@@ -588,7 +608,7 @@ export default function App() {
       </header>
 
       {diskChange && <div className="disk-change-banner" role="alert"><span>{tr(diskChange.content === null ? 'This file was deleted or moved outside Folio.' : 'This file changed outside Folio. Autosave is paused.')}</span>
-        {diskChange.content !== null && <button onClick={() => loadDocument({ canceled: false, path: diskChange.path, content: diskChange.content! })}>{tr('Reload from disk')}</button>}
+        {diskChange.content !== null && <button onClick={() => loadDocument({ canceled: false, ...diskChange, content: diskChange.content! })}>{tr('Reload from disk')}</button>}
         {diskChange.content !== null && <button onClick={() => void saveDocument(false, true)}>{tr('Save my version')}</button>}
         <button onClick={() => void saveDocument(true)}>{tr('Save as…')}</button>
       </div>}
@@ -710,6 +730,7 @@ export default function App() {
           >
             <PaginatedDocument 
               markdown={previewMarkdown}
+              styles={currentStyles}
               documentPath={path ?? undefined}
               selection={previewSelectionEnabled && previewMarkdown === markdown ? editorSelection : null}
               overrideTheme={currentTheme}
@@ -742,6 +763,17 @@ export default function App() {
           onClose={() => setWelcome(null)}
         />
       )}
+      {historyOpen && <DocumentHistory revisions={history} onClose={() => setHistoryOpen(false)} onShare={() => { setHistoryOpen(false); void saveDocument(true, false, false, 'folio', false) }} onRestore={async id => {
+        if (!path || !window.folio?.readRevision) return
+        try {
+          const revision = await window.folio.readRevision(path, id)
+          if (dirty && !window.confirm(tr('Replace your unsaved draft with this version?'))) return
+          setMarkdown(revision.content)
+          setStyles(revision.styles)
+          setHistoryOpen(false)
+          showToast(tr('Version restored. Save to keep it as a new version.'))
+        } catch (error) { showToast(error instanceof Error ? error.message : 'Could not restore this version') }
+      }} />}
       {welcome === 'recover' && (
         <div className="folio-dialog-backdrop">
           <div className="folio-dialog" role="dialog" aria-modal="true" aria-labelledby="recover-title">
@@ -755,6 +787,8 @@ export default function App() {
                 setMarkdown(draft.markdown)
                 setSavedMarkdown(draft.savedMarkdown)
                 setPath(draft.path)
+                  setStyles(draft.styles ?? null)
+                  setSavedStyles(draft.savedStyles ?? null)
                 setWelcome(null)
               }}>{tr('Restore draft')}</button>
               <button onClick={() => {

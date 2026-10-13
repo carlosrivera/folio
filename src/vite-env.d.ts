@@ -1,11 +1,13 @@
 /// <reference types="vite/client" />
 
-type OpenFileResult = { canceled: true } | { canceled: false; path: string; content: string }
-type SaveFileResult = { canceled: true; conflict?: { path: string; content: string | null } } | { canceled: false; path: string; content?: string }
+type DiskChange = { path: string; content: string | null; styles?: import('./lib/folio-styles').FolioStyles; history?: import('./lib/folio-styles').FolioRevision[] }
+
+type OpenFileResult = { canceled: true } | { canceled: false; path: string; content: string; styles?: import('./lib/folio-styles').FolioStyles; history?: import('./lib/folio-styles').FolioRevision[] }
+type SaveFileResult = { canceled: true; conflict?: DiskChange } | { canceled: false; path: string; content?: string; styles?: import('./lib/folio-styles').FolioStyles; history?: import('./lib/folio-styles').FolioRevision[] }
 type ExportResult = { canceled: true } | { canceled: false; path: string }
 type LaunchFileResult = { opened: true } | { opened: false; error: string }
 
-type ExportPayload = string | { markdown: string; theme?: string; lang?: string; documentPath?: string }
+type ExportPayload = string | { markdown: string; theme?: string; lang?: string; documentPath?: string; styles?: import('./lib/folio-styles').FolioStyles }
 
 type ExportOutlineEntry = { title: string; level: number; page: number }
 
@@ -30,14 +32,16 @@ interface Window {
     onRecentDocumentsUpdated?(callback: (list: string[]) => void): () => void
     closeAfterConfirmation(): Promise<void>
     readComparison(): Promise<OpenFileResult>
-    saveMarkdown(path: string | null, content: string, saveAs?: boolean, options?: { expectedContent?: string; overwrite?: boolean }): Promise<SaveFileResult>
+    saveMarkdown(path: string | null, content: string, saveAs?: boolean, options?: { expectedContent?: string; overwrite?: boolean; format?: 'folio'; styles?: import('./lib/folio-styles').FolioStyles; includeHistory?: boolean; expectedStyles?: import('./lib/folio-styles').FolioStyles | null }): Promise<SaveFileResult>
+    getHistory?(path: string): Promise<import('./lib/folio-styles').FolioRevision[]>
+    readRevision?(path: string, id: string): Promise<{ content: string; styles: import('./lib/folio-styles').FolioStyles }>
     exportPackage?(markdown: string, documentPath: string | null, name: string): Promise<ExportResult>
     watchDocument?(path: string | null, content: string): Promise<void>
-    onDiskChanged?(callback: (change: { path: string; content: string | null }) => void): () => void
+    onDiskChanged?(callback: (change: DiskChange) => void): () => void
     importImage?(documentPath: string | null, name: string, bytes: number[]): Promise<string>
     resolveImages?(documentPath: string | null, sources: string[]): Promise<Record<string, string>>
     launchFile(path: string): Promise<LaunchFileResult>
-    exportPdf(markdown: string, suggestedName: string, theme?: string, lang?: string, documentPath?: string): Promise<ExportResult>
+    exportPdf(markdown: string, suggestedName: string, theme?: string, lang?: string, documentPath?: string, styles?: import('./lib/folio-styles').FolioStyles): Promise<ExportResult>
     setDocumentEdited(edited: boolean): void
     onMenuCommand(callback: (command: string) => void): () => void
     onRecentDocument(callback: (document: Extract<OpenFileResult, { canceled: false }>) => void): () => void

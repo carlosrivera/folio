@@ -6,6 +6,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { PDFDocument, PDFName, PDFNumber, PDFString, degrees, type PDFDocument as PDFDoc, type PDFRef } from 'pdf-lib'
 import { checkForUpdates, initAutoUpdater } from './updater'
+import { isFolio, openFolio, readFolioText, folioAssetPath, saveFolio, readFolioRevision, exportFolioMarkdown } from './folio-document'
+import type { FolioStyles } from '../src/lib/folio-styles'
 import { packageDocument } from './document-package'
 
 // Set application name early so macOS registers the application menu correctly
@@ -27,6 +29,8 @@ let documentEdited = false
 let allowClose = false
 let watchedPath: string | null = null
 let watchedContent: string | null = null
+let watchedStyles: string | null = null
+let pendingOpenPath: string | null = process.argv.slice(1).find(argument => path.isAbsolute(argument) && /\.(folio|md|markdown)$/i.test(argument)) ?? null
 const savingPaths = new Set<string>()
 
 function getIconPath() {
@@ -89,7 +93,7 @@ async function clearRecentDocuments() {
 }
 
 async function readMarkdownDocument(filePath: string) {
-  return { canceled: false as const, path: filePath, content: await readFile(filePath, 'utf8') }
+  return { canceled: false as const, path: filePath, ...(isFolio(filePath) ? await openFolio(filePath) : { content: await readFile(filePath, 'utf8') }) }
 }
 
 function openRecentDocument(filePath: string) {
@@ -285,11 +289,25 @@ function installMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template))
 }
 
+async function assetDocumentPath(file: string | null) {
+  return file && isFolio(file) ? folioAssetPath(file, path.join(app.getPath('userData'), 'folio-cache')) : file
+}
+function validateBundleRequest(event: Electron.IpcMainInvokeEvent, file: string) {
+  if (event.sender !== mainWindow?.webContents || typeof file !== 'string' || !path.isAbsolute(file) || !isFolio(file)) throw new Error('Folio document is unavailable.')
+}
+ipcMain.handle('file:history', async (event, file: string) => { validateBundleRequest(event, file); return (await openFolio(file)).history })
+ipcMain.handle('file:revision', async (event, file: string, id: string) => { validateBundleRequest(event, file); return readFolioRevision(file, id) })
+app.on('open-file', (event, file) => {
+  event.preventDefault()
+  if (!mainWindow || mainWindow.webContents.isLoading()) { pendingOpenPath = file; return }
+  void rememberDocument(file).then(() => openRecentDocument(file)).catch(error => mainWindow?.webContents.send('document:open-error', String(error)))
+})
+
 ipcMain.handle('file:open', async () => {
   const selection = await dialog.showOpenDialog(mainWindow!, {
-    title: 'Open Markdown Document',
+    title: 'Open Document',
     properties: ['openFile'],
-    filters: [{ name: 'Markdown', extensions: ['md', 'markdown', 'mdown', 'txt'] }],
+    filters: [{ name: 'Folio and Markdown', extensions: ['folio', 'md', 'markdown', 'mdown', 'txt'] }],
   })
   if (selection.canceled || !selection.filePaths[0]) return { canceled: true }
   const filePath = selection.filePaths[0]
@@ -302,6 +320,13 @@ ipcMain.handle('file:confirm-open', async (_event, filePath: unknown) => {
 })
 
 ipcMain.handle('file:get-startup-document', async () => {
+  if (pendingOpenPath) {
+    const file = pendingOpenPath
+    pendingOpenPath = null
+    const document = await readMarkdownDocument(file)
+    await rememberDocument(file)
+    return document
+  }
   for (const filePath of [...recentDocumentPaths]) {
     try {
       const document = await readMarkdownDocument(filePath)
@@ -343,11 +368,11 @@ ipcMain.handle('file:read-comparison', async () => {
   const selection = await dialog.showOpenDialog(mainWindow!, {
     title: 'Compare With Revision',
     properties: ['openFile'],
-    filters: [{ name: 'Markdown', extensions: ['md', 'markdown', 'mdown', 'txt'] }],
+    filters: [{ name: 'Folio and Markdown', extensions: ['folio', 'md', 'markdown', 'mdown', 'txt'] }],
   })
   if (selection.canceled || !selection.filePaths[0]) return { canceled: true }
   const filePath = selection.filePaths[0]
-  return { canceled: false, path: filePath, content: await readFile(filePath, 'utf8') }
+  return readMarkdownDocument(filePath)
 })
 
 ipcMain.handle('file:launch', async (_event, filePath: unknown) => {
@@ -358,13 +383,13 @@ ipcMain.handle('file:launch', async (_event, filePath: unknown) => {
   return error ? { opened: false, error } : { opened: true }
 })
 
-ipcMain.handle('file:save', async (_event, payload: { path: string | null; content: string; saveAs?: boolean; expectedContent?: string; overwrite?: boolean }) => {
+ipcMain.handle('file:save', async (_event, payload: { path: string | null; content: string; saveAs?: boolean; expectedContent?: string; overwrite?: boolean; styles?: FolioStyles; expectedStyles?: FolioStyles | null; includeHistory?: boolean; format?: 'folio' }) => {
   let filePath = payload.path
   if (!filePath || payload.saveAs) {
     const selection = await dialog.showSaveDialog(mainWindow!, {
-      title: 'Save Markdown Document',
-      defaultPath: filePath ?? 'Untitled.md',
-      filters: [{ name: 'Markdown', extensions: ['md'] }],
+      title: 'Save Document',
+      defaultPath: payload.format === 'folio' ? `${filePath ? filePath.slice(0, -path.extname(filePath).length) : 'Untitled'}.folio` : filePath ?? 'Untitled.folio',
+      filters: payload.format === 'folio' ? [{ name: 'Folio document', extensions: ['folio'] }] : [{ name: 'Folio document', extensions: ['folio'] }, { name: 'Markdown', extensions: ['md'] }],
     })
     if (selection.canceled || !selection.filePath) return { canceled: true }
     filePath = selection.filePath
@@ -372,8 +397,22 @@ ipcMain.handle('file:save', async (_event, payload: { path: string | null; conte
   savingPaths.add(filePath)
   let content = payload.content
   try {
-    if (payload.saveAs && payload.path) await copyDocumentAssets(payload.path, filePath, payload.content)
-    content = await promoteDraftImages(filePath, payload.content, path.join(app.getPath('userData'), 'draft-assets'))
+    if (isFolio(filePath) && !payload.saveAs && payload.expectedContent !== undefined && !payload.overwrite && await readFolioText(filePath) === null) return { canceled: true, conflict: { path: filePath, content: null } }
+    const draftDirectory = path.join(app.getPath('userData'), 'draft-assets')
+    if (payload.includeHistory === false && filePath === payload.path) throw new Error('Choose a different name for the copy without history.')
+    const sourcePath = await assetDocumentPath(payload.path)
+    if (isFolio(filePath)) {
+      if (!payload.styles) throw new Error('Document styles are missing. Restart Folio and try again.')
+      const result = await saveFolio(filePath, content, payload.styles, sourcePath, draftDirectory, isFolio(payload.path) ? payload.path : null,
+        !payload.saveAs && payload.path ? payload.expectedContent : undefined, payload.overwrite, payload.includeHistory !== false, payload.expectedStyles)
+      if (!result.saved) return { canceled: true, conflict: { ...result.conflict, ...(await openFolio(filePath).catch(() => ({}))) } }
+      if (watchedPath === filePath) { watchedContent = result.content; watchedStyles = JSON.stringify(result.styles) }
+      await rememberDocument(filePath)
+      return { canceled: false, path: filePath, content: result.content, styles: result.styles, history: result.history }
+    }
+    if (isFolio(payload.path) && sourcePath) content = await exportFolioMarkdown(content, sourcePath, filePath, draftDirectory, payload.styles)
+    else if (payload.saveAs && payload.path) await copyDocumentAssets(payload.path, filePath, payload.content)
+    content = await promoteDraftImages(filePath, content, draftDirectory)
     content = await externalizeDocumentImages(filePath, content)
     const result = await saveDocumentFile(filePath, content, !payload.saveAs && payload.path ? payload.expectedContent : undefined, payload.overwrite)
     if (!result.saved) return { canceled: true, conflict: result.conflict }
@@ -383,29 +422,34 @@ ipcMain.handle('file:save', async (_event, payload: { path: string | null; conte
   return { canceled: false, path: filePath, content }
 })
 
-ipcMain.handle('file:watch', (event, payload: { path: string | null; content: string }) => {
+ipcMain.handle('file:watch', async (event, payload: { path: string | null; content: string }) => {
   if (event.sender !== mainWindow?.webContents) return
   if (watchedPath) unwatchFile(watchedPath)
   watchedPath = payload.path
   watchedContent = payload.content
   if (!watchedPath) return
   const filePath = watchedPath
+  watchedStyles = isFolio(filePath) ? JSON.stringify((await openFolio(filePath).catch(() => ({ styles: null }))).styles) : null
+  if (watchedPath !== filePath) return
   watchFile(filePath, { interval: 750, persistent: false }, async () => {
     if (savingPaths.has(filePath)) return
     try {
-      const content = await readDiskDocument(filePath)
-      if (watchedPath !== filePath || content === watchedContent || savingPaths.has(filePath)) return
+      const content = await (isFolio(filePath) ? readFolioText(filePath) : readDiskDocument(filePath))
+      const bundle = isFolio(filePath) && content !== null ? await openFolio(filePath) : null
+      const nextStyles = bundle ? JSON.stringify(bundle.styles) : null
+      if (watchedPath !== filePath || content === watchedContent && nextStyles === watchedStyles || savingPaths.has(filePath)) return
       watchedContent = content
-      mainWindow?.webContents.send('document:disk-changed', { path: filePath, content })
+      watchedStyles = nextStyles
+      mainWindow?.webContents.send('document:disk-changed', { path: filePath, ...bundle, content })
     } catch (error) { console.warn('Could not check document changes:', error) }
   })
 })
 
 ipcMain.handle('file:import-image', async (_event, payload: { documentPath: string | null; name: string; bytes: number[] }) => {
-  return importDocumentImage(payload.documentPath, payload.name, Buffer.from(payload.bytes), path.join(app.getPath('userData'), 'draft-assets'))
+  return importDocumentImage(isFolio(payload.documentPath) ? null : payload.documentPath, payload.name, Buffer.from(payload.bytes), path.join(app.getPath('userData'), 'draft-assets'))
 })
 ipcMain.handle('file:resolve-images', async (_event, payload: { documentPath: string | null; sources: string[] }) => {
-  return resolveDocumentImages(payload.documentPath, payload.sources, path.join(app.getPath('userData'), 'draft-assets'))
+  return resolveDocumentImages(await assetDocumentPath(payload.documentPath), payload.sources, path.join(app.getPath('userData'), 'draft-assets'))
 })
 
 ipcMain.handle('document:export-package', async (event, payload: { markdown: string; documentPath: string | null; name: string }) => {
@@ -415,7 +459,7 @@ ipcMain.handle('document:export-package', async (event, payload: { markdown: str
     filters: [{ name: 'Markdown and assets', extensions: ['zip'] }],
   })
   if (selection.canceled || !selection.filePath) return { canceled: true }
-  const bytes = await packageDocument(payload.markdown, payload.documentPath, path.join(app.getPath('userData'), 'draft-assets'), payload.name)
+  const bytes = await packageDocument(payload.markdown, await assetDocumentPath(payload.documentPath), path.join(app.getPath('userData'), 'draft-assets'), payload.name)
   await writeFile(selection.filePath, bytes)
   return { canceled: false, path: selection.filePath }
 })
@@ -518,7 +562,7 @@ function attachOutline(pdf: PDFDoc, nodes: OutlineNode[]) {
   pdf.catalog.set(PDFName.of('PageMode'), PDFName.of('UseOutlines'))
 }
 
-ipcMain.handle('document:export-pdf', async (_event, payload: { markdown: string; suggestedName: string; theme?: string; lang?: string; documentPath?: string }) => {
+ipcMain.handle('document:export-pdf', async (_event, payload: { markdown: string; suggestedName: string; theme?: string; lang?: string; documentPath?: string; styles?: FolioStyles }) => {
   const selection = await dialog.showSaveDialog(mainWindow!, {
     title: 'Export PDF',
     defaultPath: `${payload.suggestedName || 'document'}.pdf`,
@@ -564,7 +608,7 @@ ipcMain.handle('document:export-pdf', async (_event, payload: { markdown: string
       // loadURL resolves on did-finish-load, which can precede React mounting
       // and subscribing to this channel. A single send is silently dropped in
       // that window, so keep offering the payload until the renderer answers.
-      const message = { markdown: payload.markdown, theme: payload.theme, lang: payload.lang, documentPath: payload.documentPath }
+      const message = { markdown: payload.markdown, theme: payload.theme, lang: payload.lang, documentPath: payload.documentPath, styles: payload.styles }
       const resend = setInterval(() => {
         if (!settled) printWindow.webContents.send('export:payload', message)
       }, 250)

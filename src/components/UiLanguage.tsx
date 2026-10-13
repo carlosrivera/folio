@@ -2,6 +2,15 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import type { SupportedLanguage } from '../lib/i18n'
 
 const spanish: Record<string, string> = {
+  'Save as Folio document…': 'Guardar como documento Folio…',
+  'Document history': 'Historial del documento',
+  'Saved versions include text, images, and styles. Restoring a version creates an unsaved draft.': 'Las versiones guardadas incluyen texto, imágenes y estilos. Al restaurar una versión se crea un borrador sin guardar.',
+  'Latest saved version': 'Última versión guardada',
+  'Restore': 'Restaurar',
+  'Keeps the latest 100 saved versions. Unchanged saves do not add a version.': 'Conserva las últimas 100 versiones guardadas. Guardar sin cambios no añade una versión.',
+  'Save a copy without history…': 'Guardar una copia sin historial…',
+  'Replace your unsaved draft with this version?': '¿Reemplazar tu borrador sin guardar con esta versión?',
+  'Version restored. Save to keep it as a new version.': 'Versión restaurada. Guarda para conservarla como una versión nueva.',
   'Hide inspector': 'Ocultar inspector', 'Show inspector': 'Mostrar inspector',
   'Document language (saved in Markdown)': 'Idioma del documento (guardado en Markdown)',
   'Toggle task completion': 'Marcar o desmarcar tarea',
