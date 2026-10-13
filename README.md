@@ -38,7 +38,7 @@ pnpm start
 
 The theme selector writes its choice into the Markdown front matter. Unsaved edits are kept as a local recovery draft and offered for restoration at the next launch.
 
-Choose **Edit styles…** in the style picker, or open the inspector's **Style** tab, to choose fonts with live type samples and adjust the main colors. **More options** contains the detailed palette. **Duplicate style** copies the current style and edits; **New style** starts from a built-in style. Named styles are saved in the app and available across documents. **Save style changes** updates a reusable style without changing other documents that already use it. The applied font and color values stay in the document's frontmatter and travel with Markdown and Folio files.
+Choose **Edit styles…** in the style picker, or open the inspector's **Style** tab, to choose fonts with live type samples and adjust the main colors. **More options** contains the detailed palette. **Duplicate style** copies the current style and edits; **New style** starts from a built-in style. Named styles and the active style are saved inside the `.folio` document. **Save style changes** updates the document's reusable style; saving the document persists the library. A Markdown draft with named styles offers a Folio save so the library is retained. Applied font and color values remain in frontmatter when exporting Markdown. Previously saved app styles remain available and are copied into a document when used.
 
 ## Editing tools
 
@@ -141,7 +141,7 @@ Or symlink to your PATH (`sudo ln -sf /Applications/Folio.app/Contents/MacOS/Fol
 }
 ```
 
-See [**`docs/mcp.md`**](docs/mcp.md) for full setup guides across all clients, all 7 tool references, and end-to-end agent workflow examples. Also visit the web documentation at [**`https://carlosrivera.github.io/folio/docs/`**](https://carlosrivera.github.io/folio/docs/).
+See [**`docs/mcp.md`**](docs/mcp.md) for full setup guides across all clients, all 12 tool references, and end-to-end agent workflow examples. Also visit the web documentation at [**`https://carlosrivera.github.io/folio/docs/`**](https://carlosrivera.github.io/folio/docs/).
 
 
 ## Packaging & Distribution
@@ -178,7 +178,7 @@ Merged commits on `main` automatically deploy the landing site to GitHub Pages v
 
 Use **Save options → Save as Folio document…** to create a portable `.folio` file.
 It stores ordinary Markdown, local images and attachments, the theme's color/font
-and other token values, and the latest 100 saved versions. Each version retains
+and other token values, named styles, the active style, and the latest 100 saved versions. Each version retains
 its text, assets, and styles. Unchanged saves do not create duplicate versions.
 The history button opens saved versions; restoring one creates a draft, which
 can be saved as a new version. **Save a copy without history…** includes only the
@@ -194,6 +194,18 @@ identity), `document.md`, `styles.json`, `assets/`, and `history/<revision-id>/`
 Assets use content hashes and are shared between revisions. Theme snapshots store
 validated values rather than executable stylesheets. Future changes to layout
 rendering or unavailable system fonts may still affect appearance.
+
+Named styles use optional `namedStyles` and `activeStyleId` fields in `styles.json`, including revision snapshots. Older Folio files without these fields remain supported. MCP and the editor share this storage:
+
+| MCP tool | Action |
+| --- | --- |
+| `folio_list_styles` | Read document styles, active style, font choices, and editable tokens. |
+| `folio_create_style` | Create a named style from a built-in theme and overrides. |
+| `folio_duplicate_style` | Copy a named style, or the current appearance if `styleId` is omitted. |
+| `folio_update_style` | Change its name, theme, or complete override map. |
+| `folio_apply_style` | Apply a saved style to the document. |
+
+All style tools take an existing `.folio` `filePath`. Create/update affect the library; apply changes the document appearance. Mutations preserve attachments, add a restorable revision when something changes, and trigger the app's existing external-change handling if the file is open.
 
 ## Scientific articles
 

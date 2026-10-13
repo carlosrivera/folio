@@ -71,7 +71,7 @@ If you are developing inside the Folio repository clone:
 - **VS Code (Cline / Roo Code):** `cline_mcp_settings.json`
 - **Windsurf:** `~/.codeium/windsurf/mcp_config.json`
 
-Restart your AI client, and you will see Folio's 7 tools available immediately.
+Restart your AI client, and you will see Folio's 12 tools available immediately.
 
 ---
 
@@ -89,7 +89,7 @@ Folio's MCP server can be distributed in three ways:
 
 ## 3. Available Tools Reference
 
-The Folio MCP server exposes 7 tools designed for autonomous agent workflows:
+The Folio MCP server exposes 12 tools designed for autonomous agent workflows:
 
 ### 1. `folio_list_document_types`
 Lists all available document layouts and presets (both built-in and custom workspace presets saved in `.folio/presets/`).
@@ -159,6 +159,20 @@ Compiles a Folio Markdown document into an A4 PDF using the headless Electron re
 - **Returns:** PDF export status, file size, and output path.
 
 ---
+
+### 8–12. Portable document style tools
+
+These tools operate on an existing `.folio` `filePath`. Named styles and the active style are stored in `styles.json` inside the document, including revision snapshots; they do not require the app's local storage.
+
+| Tool | Additional inputs | Result |
+| --- | --- | --- |
+| `folio_list_styles` | None | Named styles, active style ID, editable tokens, and font choices. |
+| `folio_create_style` | `name`, `theme`, optional `overrides` | New style ID and values. |
+| `folio_duplicate_style` | Optional `styleId` and `name` | Copies a named style or the current document appearance. |
+| `folio_update_style` | `styleId`, optional `name`, `theme`, `overrides` | Updates the saved style without applying it. `overrides` replaces the complete override map. |
+| `folio_apply_style` | `styleId` | Applies the theme/overrides, marks the active style, and returns updated Markdown/history. |
+
+Create, duplicate, update, and apply preserve attachments and add a saved revision when the file changes. Older `.folio` files without a named library work with these tools. Style changes to an open file use the editor's existing external-change/reload flow.
 
 ## 4. Example Agent Workflow
 

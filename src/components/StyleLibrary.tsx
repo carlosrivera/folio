@@ -50,6 +50,6 @@ export function StyleLibrary({ theme, overrides, savedStyles, activeStyleId, onA
       {creating === 'new' && <label>{tr('Start from')}<select value={base} onChange={event => setBase(event.target.value as DocumentTheme)}>{DOCUMENT_THEMES.map(item => <option value={item.id} key={item.id}>{tr(item.label)}</option>)}</select></label>}
       <div className="style-library-actions"><button type="submit" disabled={!name.trim()}>{tr('Create style')}</button><button type="button" onClick={() => setCreating(null)}>{tr('Cancel')}</button></div>
     </form>}
-    <p className="style-library-note">{tr('My styles are available in all your documents. Edits apply to this document until you save the style changes.')}</p>
+    <p className="style-library-note">{tr('Styles travel with this document. Save as a Folio document to keep the style library.')}</p>
   </div>
 }

@@ -3,6 +3,8 @@ import path from 'node:path'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod'
+import { THEME_TOKENS } from '../lib/theme-tokens'
+import { listDocumentStyles, createDocumentStyle, duplicateDocumentStyle, updateDocumentStyle, applyDocumentStyle } from './styles'
 import {
   listAllPresets,
   getPresetById,
@@ -83,18 +85,7 @@ export function createFolioMcpServer(): McpServer {
                 ...preset,
                 supportedPlaceholders: ['{page}', '{pages}', '{total}', '{title}', '{date}', '{client}', '{author}', '{id}'],
                 availableThemes: ['editorial', 'voltage', 'graphite', 'contrast', 'slate', 'nocturne', 'scientific'],
-                themeOverrideTokens: [
-                  'cover-bg',
-                  'cover-title',
-                  'cover-accent',
-                  'cover-kicker',
-                  'heading',
-                  'subheading',
-                  'body-fg',
-                  'link',
-                  'quote-border',
-                  'quote-bg',
-                ],
+                themeOverrideTokens: THEME_TOKENS.map(token => token.name),
               },
               null,
               2,
@@ -282,6 +273,24 @@ export function createFolioMcpServer(): McpServer {
       }
     },
   )
+
+  const filePath = z.string().describe('Path of an existing .folio document. Styles are stored inside this file.')
+  const styleId = z.string().describe('Named style ID returned by folio_list_styles')
+  const name = z.string().trim().min(1).max(70).describe('Style name')
+  const theme = z.enum(['editorial', 'voltage', 'graphite', 'contrast', 'slate', 'nocturne', 'scientific'])
+  const overrides = z.record(z.string(), z.string()).describe('Complete font/color override map; omitted values use the base theme. Use folio_list_styles to discover tokens.')
+  const result = async (operation: () => Promise<unknown>) => {
+    try { return { content: [{ type: 'text' as const, text: JSON.stringify(await operation(), null, 2) }] } }
+    catch (error) { return { isError: true, content: [{ type: 'text' as const, text: error instanceof Error ? error.message : String(error) }] } }
+  }
+  server.tool('folio_list_styles', 'List the named styles, active style, and editable font/color tokens stored in a .folio document.', { filePath }, params => result(() => listDocumentStyles(params.filePath)))
+  server.tool('folio_create_style', 'Create a named style inside a .folio document. Does not apply it. Adds a revision while preserving text and attachments.', { filePath, name, theme, overrides: overrides.optional() }, params => result(() => createDocumentStyle(params.filePath, params.name, params.theme, params.overrides)))
+  server.tool('folio_duplicate_style', 'Duplicate a named style, or the current document appearance when styleId is omitted, into the same .folio document.', { filePath, styleId: styleId.optional(), name: name.optional() }, params => result(() => duplicateDocumentStyle(params.filePath, params.styleId, params.name)))
+  server.tool('folio_update_style', 'Update a saved style name, base theme, or complete override map. The document appearance stays unchanged until folio_apply_style is called.', { filePath, styleId, name: name.optional(), theme: theme.optional(), overrides: overrides.optional() }, params => result(() => updateDocumentStyle(params.filePath, params.styleId, { name: params.name, theme: params.theme, overrides: params.overrides })))
+  server.tool('folio_apply_style', 'Apply a named style to the .folio document, updating its theme and font/color overrides. Adds a restorable revision and preserves attachments.', { filePath, styleId }, params => result(async () => {
+    const applied = await applyDocumentStyle(params.filePath, params.styleId)
+    return { success: true, activeStyleId: applied.styles.activeStyleId, styles: applied.styles.namedStyles, markdown: applied.content, history: applied.history }
+  }))
 
   return server
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { parseStyleLibrary, sameStyle, uniqueStyleName } from './style-library'
+import { captureFolioStyles, validateFolioStyles } from './folio-styles'
 import { parseDocument, upsertThemeOverrides } from './document'
 
 describe('style library', () => {
@@ -22,5 +23,15 @@ describe('style library', () => {
     expect(sameStyle(style, 'editorial', { heading: '#123456', 'font-display': style.overrides['font-display'] })).toBe(true)
     expect(sameStyle(style, 'scientific', style.overrides)).toBe(false)
     expect(sameStyle(style, 'editorial', { ...style.overrides, link: '#111111' })).toBe(false)
+  })
+  it('validates archive style libraries and retains them when changing the base theme', () => {
+    const stored = { theme: 'editorial', themeVersion: 1, tokens: { heading: '#123456' }, namedStyles: [style], activeStyleId: style.id }
+    expect(validateFolioStyles(stored)).toEqual(stored)
+    const changed = captureFolioStyles('.theme-scientific { --heading: #000000; }', 'scientific', stored)
+    expect(changed.namedStyles).toEqual([style])
+    expect(changed.activeStyleId).toBeUndefined()
+    expect(() => validateFolioStyles({ ...stored, activeStyleId: 'missing' })).toThrow()
+    expect(() => validateFolioStyles({ ...stored, namedStyles: [style, style] })).toThrow()
+    expect(() => validateFolioStyles({ ...stored, namedStyles: [{ ...style, overrides: { heading: 'red; color:blue' } }] })).toThrow()
   })
 })

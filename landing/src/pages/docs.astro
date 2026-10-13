@@ -407,7 +407,7 @@ theme-overrides:
           </div>
         </div>
 
-        <h3 id="mcp-tools" class="sub-heading">The 7 MCP Agent Tools</h3>
+        <h3 id="mcp-tools" class="sub-heading">The 12 MCP Agent Tools</h3>
         <div class="table-wrap">
           <table class="docs-table">
             <thead>
@@ -445,6 +445,11 @@ theme-overrides:
                 <td><code>folio_register_document_type</code></td>
                 <td>Persists a custom reusable document format into <code>.folio/presets/&lt;id&gt;.json</code>.</td>
               </tr>
+              <tr><td><code>folio_list_styles</code></td><td>Reads named document styles, the active style, font choices, and editable tokens from a .folio file.</td></tr>
+              <tr><td><code>folio_create_style</code></td><td>Creates a named style inside the document from a base theme and overrides.</td></tr>
+              <tr><td><code>folio_duplicate_style</code></td><td>Copies a named style or the current document appearance.</td></tr>
+              <tr><td><code>folio_update_style</code></td><td>Updates a saved style without applying it to the document.</td></tr>
+              <tr><td><code>folio_apply_style</code></td><td>Applies a document style while preserving attachments and recording a restorable revision.</td></tr>
             </tbody>
           </table>
         </div>
