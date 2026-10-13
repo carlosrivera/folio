@@ -1,5 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import SiteHeader from '../components/SiteHeader.astro'
+import SiteFooter from '../components/SiteFooter.astro'
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '')
 const githubRepo = 'https://github.com/carlosrivera/folio'
@@ -14,36 +16,7 @@ const downloadLinuxDeb = `${releasesUrl}/download/v${version}/folio_${version}_a
 
 <Layout title="Documentation — Folio" description="Complete documentation for Folio: Getting Started, Front Matter, Themes, MCP Server, and Development." canonicalPath="/docs">
   <!-- Top Navigation -->
-  <header class="nav-wrap">
-    <div class="container nav-inner">
-      <a href={`${base}/`} class="brand" aria-label="Folio home">
-        <span class="brand-badge">F/</span>
-        <span class="brand-text">folio.</span>
-        <span class="brand-tag">docs</span>
-      </a>
-
-      <!-- Quick Nav Links -->
-      <nav class="nav-links" aria-label="Docs Navigation">
-        <a href={`${base}/changelog`}>Changelog</a>
-        <a href="#getting-started">Getting Started</a>
-        <a href="#frontmatter">Front Matter</a>
-        <a href="#customizing-themes">Themes</a>
-        <a href="#mcp">MCP Agent Server</a>
-        <a href="#development">Development</a>
-      </nav>
-
-      <div class="nav-actions">
-        <a href={`${base}/`} class="btn-ghost" aria-label="Back to main page">
-          <span>← Back to Home</span>
-        </a>
-        <a href={githubRepo} target="_blank" rel="noopener noreferrer" class="icon-link" aria-label="GitHub Repository">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-          </svg>
-        </a>
-      </div>
-    </div>
-  </header>
+  <SiteHeader />
 
   <!-- Docs Layout Container -->
   <div class="container docs-container">
@@ -531,21 +504,7 @@ pnpm landing:build</code></pre>
   </div>
 
   <!-- Footer -->
-  <footer class="docs-footer">
-    <div class="container footer-inner">
-      <div class="footer-left">
-        <span class="brand-badge">F/</span>
-        <span>Folio &copy; 2026. Made with care for writers and engineers.</span>
-      </div>
-      <div class="footer-links">
-        <a href={`${base}/`}>Home</a>
-        <a href={`${base}/changelog`}>Changelog</a>
-        <a href={`${base}/#themes`}>Themes</a>
-        <a href={githubRepo} target="_blank" rel="noopener noreferrer">GitHub</a>
-        <a href={releasesUrl} target="_blank" rel="noopener noreferrer">Releases</a>
-      </div>
-    </div>
-  </footer>
+  <SiteFooter />
 
   <script>
     const ua = navigator.userAgent || ''
@@ -573,106 +532,6 @@ pnpm landing:build</code></pre>
 </Layout>
 
 <style>
-  /* Header & Navigation */
-  .nav-wrap {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: var(--nav-bg);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .nav-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
-  }
-
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    color: var(--text);
-    font-weight: 700;
-    font-size: 1.15rem;
-  }
-
-  .brand-badge {
-    background: var(--accent);
-    color: var(--accent-fg);
-    font-size: 0.75rem;
-    font-weight: 800;
-    padding: 3px 6px;
-    border-radius: 4px;
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  .brand-tag {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    font-weight: 700;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 2px 6px;
-    border-radius: 4px;
-    color: var(--text-2);
-    letter-spacing: 0.04em;
-  }
-
-  .nav-links {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-  }
-
-  .nav-links a {
-    color: var(--text-2);
-    text-decoration: none;
-    font-size: 0.92rem;
-    font-weight: 500;
-    transition: color 0.15s ease;
-  }
-
-  .nav-links a:hover {
-    color: var(--accent);
-  }
-
-  .nav-actions {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-
-  .btn-ghost {
-    color: var(--text-2);
-    text-decoration: none;
-    font-size: 0.88rem;
-    font-weight: 500;
-    padding: 6px 12px;
-    border-radius: 6px;
-    transition: all 0.15s ease;
-  }
-
-  .btn-ghost:hover {
-    color: var(--text);
-    background: var(--surface);
-  }
-
-  .icon-link {
-    color: var(--text-2);
-    display: inline-flex;
-    align-items: center;
-    transition: color 0.15s ease;
-  }
-
-  .icon-link:hover {
-    color: var(--text);
-  }
-
   /* Docs Container & Layout */
   .docs-container {
     display: grid;
@@ -958,55 +817,12 @@ pnpm landing:build</code></pre>
     color: var(--text-faint);
   }
 
-  /* Footer */
-  .docs-footer {
-    border-top: 1px solid var(--border);
-    padding: 32px 0;
-    background: var(--surface);
-  }
-
-  .footer-inner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.88rem;
-    color: var(--text-faint);
-  }
-
-  .footer-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .footer-links {
-    display: flex;
-    gap: 20px;
-  }
-
-  .footer-links a {
-    color: var(--text-2);
-    text-decoration: none;
-  }
-
-  .footer-links a:hover {
-    color: var(--accent);
-  }
-
   @media (max-width: 900px) {
     .docs-container {
       grid-template-columns: 1fr;
     }
     .docs-sidebar {
       display: none;
-    }
-    .nav-links {
-      display: none;
-    }
-    .footer-inner {
-      flex-direction: column;
-      gap: 16px;
-      text-align: center;
     }
   }
 </style>

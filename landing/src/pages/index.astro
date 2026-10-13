@@ -1,5 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import SiteHeader from '../components/SiteHeader.astro'
+import SiteFooter from '../components/SiteFooter.astro'
 import katex from 'katex'
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '')
@@ -21,8 +23,6 @@ const eqRiccati = katex.renderToString('A^T P + P A - P B R^{-1} B^T P + Q = 0',
 const inlineP = katex.renderToString('P \\succ 0', { displayMode: false })
 const inlineOmega = katex.renderToString('\\Omega \\subset \\mathbb{R}^n', { displayMode: false })
 
-// Pre-render KaTeX showcase equation
-const eqShowcase = katex.renderToString('\\mathcal{L}_{\\text{total}}(\\theta) = \\mathbb{E}_{x \\sim p_{\\text{data}}}\\left[ -\\log p_\\theta(x) \\right] + \\beta \\cdot D_{\\text{KL}}\\left( q_\\phi(z|x) \\,\\parallel\\, p(z) \\right)', { displayMode: true, throwOnError: false })
 
 const themes = [
   { id: 'voltage', name: 'Voltage', swatch: '#d4ff2b', bg: '#000000', fonts: 'Space Grotesk · JetBrains Mono', desc: 'Pure pitch black, acid lime accents, sharp monospace details.' },
@@ -37,71 +37,7 @@ const themes = [
 
 <Layout>
   <!-- Navigation -->
-  <header class="nav-wrap">
-    <div class="container nav-inner">
-      <a href={`${base}/`} class="brand" aria-label="Folio home">
-        <span class="brand-badge">F/</span>
-        <span class="brand-text">folio.</span>
-      </a>
-
-      <!-- Desktop Navigation Links -->
-      <nav class="nav-links" aria-label="Main Navigation">
-        <a href={`${base}/docs`}>Docs</a>
-        <a href={`${base}/changelog`}>Changelog</a>
-        <a href="#ai-bridge">AI Workflow</a>
-        <a href="#themes">Themes</a>
-        <a href="#latex">LaTeX Math</a>
-        <a href="#pages">Real Pages</a>
-        <a href="#faq">FAQ</a>
-      </nav>
-
-      <div class="nav-actions">
-        <a href={githubRepo} target="_blank" rel="noopener noreferrer" class="icon-link" aria-label="GitHub Repository">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-          </svg>
-        </a>
-        <a href={releasesUrl} target="_blank" rel="noopener noreferrer" class="btn-secondary nav-releases-btn" id="nav-releases-btn">
-          <span>Releases</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="7" y1="17" x2="17" y2="7"></line>
-            <polyline points="7 7 17 7 17 17"></polyline>
-          </svg>
-        </a>
-        <!-- Mobile Navigation Menu Toggle Button -->
-        <button type="button" class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
-          <span class="hamburger-bar bar-1"></span>
-          <span class="hamburger-bar bar-2"></span>
-          <span class="hamburger-bar bar-3"></span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Mobile Dropdown Navigation Menu -->
-    <div class="mobile-nav-menu" id="mobile-nav-menu">
-      <div class="container mobile-nav-inner">
-        <nav class="mobile-nav-links">
-          <a href={`${base}/docs`}>Documentation</a>
-          <a href={`${base}/changelog`}>Changelog</a>
-          <a href="#ai-bridge">AI Workflow</a>
-          <a href="#themes">Themes</a>
-          <a href="#latex">LaTeX Math</a>
-          <a href="#pages">Real Pages</a>
-          <a href="#faq">FAQ</a>
-        </nav>
-        <div class="mobile-nav-footer">
-          <div class="mobile-free-tag">
-            <span class="free-dot"></span>
-            <span>100% Free · No sign up</span>
-          </div>
-          <a href={releasesUrl} target="_blank" rel="noopener noreferrer" class="btn-secondary mobile-releases-cta">
-            <span>All GitHub Releases</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-          </a>
-        </div>
-      </div>
-    </div>
-  </header>
+  <SiteHeader showSectionLinks />
 
   <main>
     <!-- Hero Section -->
@@ -217,12 +153,6 @@ const themes = [
 
             <!-- Toolbar Pills -->
             <div class="titlebar-center">
-              <div class="pill-select" title="Document Layout">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
-                <span>Spec</span>
-                <span class="arrow">⌵</span>
-              </div>
-              
               <!-- Dynamic Theme Selector Pill with Dropdown -->
               <div class="pill-select is-theme" id="app-theme-pill" title="Select Theme" tabindex="0">
                 <span class="swatch-square" id="app-theme-swatch" style="background: #d4ff2b;"></span>
@@ -240,16 +170,9 @@ const themes = [
                 </div>
               </div>
 
-              <div class="pill-select" title="Language">
-                <span>EN</span>
-                <span class="arrow">⌵</span>
-              </div>
             </div>
 
             <div class="titlebar-right">
-              <div class="theme-icon-toggle">
-                <span>🖥</span><span>☼</span><span>☾</span>
-              </div>
               <button class="win-btn win-btn-subtle">+ New</button>
               <button class="win-btn win-btn-subtle">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
@@ -605,36 +528,121 @@ const themes = [
       </div>
     </section>
 
-    <!-- LaTeX Math & Technical Section -->
-    <section class="section latex-section" id="latex">
+    <!-- Rich Markdown Rendering Section -->
+    <section class="section latex-section" id="rendering">
       <div class="container">
         <div class="section-head">
-          <p class="eyebrow">Formulas & Diagrams</p>
-          <h2 class="section-title">Mermaid, LaTeX, tables, and code render directly.</h2>
+          <p class="eyebrow">One source, finished output</p>
+          <h2 class="section-title">Code, diagrams, and math belong in the document.</h2>
           <p class="section-desc">
-            Write standard math formulas and technical diagrams directly in plain text Markdown. Folio compiles equations and charts into scalable vector paths in the final PDF — razor-sharp at any zoom level, never pixelated raster images.
+            Keep technical content in plain Markdown. Folio highlights fenced code, draws Mermaid diagrams, and typesets LaTeX equations in the preview and final PDF.
           </p>
         </div>
 
-        <div class="latex-showcase-box">
-          <div class="latex-pane-code">
-            <div class="pane-tag">Plain Markdown Syntax</div>
-            <pre><code>$$
-\mathcal&#123;L&#125;_&#123;\text&#123;total&#125;&#125;(\theta) = \mathbb&#123;E&#125;_&#123;x \sim p_&#123;\text&#123;data&#125;&#125;&#125;\left[ -\log p_\theta(x) \right] + \beta \cdot D_&#123;\text&#123;KL&#125;&#125;\left( q_\phi(z|x) \,\parallel\, p(z) \right)
+        <div class="technical-proof">
+          <div class="technical-source">
+            <span class="proof-label">Plain Markdown</span>
+            <pre><code># Release pipeline
+
+```ts
+const publish = (ready: boolean) =&gt; ready
+```
+
+```mermaid
+flowchart LR
+  Draft --&gt; Review --&gt; Publish
+```
+
+$$
+E = mc^2
 $$</code></pre>
           </div>
-          <div class="latex-pane-render">
-            <div class="pane-tag">Vector Typeset PDF Output</div>
-            <div class="latex-rendered-math">
-              <div class="math-content" set:html={eqShowcase} />
-              <span class="eq-badge">(3.2)</span>
+          <figure class="technical-paper">
+            <div class="proof-paper-header"><span>ENGINEERING NOTE</span><span>FOLIO / 01</span></div>
+            <h3>Release pipeline</h3>
+            <div class="proof-block">
+              <span class="proof-label">Syntax-highlighted code</span>
+              <pre class="proof-code"><code><span class="proof-keyword">const</span> publish = (ready: <span class="proof-type">boolean</span>) =&gt; ready</code></pre>
             </div>
-            <div class="latex-render-meta">
-              <span>✓ Scalable vector glyphs</span>
-              <span>✓ MathML accessible</span>
-              <span>✓ Millimeter print alignment</span>
+            <div class="proof-block">
+              <span class="proof-label">Mermaid diagrams</span>
+              <svg class="proof-diagram" viewBox="0 0 420 84" role="img" aria-label="Draft flows to Review, then Publish">
+                <defs><marker id="proof-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#9b8e83" /></marker></defs>
+                <path d="M112 42H153M267 42H308" stroke="#9b8e83" stroke-width="1.5" marker-end="url(#proof-arrow)" />
+                <rect x="2" y="14" width="110" height="56" rx="6" fill="#faf8f4" stroke="#ded7ce" />
+                <rect x="155" y="14" width="110" height="56" rx="6" fill="#faf8f4" stroke="#ded7ce" />
+                <rect x="310" y="14" width="108" height="56" rx="6" fill="#f7ede8" stroke="#d25c3a" />
+                <g text-anchor="middle" dominant-baseline="middle" fill="#40372f" font-size="14" font-family="Inter, sans-serif"><text x="57" y="43">Draft</text><text x="210" y="43">Review</text><text x="364" y="43">Publish</text></g>
+              </svg>
+            </div>
+            <div class="proof-block proof-equation">
+              <span class="proof-label">LaTeX equations</span>
+              <div class="proof-formula"><span>E = mc<sup>2</sup></span><span class="proof-equation-number">(1)</span></div>
+            </div>
+            <figcaption>One document. Code, diagrams, and equations ready for print.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- MCP Control Section -->
+    <section class="section mcp-control-section" id="mcp-control">
+      <div class="container">
+        <div class="mcp-heading">
+          <div>
+            <p class="eyebrow">Agent-native publishing</p>
+            <h2 class="section-title">Your agent can write the file—and control how it looks.</h2>
+          </div>
+          <p class="section-desc">
+            Folio’s MCP server gives agents the same document workflow you use: create content, set metadata and layouts, build reusable styles, lint the result, and export the PDF.
+          </p>
+        </div>
+
+        <div class="mcp-workflow">
+          <div class="mcp-prompt-pane">
+            <div class="mcp-window-bar">
+              <span></span><span></span><span></span>
+              <strong>Agent</strong>
+            </div>
+            <div class="mcp-conversation">
+              <div class="mcp-chat-time">Today, 9:41 AM</div>
+              <div class="mcp-message mcp-message-user">
+                Create the quarterly engineering report. Use a landscape layout, our “Board Review” style, add a delivery diagram, and export it as a PDF.
+              </div>
+              <span class="mcp-delivered">Delivered</span>
+              <div class="mcp-message mcp-message-agent">
+                I’ll create the document, apply the saved style, check the Markdown and layout, then export the finished PDF.
+              </div>
             </div>
           </div>
+
+          <div class="mcp-actions-pane">
+            <div class="mcp-action">
+              <span class="mcp-step">01</span>
+              <div><code>folio_create_document</code><p>Writes the Markdown, frontmatter, and sections.</p></div>
+              <span class="mcp-check">✓</span>
+            </div>
+            <div class="mcp-action">
+              <span class="mcp-step">02</span>
+              <div><code>folio_apply_style</code><p>Applies the document’s portable fonts and colors.</p></div>
+              <span class="mcp-check">✓</span>
+            </div>
+            <div class="mcp-action">
+              <span class="mcp-step">03</span>
+              <div><code>folio_lint_document</code><p>Checks math, diagrams, links, and layout settings.</p></div>
+              <span class="mcp-check">✓</span>
+            </div>
+            <div class="mcp-action is-running">
+              <span class="mcp-step">04</span>
+              <div><code>folio_export_pdf</code><p>Renders the same paginated output as the app.</p></div>
+              <span class="mcp-pulse" aria-label="In progress"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mcp-footer-row">
+          <p><strong>12 focused tools.</strong> Local files. Portable styles. No cloud account required.</p>
+          <a href={`${base}/docs#mcp`} class="mcp-docs-link">Explore the MCP tools <span aria-hidden="true">→</span></a>
         </div>
       </div>
     </section>
@@ -847,30 +855,12 @@ $$</code></pre>
   </main>
 
   <!-- Clean, Minimal Footer (No Carlos Rivera link) -->
-  <footer class="footer">
-    <div class="container footer-inner">
-      <div class="footer-left">
-        <a href={`${base}/`} class="footer-brand">
-          <span class="brand-badge">F/</span>
-          <span class="brand-text">folio.</span>
-        </a>
-        <p class="footer-copy">Native macOS Markdown publisher. Built for documents destined for paper.</p>
-      </div>
-
-      <div class="footer-right">
-        <a href={`${base}/docs`}>Documentation</a>
-        <a href={`${base}/changelog`}>Changelog</a>
-        <a href={githubRepo} target="_blank" rel="noopener noreferrer">GitHub</a>
-        <a href="https://github.com/carlosrivera/folio/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
-        <a href="#themes">Themes</a>
-        <a href="#latex">LaTeX</a>
-      </div>
-    </div>
-  </footer>
+  <SiteFooter showSectionLinks />
 </Layout>
 
 <script>
   import { macDownloadArchitecture, type MacArchitectureHints } from '../lib/mac-architecture'
+
   // Interactive Theme Switching Logic
   const themeCards = document.querySelectorAll<HTMLButtonElement>('.theme-card')
   const cmThemeCode = document.getElementById('cm-theme-code')
@@ -1162,32 +1152,6 @@ $$</code></pre>
 
   void autoDetectOS()
 
-  // Responsive Mobile Navigation Drawer
-  const mobileNavToggle = document.getElementById('mobile-nav-toggle')
-  const mobileNavMenu = document.getElementById('mobile-nav-menu')
-
-  function closeMobileNav() {
-    mobileNavMenu?.classList.remove('is-open')
-    mobileNavToggle?.setAttribute('aria-expanded', 'false')
-  }
-
-  mobileNavToggle?.addEventListener('click', (e) => {
-    e.stopPropagation()
-    const isOpen = mobileNavMenu?.classList.contains('is-open')
-    if (isOpen) {
-      closeMobileNav()
-    } else {
-      mobileNavMenu?.classList.add('is-open')
-      mobileNavToggle.setAttribute('aria-expanded', 'true')
-    }
-  })
-
-  mobileNavMenu?.querySelectorAll('a').forEach((link) => {
-    link.addEventListener('click', () => {
-      closeMobileNav()
-    })
-  })
-
   // Close menus on outside click or Escape
   document.addEventListener('click', (e) => {
     const target = e.target as HTMLElement
@@ -1198,9 +1162,6 @@ $$</code></pre>
     if (!target.closest('#app-theme-pill')) {
       titlebarThemeMenu?.classList.remove('is-open')
     }
-    if (!target.closest('#mobile-nav-toggle') && !target.closest('#mobile-nav-menu')) {
-      closeMobileNav()
-    }
   })
 
   document.addEventListener('keydown', (e) => {
@@ -1208,258 +1169,11 @@ $$</code></pre>
       document.querySelectorAll('.cta-dropdown-menu.is-open').forEach((m) => m.classList.remove('is-open'))
       document.querySelectorAll('.cta-dropdown-btn[aria-expanded="true"]').forEach((b) => b.setAttribute('aria-expanded', 'false'))
       titlebarThemeMenu?.classList.remove('is-open')
-      closeMobileNav()
     }
   })
 </script>
 
 <style>
-  /* Navigation */
-  .nav-wrap {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: var(--nav-bg, rgba(245, 242, 233, 0.88));
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    transition: background-color 0.4s ease, border-color 0.4s ease;
-  }
-
-  .nav-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
-  }
-
-  .brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 1.15rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-  }
-
-  .brand-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    background: var(--accent);
-    color: var(--accent-fg, #fff);
-    border-radius: 7px;
-    font-size: 0.85rem;
-    font-weight: 800;
-    transition: background-color 0.4s ease, color 0.4s ease;
-  }
-
-  .nav-links {
-    display: flex;
-    gap: 2rem;
-    font-size: 0.92rem;
-    font-weight: 500;
-    color: var(--text-2);
-  }
-
-  .nav-links a {
-    transition: color 0.15s ease;
-  }
-
-  .nav-links a:hover {
-    color: var(--text);
-  }
-
-  .nav-actions {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .icon-link {
-    color: var(--text-2);
-    display: flex;
-    align-items: center;
-    transition: color 0.15s ease;
-  }
-
-  .icon-link:hover {
-    color: var(--text);
-  }
-
-  .btn-secondary {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    background: transparent;
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    font-size: 0.86rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.2s var(--ease-out);
-  }
-
-  .btn-secondary:hover {
-    background: var(--surface);
-    border-color: var(--text-2);
-    color: var(--text);
-    transform: translateY(-1px);
-  }
-
-  .btn-secondary svg {
-    opacity: 0.65;
-    transition: transform 0.2s var(--ease-out), opacity 0.2s ease;
-  }
-
-  .btn-secondary:hover svg {
-    opacity: 1;
-    transform: translate(1px, -1px);
-  }
-
-  /* Responsive Mobile Navigation Toggle Button */
-  .mobile-nav-toggle {
-    display: none;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: 36px;
-    height: 36px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    cursor: pointer;
-    gap: 4px;
-    padding: 0;
-    transition: background 0.15s ease, border-color 0.15s ease;
-  }
-
-  .mobile-nav-toggle:hover {
-    background: var(--surface);
-    border-color: var(--text-2);
-  }
-
-  .hamburger-bar {
-    display: block;
-    width: 16px;
-    height: 1.75px;
-    background: var(--text);
-    border-radius: 2px;
-    transition: transform 0.25s ease, opacity 0.25s ease;
-  }
-
-  .mobile-nav-toggle[aria-expanded="true"] .bar-1 {
-    transform: translateY(5.75px) rotate(45deg);
-  }
-
-  .mobile-nav-toggle[aria-expanded="true"] .bar-2 {
-    opacity: 0;
-  }
-
-  .mobile-nav-toggle[aria-expanded="true"] .bar-3 {
-    transform: translateY(-5.75px) rotate(-45deg);
-  }
-
-  /* Mobile Navigation Dropdown Drawer */
-  .mobile-nav-menu {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: var(--bg);
-    border-bottom: 1px solid var(--border);
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.08);
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(-8px);
-    transition: opacity 0.25s ease, transform 0.25s ease;
-  }
-
-  .mobile-nav-menu.is-open {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateY(0);
-  }
-
-  .mobile-nav-inner {
-    padding: 1.2rem var(--gutter) 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-  }
-
-  .mobile-nav-links {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
-  .mobile-nav-links a {
-    padding: 0.65rem 0.85rem;
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: var(--text);
-    border-radius: 8px;
-    text-decoration: none;
-    transition: background 0.15s ease, color 0.15s ease;
-  }
-
-  .mobile-nav-links a:hover {
-    background: var(--surface);
-    color: var(--accent);
-  }
-
-  .mobile-nav-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border);
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .mobile-free-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-2);
-  }
-
-  .free-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--healthy);
-  }
-
-  @media (max-width: 840px) {
-    .nav-links {
-      display: none;
-    }
-    .mobile-nav-toggle {
-      display: flex;
-    }
-    .mobile-nav-menu {
-      display: block;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .nav-inner {
-      height: 56px;
-    }
-    .nav-releases-btn {
-      display: none;
-    }
-  }
 
   /* Hero Section */
   .hero {
@@ -2699,6 +2413,7 @@ $$</code></pre>
      ========================================================================== */
   .section {
     padding: 5rem 0;
+    scroll-margin-top: 72px;
   }
 
   .section-head {
@@ -2937,171 +2652,225 @@ $$</code></pre>
     line-height: 1.45;
   }
 
-  /* LaTeX Math Showcase Box */
-  .latex-showcase-box {
+  /* Static technical document illustration */
+  .technical-proof {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    background: var(--surface);
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    overflow: hidden;
     border: 1px solid var(--border);
     border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.05);
   }
-
+  .technical-source { padding: clamp(24px, 4vw, 42px); background: var(--bg); color: var(--text); border-right: 1px solid var(--border); }
+  .proof-label { display: block; margin-bottom: 14px; font: 600 0.68rem/1.4 "Inter", sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2); }
+  .technical-source .proof-label { color: var(--text-faint); }
+  .technical-source pre { margin-top: 28px; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--accent); font: 400 0.83rem/1.8 "JetBrains Mono", monospace; }
+  .technical-paper { margin: 0; padding: clamp(24px, 4vw, 42px); background: var(--surface); color: var(--text); min-width: 0; }
+  .proof-paper-header { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--border); color: var(--text-faint); font: 500 0.6rem/1.4 "JetBrains Mono", monospace; letter-spacing: 0.08em; }
+  .technical-paper h3 { margin: 24px 0 28px; font: 600 clamp(1.5rem, 3vw, 2rem)/1.2 "Space Grotesk", sans-serif; letter-spacing: -0.03em; color: var(--text); }
+  .proof-block + .proof-block { margin-top: 28px; }
+  .proof-code { margin: 0; padding: 18px; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 5px; background: var(--bg); white-space: pre-wrap; overflow-wrap: anywhere; font: 400 0.77rem/1.7 "JetBrains Mono", monospace; color: var(--text); }
+  .proof-keyword { color: var(--accent); }
+  .proof-type { color: var(--text-2); }
+  .proof-diagram { display: block; width: 100%; height: auto; }
+  .proof-diagram rect { fill: var(--bg); stroke: var(--border); }
+  .proof-diagram rect:last-of-type { fill: var(--accent-light); stroke: var(--accent); }
+  .proof-diagram > path { stroke: var(--text-faint); }
+  .proof-diagram marker path { fill: var(--text-faint); }
+  .proof-diagram g { fill: var(--text); }
+  .proof-formula { display: flex; align-items: center; justify-content: center; position: relative; padding: 10px 32px; font: italic 2rem/1.5 Georgia, serif; color: var(--text); }
+  .proof-formula sup { font-size: 0.6em; }
+  .proof-equation-number { position: absolute; right: 0; font: 400 0.75rem/1.4 Georgia, serif; color: var(--text-faint); }
+  .technical-paper figcaption { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--text-2); font-size: 0.72rem; line-height: 1.5; }
   @media (max-width: 768px) {
-    .latex-showcase-box {
-      grid-template-columns: 1fr;
-    }
+    .technical-proof { grid-template-columns: 1fr; }
+    .technical-source pre { font-size: 0.78rem; line-height: 1.65; }
   }
 
-  .latex-pane-code {
-    background: #141518;
-    color: #e4e4e7;
-    padding: 24px;
-    border-right: 1px solid #22242a;
+  /* MCP agent workflow */
+  .mcp-control-section {
+    border-block: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface), transparent 20%);
+  }
+
+  .mcp-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+    align-items: end;
+    gap: clamp(32px, 7vw, 88px);
+    margin-bottom: 2.75rem;
+  }
+
+  .mcp-heading .section-title {
+    max-width: 640px;
+    font-size: clamp(2rem, 4vw, 3.4rem);
+  }
+
+  .mcp-heading .section-desc { padding-bottom: 0.35rem; }
+
+  .mcp-workflow {
+    display: grid;
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--card-bg);
+    box-shadow: 0 18px 50px rgba(20, 16, 12, 0.08);
+  }
+
+  .mcp-prompt-pane {
+    min-height: 390px;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .mcp-window-bar {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 48px;
+    padding: 0 18px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mcp-window-bar > span {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+
+  .mcp-window-bar > span:nth-child(1) { background: #ff5f57; }
+  .mcp-window-bar > span:nth-child(2) { background: #febc2e; }
+  .mcp-window-bar > span:nth-child(3) { background: #28c840; }
+
+  .mcp-window-bar strong {
+    margin-left: auto;
+    color: var(--text-2);
+    font: 600 0.72rem/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .mcp-conversation {
     display: flex;
     flex-direction: column;
+    gap: 8px;
+    padding: 34px;
   }
 
-  .pane-tag {
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #a1a1aa;
-    margin-bottom: 14px;
-  }
-
-  .latex-pane-code pre {
-    margin: 0;
-    white-space: pre-wrap;
-    word-break: break-all;
-    font-size: 0.88rem;
-    line-height: 1.5;
-    color: #a3e635;
-    font-family: "JetBrains Mono", monospace;
-  }
-
-  .latex-pane-render {
-    background: #ffffff;
-    color: #09090b;
-    padding: 26px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: background-color 0.3s ease;
-  }
-
-  .latex-pane-render .pane-tag {
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #ba4e31;
-    margin-bottom: 14px;
-    transition: color 0.3s ease;
-  }
-
-  /* High-contrast theme-specific colors for pane-tag on white paper */
-  html[data-theme="voltage"] .latex-pane-render .pane-tag { color: #4d6600; }
-  html[data-theme="editorial"] .latex-pane-render .pane-tag { color: #ba4e31; }
-  html[data-theme="slate"] .latex-pane-render .pane-tag { color: #0284c7; }
-  html[data-theme="scientific"] .latex-pane-render .pane-tag { color: #1d4ed8; }
-  html[data-theme="contrast"] .latex-pane-render .pane-tag { color: #09090b; }
-  html[data-theme="graphite"] .latex-pane-render .pane-tag { color: #3f6212; }
-  html[data-theme="nocturne"] .latex-pane-render .pane-tag { color: #86198f; }
-
-  .latex-rendered-math {
+  .mcp-message {
     position: relative;
+    z-index: 0;
+    max-width: 88%;
+    border-radius: 20px;
+    padding: 12px 16px;
+    font-size: 0.93rem;
+    line-height: 1.45;
+  }
+
+  .mcp-chat-time { text-align: center; margin-bottom: 16px; color: var(--text-faint); font-size: 0.67rem; font-weight: 600; }
+  .mcp-delivered { align-self: flex-end; padding-right: 8px; margin-bottom: 18px; color: var(--text-faint); font-size: 0.65rem; }
+  .mcp-message::before { content: ''; position: absolute; z-index: -1; bottom: 0; width: 20px; height: 20px; }
+  .mcp-message::after { content: ''; position: absolute; bottom: -1px; width: 12px; height: 22px; background: var(--bg); }
+
+  .mcp-message-user {
+    align-self: flex-end;
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+  .mcp-message-user::before { right: -7px; background: var(--accent); border-bottom-left-radius: 16px; }
+  .mcp-message-user::after { right: -12px; border-bottom-left-radius: 12px; }
+
+  .mcp-message-agent {
+    align-self: flex-start;
+    background: var(--border);
+    color: var(--text);
+  }
+  .mcp-message-agent::before { left: -7px; background: var(--border); border-bottom-right-radius: 16px; }
+  .mcp-message-agent::after { left: -12px; border-bottom-right-radius: 12px; }
+
+  .mcp-actions-pane {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 24px clamp(20px, 4vw, 42px);
+  }
+
+  .mcp-action {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) 20px;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .mcp-action:last-child { border-bottom: 0; }
+
+  .mcp-step {
+    color: var(--text-faint);
+    font: 600 0.7rem/1 "JetBrains Mono", monospace;
+  }
+
+  .mcp-action code {
+    color: var(--text);
+    font-size: 0.84rem;
+    font-weight: 700;
+  }
+
+  .mcp-action p {
+    margin: 4px 0 0;
+    color: var(--text-2);
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .mcp-check {
+    color: var(--healthy);
+    font-weight: 800;
+  }
+
+  .mcp-pulse {
+    width: 9px;
+    height: 9px;
+    justify-self: center;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 5px var(--accent-light);
+    animation: mcp-pulse 1.7s ease-in-out infinite;
+  }
+
+  @keyframes mcp-pulse {
+    50% { box-shadow: 0 0 0 9px transparent; }
+  }
+
+  .mcp-footer-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 14px;
-    padding: 18px 16px;
-    background: #fafaf9;
-    border: 1px solid #e7e5e4;
-    border-left: 4px solid #ba4e31;
-    border-radius: 6px;
-    transition: all 0.3s ease;
+    gap: 24px;
+    padding-top: 22px;
+    color: var(--text-2);
+    font-size: 0.9rem;
   }
 
-  /* Theme-specific calibrated equation card styling */
-  html[data-theme="voltage"] .latex-rendered-math {
-    background: #fafdf2;
-    border-color: #d9f99d;
-    border-left: 4px solid #84cc16;
-  }
-  html[data-theme="editorial"] .latex-rendered-math {
-    background: #fdfaf6;
-    border-color: #ebdcd3;
-    border-left: 4px solid #ba4e31;
-  }
-  html[data-theme="slate"] .latex-rendered-math {
-    background: #f8fafc;
-    border-color: #bae6fd;
-    border-left: 4px solid #0284c7;
-  }
-  html[data-theme="scientific"] .latex-rendered-math {
-    background: #ffffff;
-    border-color: #cbd5e1;
-    border-left: 4px solid #2563eb;
-  }
-  html[data-theme="contrast"] .latex-rendered-math {
-    background: #ffffff;
-    border-color: #09090b;
-    border-left: 4px solid #09090b;
-  }
-  html[data-theme="graphite"] .latex-rendered-math {
-    background: #fcfcf9;
-    border-color: #d9f99d;
-    border-left: 4px solid #65a30d;
-  }
-  html[data-theme="nocturne"] .latex-rendered-math {
-    background: #faf5ff;
-    border-color: #fbcfe8;
-    border-left: 4px solid #d946ef;
-  }
+  .mcp-footer-row strong { color: var(--text); }
 
-  /* CRITICAL: KaTeX math glyphs MUST ALWAYS be deep black ink for maximum paper contrast */
-  .latex-rendered-math .math-content,
-  .latex-rendered-math .math-content *,
-  .latex-rendered-math .katex,
-  .latex-rendered-math .katex *,
-  .latex-rendered-math .katex-html,
-  .latex-rendered-math .katex-html * {
-    color: #09090b !important;
-  }
-
-  .latex-rendered-math .math-content {
-    flex: 1;
-    min-width: 0;
-    font-size: 0.98rem;
-    overflow-x: auto;
-    text-align: center;
-    padding: 2px 4px;
-  }
-
-  .eq-badge {
+  .mcp-docs-link {
     flex-shrink: 0;
-    font-size: 0.82rem;
-    font-family: "JetBrains Mono", monospace;
-    font-weight: 600;
-    color: #4b5563 !important;
+    color: var(--accent);
+    font-weight: 700;
   }
 
-  .latex-render-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #374151;
-    border-top: 1px solid #e5e7eb;
-    padding-top: 14px;
-  }
+  .mcp-docs-link:hover { text-decoration: underline; }
 
-  .latex-render-meta span {
-    color: #374151 !important;
+  @media (max-width: 780px) {
+    .mcp-heading,
+    .mcp-workflow { grid-template-columns: 1fr; }
+    .mcp-prompt-pane { min-height: auto; }
+    .mcp-conversation { padding: 24px 20px; }
+    .mcp-footer-row { align-items: flex-start; flex-direction: column; }
   }
 
   /* Engine Grid */
@@ -3358,50 +3127,4 @@ $$</code></pre>
     justify-content: center;
   }
 
-  /* Clean Footer */
-  .footer {
-    border-top: 1px solid var(--border);
-    background: var(--bg);
-    padding: 2.5rem 0;
-  }
-
-  .footer-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1.5rem;
-  }
-
-  .footer-left {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .footer-brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 1.1rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-  }
-
-  .footer-copy {
-    font-size: 0.85rem;
-    color: var(--text-faint);
-  }
-
-  .footer-right {
-    display: flex;
-    gap: 1.8rem;
-    font-size: 0.88rem;
-    font-weight: 500;
-    color: var(--text-2);
-  }
-
-  .footer-right a:hover {
-    color: var(--text);
-  }
 </style>
