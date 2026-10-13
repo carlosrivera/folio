@@ -1,9 +1,6 @@
 ---
-interface Props { showSectionLinks?: boolean }
-const { showSectionLinks = false } = Astro.props
 const base = import.meta.env.BASE_URL.replace(/\/$/, '')
 const githubRepo = 'https://github.com/carlosrivera/folio'
-const releasesUrl = `${githubRepo}/releases`
 ---
   <footer class="footer">
     <div class="container footer-inner">
@@ -20,8 +17,6 @@ const releasesUrl = `${githubRepo}/releases`
         <a href={`${base}/changelog/`}>Changelog</a>
         <a href={githubRepo} target="_blank" rel="noopener noreferrer">GitHub</a>
         <a href="https://github.com/carlosrivera/folio/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
-        {showSectionLinks && <a href={`${base}/#themes`}>Themes</a>}
-        {showSectionLinks && <a href={`${base}/#rendering`}>Rich Rendering</a>}
       </div>
     </div>
   </footer>

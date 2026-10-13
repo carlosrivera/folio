@@ -79,14 +79,27 @@ const links = showSectionLinks ? [
     position: sticky;
     top: 0;
     z-index: 100;
+    isolation: isolate;
+    border-bottom: 1px solid var(--border);
+    transition: border-color 0.4s ease;
+  }
+
+  /* Keep the filtered background separate from the navigation's input layer. */
+  .nav-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
     background: var(--nav-bg, rgba(245, 242, 233, 0.88));
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    transition: background-color 0.4s ease, border-color 0.4s ease;
+    transition: background-color 0.4s ease;
   }
 
   .nav-inner {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -239,6 +252,7 @@ const links = showSectionLinks ? [
   .mobile-nav-menu {
     display: none;
     position: absolute;
+    z-index: 1;
     top: 100%;
     left: 0;
     right: 0;
