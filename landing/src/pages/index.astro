@@ -680,9 +680,11 @@ $$</code></pre>
               <strong>Agent</strong>
             </div>
             <div class="mcp-conversation">
+              <div class="mcp-chat-time">Today, 9:41 AM</div>
               <div class="mcp-message mcp-message-user">
                 Create the quarterly engineering report. Use a landscape layout, our “Board Review” style, add a delivery diagram, and export it as a PDF.
               </div>
+              <span class="mcp-delivered">Delivered</span>
               <div class="mcp-message mcp-message-agent">
                 I’ll create the document, apply the saved style, check the Markdown and layout, then export the finished PDF.
               </div>
@@ -3029,22 +3031,27 @@ $$</code></pre>
     border-radius: 12px;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.05);
   }
-  .technical-source { padding: clamp(24px, 4vw, 42px); background: #17181d; color: #e4e4e7; }
-  .proof-label { display: block; margin-bottom: 14px; font: 600 0.68rem/1.4 "Inter", sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: #8d8177; }
-  .technical-source .proof-label { color: #a1a1aa; }
-  .technical-source pre { margin-top: 28px; white-space: pre-wrap; overflow-wrap: anywhere; color: #c6d59f; font: 400 0.83rem/1.8 "JetBrains Mono", monospace; }
-  .technical-paper { margin: 0; padding: clamp(24px, 4vw, 42px); background: #fffdf9; color: #29231e; min-width: 0; }
-  .proof-paper-header { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid #e5ddd3; color: #9b8e83; font: 500 0.6rem/1.4 "JetBrains Mono", monospace; letter-spacing: 0.08em; }
-  .technical-paper h3 { margin: 24px 0 28px; font: 600 clamp(1.5rem, 3vw, 2rem)/1.2 "Space Grotesk", sans-serif; letter-spacing: -0.03em; color: #29231e; }
+  .technical-source { padding: clamp(24px, 4vw, 42px); background: var(--bg); color: var(--text); border-right: 1px solid var(--border); }
+  .proof-label { display: block; margin-bottom: 14px; font: 600 0.68rem/1.4 "Inter", sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2); }
+  .technical-source .proof-label { color: var(--text-faint); }
+  .technical-source pre { margin-top: 28px; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--accent); font: 400 0.83rem/1.8 "JetBrains Mono", monospace; }
+  .technical-paper { margin: 0; padding: clamp(24px, 4vw, 42px); background: var(--surface); color: var(--text); min-width: 0; }
+  .proof-paper-header { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--border); color: var(--text-faint); font: 500 0.6rem/1.4 "JetBrains Mono", monospace; letter-spacing: 0.08em; }
+  .technical-paper h3 { margin: 24px 0 28px; font: 600 clamp(1.5rem, 3vw, 2rem)/1.2 "Space Grotesk", sans-serif; letter-spacing: -0.03em; color: var(--text); }
   .proof-block + .proof-block { margin-top: 28px; }
-  .proof-code { margin: 0; padding: 18px; border: 1px solid #e5ddd3; border-radius: 5px; background: #f5f2ed; white-space: pre-wrap; overflow-wrap: anywhere; font: 400 0.77rem/1.7 "JetBrains Mono", monospace; color: #4b4138; }
-  .proof-keyword { color: #9e466c; }
-  .proof-type { color: #38788a; }
+  .proof-code { margin: 0; padding: 18px; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 5px; background: var(--bg); white-space: pre-wrap; overflow-wrap: anywhere; font: 400 0.77rem/1.7 "JetBrains Mono", monospace; color: var(--text); }
+  .proof-keyword { color: var(--accent); }
+  .proof-type { color: var(--text-2); }
   .proof-diagram { display: block; width: 100%; height: auto; }
-  .proof-formula { display: flex; align-items: center; justify-content: center; position: relative; padding: 10px 32px; font: italic 2rem/1.5 Georgia, serif; }
+  .proof-diagram rect { fill: var(--bg); stroke: var(--border); }
+  .proof-diagram rect:last-of-type { fill: var(--accent-light); stroke: var(--accent); }
+  .proof-diagram > path { stroke: var(--text-faint); }
+  .proof-diagram marker path { fill: var(--text-faint); }
+  .proof-diagram g { fill: var(--text); }
+  .proof-formula { display: flex; align-items: center; justify-content: center; position: relative; padding: 10px 32px; font: italic 2rem/1.5 Georgia, serif; color: var(--text); }
   .proof-formula sup { font-size: 0.6em; }
-  .proof-equation-number { position: absolute; right: 0; font: 400 0.75rem/1.4 Georgia, serif; color: #9b8e83; }
-  .technical-paper figcaption { margin-top: 28px; padding-top: 16px; border-top: 1px solid #e5ddd3; color: #8d8177; font-size: 0.72rem; line-height: 1.5; }
+  .proof-equation-number { position: absolute; right: 0; font: 400 0.75rem/1.4 Georgia, serif; color: var(--text-faint); }
+  .technical-paper figcaption { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--text-2); font-size: 0.72rem; line-height: 1.5; }
   @media (max-width: 768px) {
     .technical-proof { grid-template-columns: 1fr; }
     .technical-source pre { font-size: 0.78rem; line-height: 1.65; }
@@ -3083,8 +3090,8 @@ $$</code></pre>
 
   .mcp-prompt-pane {
     min-height: 390px;
-    background: #111217;
-    color: #f4f4f5;
+    background: var(--bg);
+    color: var(--text);
   }
 
   .mcp-window-bar {
@@ -3093,21 +3100,21 @@ $$</code></pre>
     gap: 7px;
     height: 48px;
     padding: 0 18px;
-    border-bottom: 1px solid #292b32;
+    border-bottom: 1px solid var(--border);
   }
 
   .mcp-window-bar > span {
     width: 9px;
     height: 9px;
     border-radius: 50%;
-    background: #3f3f46;
+    background: var(--border);
   }
 
-  .mcp-window-bar > span:first-child { background: #d25c3a; }
+  .mcp-window-bar > span:first-child { background: var(--accent); }
 
   .mcp-window-bar strong {
     margin-left: auto;
-    color: #a1a1aa;
+    color: var(--text-2);
     font: 600 0.72rem/1 "JetBrains Mono", monospace;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -3116,32 +3123,40 @@ $$</code></pre>
   .mcp-conversation {
     display: flex;
     flex-direction: column;
-    gap: 22px;
+    gap: 8px;
     padding: 34px;
   }
 
   .mcp-message {
-    max-width: 92%;
-    border-radius: 13px;
-    padding: 16px 18px;
+    position: relative;
+    z-index: 0;
+    max-width: 88%;
+    border-radius: 20px;
+    padding: 12px 16px;
     font-size: 0.93rem;
-    line-height: 1.6;
+    line-height: 1.45;
   }
+
+  .mcp-chat-time { text-align: center; margin-bottom: 16px; color: var(--text-faint); font-size: 0.67rem; font-weight: 600; }
+  .mcp-delivered { align-self: flex-end; padding-right: 8px; margin-bottom: 18px; color: var(--text-faint); font-size: 0.65rem; }
+  .mcp-message::before { content: ''; position: absolute; z-index: -1; bottom: 0; width: 20px; height: 20px; }
+  .mcp-message::after { content: ''; position: absolute; bottom: -1px; width: 12px; height: 22px; background: var(--bg); }
 
   .mcp-message-user {
     align-self: flex-end;
-    border-bottom-right-radius: 4px;
-    background: #292b32;
-    color: #f4f4f5;
+    background: var(--accent);
+    color: var(--accent-fg);
   }
+  .mcp-message-user::before { right: -7px; background: var(--accent); border-bottom-left-radius: 16px; }
+  .mcp-message-user::after { right: -12px; border-bottom-left-radius: 12px; }
 
   .mcp-message-agent {
     align-self: flex-start;
-    border: 1px solid #384112;
-    border-bottom-left-radius: 4px;
-    background: #1b2012;
-    color: #dff5a0;
+    background: var(--border);
+    color: var(--text);
   }
+  .mcp-message-agent::before { left: -7px; background: var(--border); border-bottom-right-radius: 16px; }
+  .mcp-message-agent::after { left: -12px; border-bottom-right-radius: 12px; }
 
   .mcp-actions-pane {
     display: flex;
