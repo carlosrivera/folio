@@ -12,7 +12,7 @@ const downloadLinuxAppImage = `${releasesUrl}/download/v${version}/Folio-${versi
 const downloadLinuxDeb = `${releasesUrl}/download/v${version}/folio_${version}_amd64.deb`
 ---
 
-<Layout title="Documentation — Folio" description="Complete documentation for Folio: Getting Started, Front Matter, Themes, MCP Server, and Development.">
+<Layout title="Documentation — Folio" description="Complete documentation for Folio: Getting Started, Front Matter, Themes, MCP Server, and Development." canonicalPath="/docs">
   <!-- Top Navigation -->
   <header class="nav-wrap">
     <div class="container nav-inner">
@@ -24,6 +24,7 @@ const downloadLinuxDeb = `${releasesUrl}/download/v${version}/folio_${version}_a
 
       <!-- Quick Nav Links -->
       <nav class="nav-links" aria-label="Docs Navigation">
+        <a href={`${base}/changelog`}>Changelog</a>
         <a href="#getting-started">Getting Started</a>
         <a href="#frontmatter">Front Matter</a>
         <a href="#customizing-themes">Themes</a>
@@ -538,6 +539,7 @@ pnpm landing:build</code></pre>
       </div>
       <div class="footer-links">
         <a href={`${base}/`}>Home</a>
+        <a href={`${base}/changelog`}>Changelog</a>
         <a href={`${base}/#themes`}>Themes</a>
         <a href={githubRepo} target="_blank" rel="noopener noreferrer">GitHub</a>
         <a href={releasesUrl} target="_blank" rel="noopener noreferrer">Releases</a>

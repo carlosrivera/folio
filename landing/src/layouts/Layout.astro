@@ -2,14 +2,17 @@
 interface Props {
   title?: string
   description?: string
+  canonicalPath?: string
 }
 
 const {
   title = "Folio — PDFs you’re not embarrassed to send",
-  description = "Folio turns Markdown into polished, printable documents with proper pagination, typography, tables, Mermaid diagrams, math, and code."
+  description = "Folio turns Markdown into polished, printable documents with proper pagination, typography, tables, Mermaid diagrams, math, and code.",
+  canonicalPath = '/'
 } = Astro.props
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+const canonicalUrl = new URL(`${base}${canonicalPath}`, 'https://carlosrivera.github.io').toString()
 ---
 
 <!doctype html>
@@ -22,7 +25,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '')
     <meta name="color-scheme" content="light" />
     <meta name="robots" content="index, follow" />
     <meta name="keywords" content="markdown, pdf publisher, macos app, paged media, katex, latex, proposal, statement of work, electronic document, folio" />
-    <link rel="canonical" href="https://carlosrivera.github.io/folio/" />
+    <link rel="canonical" href={canonicalUrl} />
     
     <!-- Favicons -->
     <link rel="icon" type="image/svg+xml" href={`${base}/icon.svg`} />
@@ -32,7 +35,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '')
     <!-- OpenGraph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Folio" />
-    <meta property="og:url" content="https://carlosrivera.github.io/folio/" />
+    <meta property="og:url" content={canonicalUrl} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content="https://carlosrivera.github.io/folio/og.png" />
@@ -44,7 +47,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '')
     
     <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://carlosrivera.github.io/folio/" />
+    <meta name="twitter:url" content={canonicalUrl} />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content="https://carlosrivera.github.io/folio/og.png" />
