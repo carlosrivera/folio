@@ -4,11 +4,12 @@ import type { DocumentDiff } from '../lib/diff'
 import type { DocumentTheme } from '../lib/document'
 import type { LintFinding } from '../lib/lint'
 import { ThemeEditor } from './ThemeEditor'
+import type { StyleLibraryProps } from './StyleLibrary'
 
 export type InspectorTab = 'issues' | 'changes' | 'template'
 type Tab = InspectorTab
 
-type Props = {
+type Props = StyleLibraryProps & {
   findings: LintFinding[]
   diff: DocumentDiff | null
   comparedWith: string | null
@@ -51,6 +52,7 @@ export function DocumentInspector({
   theme,
   themeOverrides,
   onThemeOverridesChange,
+  ...libraryProps
 }: Props) {
   const { tr } = useUi()
   const errors = findings.filter((finding) => finding.severity === 'error').length
@@ -58,7 +60,7 @@ export function DocumentInspector({
   const changed = diff ? diff.summary.added + diff.summary.removed + diff.summary.changed : 0
 
   return (
-    <section className={`inspector${open ? ' is-open' : ''}`} aria-label={tr('Document inspector')}>
+    <section className={`inspector${open ? ' is-open' : ''}${tab === 'template' ? ' is-style' : ''}`} aria-label={tr('Document inspector')}>
       <header className="inspector-bar">
         <button
           type="button"
@@ -94,7 +96,7 @@ export function DocumentInspector({
             if (!open) onToggleOpen()
           }}
         >
-          Template
+          {tr('Style')}
           {Object.keys(themeOverrides).length > 0 && (
             <span className="inspector-badge">{Object.keys(themeOverrides).length}</span>
           )}
@@ -135,7 +137,7 @@ export function DocumentInspector({
             ))}
 
           {tab === 'template' && (
-            <ThemeEditor theme={theme} overrides={themeOverrides} onChange={onThemeOverridesChange} />
+            <ThemeEditor theme={theme} overrides={themeOverrides} onChange={onThemeOverridesChange} {...libraryProps} />
           )}
 
           {tab === 'changes' &&
