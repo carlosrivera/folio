@@ -147,7 +147,7 @@ See [**`docs/mcp.md`**](docs/mcp.md) for full setup guides across all clients, a
 Folio uses `electron-builder` to package native macOS releases (DMG & ZIP for Apple Silicon and Intel):
 
 ```bash
-# Build macOS distributables locally into dist-packaged/
+# Build macOS distributables locally into dist-packaged.noindex/
 pnpm dist:mac
 
 # Unpackaged directory build for inspection
@@ -156,6 +156,7 @@ pnpm dist:dir
 
 - **Auto-Updates**: Integrated via `electron-updater` checking GitHub Releases (`carlosrivera/folio`). Checks can be triggered manually from **Folio > Check for Updates…** or run quietly on startup.
 - **Local macOS release**: `FOLIO_NOTARY_PROFILE=ocelo-notary pnpm release:mac:local` uses the existing Keychain credentials without exporting a private key. It verifies both app bundles and notarizes/staples the signed disk images before refreshing their update hashes. Set the repository variable `MACOS_RELEASE_SOURCE=local` when uploading these verified Mac artifacts alongside the Windows/Linux CI builds.
+- **Upload and cleanup**: Create the release draft first, then run `pnpm release:mac:upload`. It uploads the Mac installers and update files, compares their sizes and SHA-256 hashes with GitHub, and removes that version's local staging directory only after every file matches. Failed uploads retain local output for retry. Build output uses `.noindex` to keep staging app copies out of Spotlight.
 - **macOS signing**: Publishing requires `CSC_LINK`, `CSC_KEY_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, and `APPLE_TEAM_ID` repository secrets. Mac builds must pass Developer ID signing, notarization, signature verification, and stapled-ticket validation before upload.
 - **GitHub Actions Release**: Tag pushes (`v*`) automatically trigger `.github/workflows/release-app.yml` to compile and publish macOS, Windows, and Linux releases.
 

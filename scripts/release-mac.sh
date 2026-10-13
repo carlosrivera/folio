@@ -18,7 +18,7 @@ if [ -z "$identity" ]; then
 fi
 export APPLE_KEYCHAIN_PROFILE="$profile"
 version="$(node -p 'require("./package.json").version')"
-output="dist-packaged/v$version"
+output="dist-packaged.noindex/v$version"
 pnpm build
 pnpm exec electron-builder --mac --publish never \
   --config.forceCodeSigning=true \
@@ -32,3 +32,4 @@ for bundle in "$output"/mac*/Folio.app; do
   xcrun stapler validate "$bundle"
 done
 echo "Verified macOS release ready in $output"
+echo "Upload and clean staging output with pnpm release:mac:upload"

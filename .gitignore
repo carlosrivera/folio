@@ -2,6 +2,7 @@ node_modules
 dist
 dist-electron
 dist-packaged
+dist-packaged.noindex
 landing/dist
 .astro
 .DS_Store

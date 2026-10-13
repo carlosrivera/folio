@@ -33,6 +33,7 @@
     "start": "pnpm build && electron .",
     "dist": "pnpm build && electron-builder",
     "release:mac:local": "bash scripts/release-mac.sh",
+    "release:mac:upload": "node scripts/upload-mac-release.mjs",
     "dist:mac": "pnpm build && electron-builder --mac",
     "dist:win": "pnpm build && electron-builder --win",
     "dist:linux": "pnpm build && electron-builder --linux",

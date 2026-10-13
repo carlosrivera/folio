@@ -50,7 +50,7 @@ jobs:
             fi
           done
           pnpm exec electron-builder --mac --publish never --config.forceCodeSigning=true
-          for bundle in dist-packaged/mac*/Folio.app; do
+          for bundle in dist-packaged.noindex/mac*/Folio.app; do
             codesign --verify --deep --strict "$bundle"
             spctl --assess --type execute --verbose "$bundle"
             xcrun stapler validate "$bundle"
@@ -64,7 +64,7 @@ jobs:
           if ! gh release view "$release_tag" >/dev/null 2>&1; then
             gh release create "$release_tag" --verify-tag --draft --title "Folio ${release_tag#v}"
           fi
-          gh release upload "$release_tag" dist-packaged/*.dmg dist-packaged/*.zip dist-packaged/*.blockmap dist-packaged/latest-mac.yml --clobber
+          gh release upload "$release_tag" dist-packaged.noindex/*.dmg dist-packaged.noindex/*.zip dist-packaged.noindex/*.blockmap dist-packaged.noindex/latest-mac.yml --clobber
 
   release-win:
     name: Build & Release Windows (x64 & arm64)
