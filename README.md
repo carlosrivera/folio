@@ -2,7 +2,7 @@
 
 Folio is a macOS-first Markdown document editor built with Electron, React, CodeMirror, and Paged.js. Markdown stays the source of truth while a separate branded template controls presentation.
 
-The first MVP includes:
+Folio includes:
 
 - Open, edit, save, and Save As local `.md` files, with optional autosave and external-change detection.
 - Optional YAML front matter for SOW metadata.
@@ -17,7 +17,7 @@ The first MVP includes:
 
 ## Run locally
 
-Requirements: macOS and Node.js 20 or newer.
+Requirements: macOS and Node.js 22.12 or newer.
 
 ```bash
 pnpm install
@@ -174,7 +174,7 @@ pnpm landing:preview  # Preview production build
 
 Merged commits on `main` automatically deploy the landing site to GitHub Pages via `.github/workflows/deploy-pages.yml`.
 
-### Folio documents
+## Folio documents
 
 Use **Save options → Save as Folio document…** to create a portable `.folio` file.
 It stores ordinary Markdown, local images and attachments, the theme's color/font

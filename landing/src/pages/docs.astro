@@ -12,9 +12,17 @@ const downloadIntel = `${releasesUrl}/download/v${version}/Folio-${version}.dmg`
 const downloadWinExe = `${releasesUrl}/download/v${version}/Folio-Setup-${version}.exe`
 const downloadLinuxAppImage = `${releasesUrl}/download/v${version}/Folio-${version}.AppImage`
 const downloadLinuxDeb = `${releasesUrl}/download/v${version}/folio_${version}_amd64.deb`
+const contents = [
+  { id: 'getting-started', label: 'Getting Started' },
+  { id: 'folio-documents', label: 'Files, History & Sharing' },
+  { id: 'frontmatter', label: 'Layouts & Frontmatter' },
+  { id: 'customizing-themes', label: 'Styles & Typography' },
+  { id: 'mcp', label: 'MCP Integration' },
+  { id: 'development', label: 'Development' },
+]
 ---
 
-<Layout title="Documentation — Folio" description="Complete documentation for Folio: Getting Started, Front Matter, Themes, MCP Server, and Development." canonicalPath="/docs">
+<Layout title="Documentation — Folio" description="Learn Folio: Markdown editing, portable documents and history, scientific articles, landscape pages, reusable styles, and MCP tools." canonicalPath="/docs/">
   <!-- Top Navigation -->
   <SiteHeader />
 
@@ -27,6 +35,15 @@ const downloadLinuxDeb = `${releasesUrl}/download/v${version}/folio_${version}_a
           <p class="sidebar-title">Getting Started</p>
           <a href="#getting-started" class="sidebar-link">Overview & Installation</a>
           <a href="#editor-tour" class="sidebar-link">Editor Interface & Shortcuts</a>
+          <a href="#editing-tools" class="sidebar-link">Writing, Tables & Images</a>
+          <a href="#settings" class="sidebar-link">Settings & Language</a>
+        </div>
+
+        <div class="sidebar-group">
+          <p class="sidebar-title">Files & Sharing</p>
+          <a href="#folio-documents" class="sidebar-link">Portable Folio Documents</a>
+          <a href="#document-history" class="sidebar-link">Saved Versions</a>
+          <a href="#export-sharing" class="sidebar-link">PDF & Markdown Export</a>
         </div>
 
         <div class="sidebar-group">
@@ -35,12 +52,16 @@ const downloadLinuxDeb = `${releasesUrl}/download/v${version}/folio_${version}_a
           <a href="#layout-report" class="sidebar-link">Cover Report (SOW)</a>
           <a href="#layout-invoice" class="sidebar-link">Invoices</a>
           <a href="#layout-simple" class="sidebar-link">Simple & Headers/Footers</a>
+          <a href="#layout-scientific" class="sidebar-link">Scientific Articles</a>
+          <a href="#layout-cv" class="sidebar-link">Curriculum Vitae</a>
+          <a href="#landscape-pages" class="sidebar-link">Landscape Pages</a>
           <a href="#mermaid-katex" class="sidebar-link">Mermaid & KaTeX Math</a>
         </div>
 
         <div class="sidebar-group">
           <p class="sidebar-title">Customizing Themes</p>
           <a href="#customizing-themes" class="sidebar-link">Curated Themes</a>
+          <a href="#saved-styles" class="sidebar-link">Create & Save Styles</a>
           <a href="#theme-overrides" class="sidebar-link">Per-Document Overrides</a>
           <a href="#print-styles" class="sidebar-link">Print & Page Breaks</a>
         </div>
@@ -70,8 +91,15 @@ const downloadLinuxDeb = `${releasesUrl}/download/v${version}/folio_${version}_a
         <p class="eyebrow">Folio Documentation</p>
         <h1 class="docs-title">Learn Folio</h1>
         <p class="docs-lead">
-          Folio transforms raw Markdown into professional, paginated PDF documents. This guide covers the editor, YAML frontmatter configurations, theme customization, AI agent connections via MCP, and codebase development.
+          Write Markdown, preview real pages, and export polished documents. Learn the editor, portable files and history, document layouts, reusable styles, and local agent workflows.
         </p>
+        <p class="tip-callout">This guide follows the current source. The <a href={`${base}/changelog/`}>changelog</a> identifies features available in released builds and those coming in the next release.</p>
+        <details class="docs-mobile-toc">
+          <summary>On this page</summary>
+          <nav aria-label="Documentation contents">
+            {contents.map(section => <a href={`#${section.id}`}>{section.label}</a>)}
+          </nav>
+        </details>
       </section>
 
       <!-- 1. GETTING STARTED -->
@@ -106,7 +134,9 @@ const downloadLinuxDeb = `${releasesUrl}/download/v${version}/folio_${version}_a
         </p>
 
         <h3 id="editor-tour" class="sub-heading">Editor Interface & Shortcuts</h3>
-        <p>Folio features a synchronized split pane: write on the left with full CodeMirror syntax highlighting, and watch realistic A4 pages format in real-time on the right.</p>
+        <p>Write Markdown on the left and preview paginated A4 pages on the right. Three toolbar controls select editor-only, split, or preview-only view. Drag the divider to resize the panes, use its arrow keys when focused, or double-click it to reset the width. In split view, the preview follows your current paragraph; clicking a preview paragraph moves the editor caret to its source.</p>
+        <p>Choose <strong>New</strong> for starters such as Scientific Article and Landscape Presentation, or explore the Petstore API Documentation sample with endpoints, authentication, code, and a Mermaid integration diagram.</p>
+        <p>These shortcuts use Command on macOS. Use Ctrl in place of Command on Windows and Linux.</p>
 
         <div class="table-wrap">
           <table class="docs-table">
@@ -121,12 +151,12 @@ const downloadLinuxDeb = `${releasesUrl}/download/v${version}/folio_${version}_a
               <tr>
                 <td><code>⌘ O</code></td>
                 <td>Open File</td>
-                <td>Open any local <code>.md</code> or <code>.markdown</code> file.</td>
+                <td>Open a local <code>.md</code>, <code>.markdown</code>, or <code>.folio</code> file.</td>
               </tr>
               <tr>
                 <td><code>⌘ S</code></td>
                 <td>Save File</td>
-                <td>Saves changes directly to the source Markdown file.</td>
+                <td>Saves the current document; Folio files also keep saved versions.</td>
               </tr>
               <tr>
                 <td><code>⇧ ⌘ E</code></td>
@@ -139,23 +169,64 @@ const downloadLinuxDeb = `${releasesUrl}/download/v${version}/folio_${version}_a
                 <td>Opens the CodeMirror search bar in the editor pane.</td>
               </tr>
               <tr>
-                <td><code>⌘ 1</code> / <code>⌘ 2</code></td>
-                <td>Layout Controls</td>
-                <td>Toggle between split view, editor-only, and preview-only modes.</td>
+                <td><code>⇧ ⌘ S</code></td>
+                <td>Save As</td>
+                <td>Save the document to a new path or change its file format.</td>
+              </tr>
+              <tr>
+                <td><code>⌘ K</code></td>
+                <td>Insert Link</td>
+                <td>Open the link dialog; a URL pasted over selected text also creates a link.</td>
+              </tr>
+              <tr>
+                <td><code>⌘ ,</code></td>
+                <td>Settings</td>
+                <td>Change interface appearance, language, editor preferences, and autosave.</td>
               </tr>
             </tbody>
           </table>
         </div>
+
+        <h3 id="editing-tools" class="sub-heading">Writing, Tables & Images</h3>
+        <ul>
+          <li><strong>Formatting:</strong> Choose headings H1–H6, paragraphs, emphasis, lists, and quotes from the toolbar. Find opens search and replace; Outline jumps to document headings.</li>
+          <li><strong>Tables:</strong> Use Insert → Table to choose rows and columns. Tab and Shift+Tab move between cells; Tab in the last cell adds a row. The contextual Table menu adds or removes rows and columns.</li>
+          <li><strong>Lists and tasks:</strong> Enter continues a list, and Enter on an empty item ends it. Tab and Shift+Tab indent or outdent. Tasks inserts Markdown checkboxes, and the task control toggles their state.</li>
+          <li><strong>Footnotes:</strong> Insert → Footnote adds a reference and definition. Standard <code>[^note]</code> references render numbered notes at the end of the document.</li>
+          <li><strong>Code:</strong> Add a language after the opening fence, such as <code>typescript</code>, <code>python</code>, or <code>sql</code>. The editor, preview, and PDF use syntax colors; unsupported languages stay plain code. Long lines wrap within print margins.</li>
+          <li><strong>Images:</strong> Paste, drop, or choose a file through Insert → Image, then add alt text. Place the caret inside an image or link to edit it through the toolbar. Image captions use the Markdown title; an optional width suffix controls sizing.</li>
+        </ul>
+        <div class="code-block"><div class="code-header"><span>Image caption and width</span></div><pre><code>![Architecture diagram](architecture.png "System overview")&#123;width=50%&#125;</code></pre></div>
+        <p>Pasted images stay in draft storage until you save. Saving Markdown places imported images in a neighboring <code>.assets/</code> folder; keep it with the Markdown file. Save As copies imported assets when moving the document. Existing relative image paths are supported.</p>
+
+        <h3 id="settings" class="sub-heading">Settings & Language</h3>
+        <p>Open Settings for appearance, 🇺🇸 English or 🇪🇸 Español, line numbers, folding, current-line and preview-selection highlights, font size, line spacing, text width, spellcheck, and autosave. Language is an app preference: changing it leaves document content unchanged. Legacy <code>lang</code> frontmatter is ignored.</p>
+        <p>Autosave applies to existing files after a pause in typing. Unsaved drafts can be recovered after restart. If a file changes outside Folio, autosave pauses and offers Reload, Save my version, or Save As.</p>
       </section>
 
-      <!-- 2. FRONT MATTER -->
+      <section id="folio-documents" class="docs-section">
+        <h2 class="section-heading">2. Files, History & Sharing</h2>
+        <p>Use Save options → <strong>Save as Folio document…</strong> to create a portable <code>.folio</code> file. It contains Markdown, local images and attachments, the document's appearance, named styles, and up to 100 saved versions. Open it like an ordinary document.</p>
+        <p>Markdown stays supported. Save As can convert a Folio document to <code>.md</code>, placing its assets beside it in <code>.assets/</code> and retaining supported font and color overrides in frontmatter.</p>
+
+        <h3 id="document-history" class="sub-heading">Saved Versions</h3>
+        <p>The history button opens saved versions, including their text, assets, and styles. Restoring a version creates an unsaved draft; save it to record a new version. Unchanged saves do not create duplicate versions, and Folio retains the latest 100.</p>
+        <p>Choose <strong>Save a copy without history…</strong> in the history dialog to share only the current document and assets.</p>
+
+        <h3 id="export-sharing" class="sub-heading">PDF & Markdown Export</h3>
+        <p><strong>Export PDF</strong> uses the paginated layout shown in the preview, including orientation, headers, footers, tables, math, and diagrams. The arrow beside it offers <strong>Markdown + assets (.zip)</strong>, which packages the current draft and local attachments with portable paths. Extract the ZIP before opening its Markdown file.</p>
+        <p>PDF and Markdown ZIP export work with both Markdown and Folio documents. ZIP export contains the current document and assets without revision history. Missing local files are reported before a package is produced.</p>
+      </section>
+
+      <!-- FRONT MATTER -->
       <section id="frontmatter" class="docs-section">
-        <h2 class="section-heading">2. Document Front Matter</h2>
+        <h2 class="section-heading">3. Document Layouts & Frontmatter</h2>
         <p>
           Folio documents are 100% standard Markdown. You can optionally include a YAML frontmatter block at the very top of your document to configure layouts, metadata, invoices, or running headers and footers.
         </p>
+        <p>Open <strong>Document</strong> for Document properties: choose a layout and page orientation, edit layout-specific metadata, and configure the table of contents, headers, and footers. These choices are saved in frontmatter.</p>
 
-        <h3 id="layout-report" class="sub-heading">A. Cover Report / SOW (<code>layout: cover-report</code>)</h3>
+        <h3 id="layout-report" class="sub-heading">Cover Report / SOW (<code>layout: report</code>)</h3>
         <p>
           The default layout for statements of work, proposals, whitepapers, and formal reports. Generates a branded cover page with metadata fields, followed by numbered pages.
         </p>
@@ -163,7 +234,7 @@ const downloadLinuxDeb = `${releasesUrl}/download/v${version}/folio_${version}_a
         <div class="code-block">
           <div class="code-header"><span>sample-sow.md</span></div>
           <pre><code>---
-layout: cover-report
+layout: report
 title: Enterprise Cloud Architecture Proposal
 kicker: Technical Proposal
 client: Acme Global Industries
@@ -173,7 +244,6 @@ date: October 12, 2026
 valid-until: November 12, 2026
 document-id: SOW-2026-089
 theme: editorial
-lang: en
 ---
 
 # Executive Summary
@@ -181,48 +251,41 @@ lang: en
 This proposal outlines the multi-region migration strategy...</code></pre>
         </div>
 
-        <h3 id="layout-invoice" class="sub-heading">B. Invoices (<code>layout: invoice</code>)</h3>
-        <p>
-          A dedicated commercial invoice layout. Folio automatically renders clean vendor/client header cards, a formatted line items table, subtotal, tax rate, total due, and remittance instructions.
-        </p>
-
+        <h3 id="layout-invoice" class="sub-heading">Invoices (<code>layout: invoice</code>)</h3>
+        <p>Use flat frontmatter fields for issuer/client details, dates, status, and totals. Write line items as a Markdown table in the body. Folio displays the supplied amounts; it does not calculate totals from the table.</p>
         <div class="code-block">
           <div class="code-header"><span>invoice-0042.md</span></div>
           <pre><code>---
 layout: invoice
 title: Invoice INV-2026-0042
+invoice-number: INV-2026-0042
+date: 2026-10-13
+due-date: 2026-11-13
+status: Due
+from: Example Studio
+from-email: billing@example.com
 client: Northstar Technologies
-prepared-by: Carlos Rivera Studio
-date: 2026-10-15
-theme: contrast
-invoice:
-  number: INV-2026-0042
-  issue-date: 2026-10-15
-  due-date: 2026-11-15
-  currency: USD
-  tax-rate: 8.5
-  items:
-    - description: Brand Identity Design System
-      quantity: 1
-      unit-price: 4500
-      total: 4500
-    - description: Design System Component Tokens
-      quantity: 40
-      unit-price: 75
-      total: 3000
-  notes: Payment due within 30 days via wire transfer or ACH.
-  bank:
-    name: Silicon Valley Bank
-    account: "4820-9182-01"
-    routing: "121000358"
+currency: USD
+subtotal: "$4,500.00"
+tax: "$360.00"
+tax-rate: "8%"
+total: "$4,860.00"
+payment-terms: Net 30 days
+theme: editorial
 ---
+
+### Services
+
+| Description | Hours | Rate | Amount |
+|:---|---:|---:|---:|
+| Architecture consulting | 30 | $150.00 | $4,500.00 |
 
 ### Payment Instructions
 
-Please remit payment within 30 calendar days. Contact billing@rivera.im for questions.</code></pre>
+Contact billing@example.com for payment details.</code></pre>
         </div>
 
-        <h3 id="layout-simple" class="sub-heading">C. Simple Documents & Running Headers/Footers (<code>layout: simple</code>)</h3>
+        <h3 id="layout-simple" class="sub-heading">Simple Documents & Running Headers/Footers (<code>layout: simple</code>)</h3>
         <p>
           Ideal for memos, technical specs, meeting notes, articles, and short policies where a cover page is unnecessary. You can customize running headers and footers directly:
         </p>
@@ -244,19 +307,64 @@ theme: graphite
 This specification details the conflict-free replicated data types...</code></pre>
         </div>
 
-        <h3 id="mermaid-katex" class="sub-heading">D. Mermaid Diagrams & KaTeX Math</h3>
+        <h3 id="layout-scientific" class="sub-heading">Scientific Articles (<code>layout: scientific</code>)</h3>
+        <p>Choose New → Scientific Article for a manuscript starter, or select Scientific Article in Document properties. The article starts on the first page with a title, authors, affiliations, abstract, and keywords, followed by compact research sections. It supports ordinary Markdown equations, figures, footnotes, tables, and references.</p>
+        <div class="code-block"><div class="code-header"><span>article.md</span></div><pre><code>---
+layout: scientific
+theme: scientific
+title: Reproducible State Estimation
+authors: [Alex Rivera, Sam Chen]
+affiliations:
+  - Example Research Lab
+abstract: |
+  A comparison of two state-estimation methods.
+keywords: [estimation, reproducibility]
+journal: Example Journal
+doi: "10.xxxx/example"
+---
+
+## 1. Introduction
+
+Research question and contribution.</code></pre></div>
+        <p>The Scientific theme is the default for this layout when no theme is specified. Dates and publication details appear when supplied; headers and a table of contents are optional. The MCP preset is <code>scientific-paper</code>.</p>
+
+        <h3 id="layout-cv" class="sub-heading">Curriculum Vitae (<code>layout: cv</code>)</h3>
+        <p>Choose New → Curriculum Vitae for a resume starter. Document properties offers name, role, contact details, location, and website fields. Use Markdown headings for experience, education, and other sections.</p>
+
+        <h3 id="landscape-pages" class="sub-heading">Landscape Pages</h3>
+        <p>Document properties → Page orientation selects Portrait or Landscape for the entire document, including report covers and PDF export. The setting is stored as <code>orientation: landscape</code>. New → Landscape Presentation starts a wide document with page breaks between sections.</p>
+        <div class="code-block"><pre><code>---
+layout: simple
+orientation: landscape
+title: Quarterly Review
+theme: slate
+---
+
+# Quarterly Review
+
+Opening summary.
+
+&lt;!-- pagebreak --&gt;
+
+## Delivery Metrics</code></pre></div>
+
+        <h3 id="mermaid-katex" class="sub-heading">Mermaid Diagrams & KaTeX Math</h3>
         <p>
           Folio natively paginates Mermaid diagrams and LaTeX equations:
         </p>
         <ul>
           <li><strong>Mermaid:</strong> Use standard fenced <code>```mermaid</code> blocks. Folio colors them according to your active theme swatch!</li>
-          <li><strong>LaTeX:</strong> Write inline formulas with <code>$E = mc^2$</code> and block formulas with <code>$$ \frac&#123;\partial f&#125;&#123;\partial x&#125; = 2x $$</code>.</li>
+          <li><strong>LaTeX:</strong> Use <code>$E = mc^2$</code> or <code>\(...\)</code> inline. Put display delimiters <code>$$</code> or <code>\[</code> and <code>\]</code> on their own lines. Fenced <code>math</code> blocks also work. Insert offers editable inline and display examples.</li>
         </ul>
+        <div class="code-block"><pre><code>$$
+\frac&#123;\partial f&#125;&#123;\partial x&#125; = 2x
+$$</code></pre></div>
+        <p>Equations use bundled KaTeX fonts in preview and PDF. Escape a literal dollar sign as <code>\$</code> when it could be mistaken for a math delimiter. Math support is for equations inside Markdown; complete <code>.tex</code> documents are not imported.</p>
       </section>
 
       <!-- 3. CUSTOMIZING THEMES -->
       <section id="customizing-themes" class="docs-section">
-        <h2 class="section-heading">3. Customizing Themes & Typography</h2>
+        <h2 class="section-heading">4. Styles & Typography</h2>
         <p>
           Folio bundles 7 curated design presets crafted specifically for print pagination:
         </p>
@@ -271,6 +379,16 @@ This specification details the conflict-free replicated data types...</code></pr
           <div class="theme-pill"><strong>nocturne</strong>: Deep plum, cyberpunk violet & pink</div>
         </div>
 
+        <h3 id="saved-styles" class="sub-heading">Create & Save Styles</h3>
+        <p>Choose <strong>Edit styles…</strong> in the style picker, or open the inspector's Style tab. Font choices show live previews, and the main color controls update your document immediately. More options contains the detailed palette, including code syntax colors.</p>
+        <ul>
+          <li><strong>Duplicate style</strong> starts from the current theme and edits.</li>
+          <li><strong>New style</strong> starts from a built-in theme.</li>
+          <li><strong>Save style changes</strong> updates the named style; save the document to persist its library.</li>
+        </ul>
+        <p>Named styles appear under My styles in the picker. They are stored inside the <code>.folio</code> document along with the active style and revision snapshots. A Markdown draft with named styles offers a Folio save so the library is retained; exporting Markdown carries the applied font/color overrides. Previously saved app styles remain available and are copied into a document when used.</p>
+        <p class="tip-callout">Reusable named styles and their MCP tools are listed under <strong>Next release</strong> in the <a href={`${base}/changelog/`}>changelog</a>.</p>
+
         <h3 id="theme-overrides" class="sub-heading">Per-Document Overrides</h3>
         <p>
           You can override any theme's color palette or font families inside your Markdown frontmatter:
@@ -281,33 +399,35 @@ This specification details the conflict-free replicated data types...</code></pr
           <pre><code>---
 theme: editorial
 theme-overrides:
-  accent: "#2563eb"
-  font-heading: "Space Grotesk, sans-serif"
+  heading: "#2563eb"
+  cover-accent: "#2563eb"
+  font-display: "Space Grotesk, sans-serif"
   font-body: "Inter, sans-serif"
+  font-code: "JetBrains Mono, monospace"
   font-mono: "JetBrains Mono, monospace"
 ---</code></pre>
         </div>
 
         <h3 id="print-styles" class="sub-heading">Page Breaks and Landscape Sections</h3>
-        <p>Need explicit page control? Insert standard HTML helper tags anywhere in your Markdown body:</p>
+        <p>Use Insert → Page break, or put <code>&lt;!-- pagebreak --&gt;</code> on its own line. For an individual wide section inside a portrait document, use the landscape comments below on separate lines:</p>
         <div class="code-block">
           <pre><code>&lt;!-- Force a clean page break before a new section --&gt;
-&lt;div class="page-break"&gt;&lt;/div&gt;
+&lt;!-- pagebreak --&gt;
 
 &lt;!-- Rotate a wide financial table or diagram into landscape mode --&gt;
-&lt;div class="page-landscape"&gt;
+&lt;!-- landscape --&gt;
 
 | Q1 Revenue | Q2 Revenue | Q3 Revenue | Q4 Revenue | Total YTD | Margin |
 |:---|:---|:---|:---|:---|:---|
 | $1,200,000 | $1,450,000 | $1,800,000 | $2,100,000 | $6,550,000 | 38.2% |
 
-&lt;/div&gt;</code></pre>
+&lt;!-- /landscape --&gt;</code></pre>
         </div>
       </section>
 
       <!-- 4. MCP INTEGRATION -->
       <section id="mcp" class="docs-section">
-        <h2 class="section-heading">4. Model Context Protocol (MCP) Integration</h2>
+        <h2 class="section-heading">5. Model Context Protocol (MCP) Integration</h2>
         <p>
           Folio includes a native <strong>Model Context Protocol (MCP)</strong> server. This allows AI coding agents and LLM clients (such as Claude Desktop, Cursor, Google Antigravity, Cline, and Windsurf) to inspect document schemas, create branded documents, customize frontmatter, lint formatting, and compile pixel-perfect PDFs end-to-end.
         </p>
@@ -382,6 +502,7 @@ theme-overrides:
         </div>
 
         <h3 id="mcp-tools" class="sub-heading">The 12 MCP Agent Tools</h3>
+        <p>The document tools read and write Markdown. The five style tools operate on an existing <code>.folio</code> file saved in the app. This reference follows the current source; see the changelog for released availability.</p>
         <div class="table-wrap">
           <table class="docs-table">
             <thead>
@@ -393,31 +514,31 @@ theme-overrides:
             <tbody>
               <tr>
                 <td><code>folio_list_document_types</code></td>
-                <td>Lists all 9 built-in presets (report, invoice, simple, cv, whitepaper, contract...) and workspace presets.</td>
+                <td>Lists 10 built-in presets, including scientific-paper, plus custom workspace presets. No inputs.</td>
               </tr>
               <tr>
                 <td><code>folio_get_document_type</code></td>
-                <td>Returns schema fields, frontmatter defaults, and starter template body for a given preset ID.</td>
+                <td>Takes <code>typeId</code>; returns fields, defaults, starter content, supported placeholders, and editable theme tokens.</td>
               </tr>
               <tr>
                 <td><code>folio_create_document</code></td>
-                <td>Generates a full Markdown file with structured frontmatter, content, and optional file output.</td>
+                <td>Takes required <code>title</code> and <code>content</code>; optional <code>type</code>, <code>theme</code>, <code>metadata</code>, <code>themeOverrides</code>, and <code>outputPath</code>. Returns Markdown and lint findings.</td>
               </tr>
               <tr>
                 <td><code>folio_customize_document</code></td>
-                <td>Safely modifies frontmatter keys or updates document sections while preserving comments.</td>
+                <td>Takes <code>source</code> or <code>filePath</code>, with optional <code>setLayout</code>, <code>setTheme</code>, <code>setMetadata</code>, <code>setThemeOverrides</code>, <code>setHeader</code>, <code>setFooter</code>, and <code>outputPath</code>.</td>
               </tr>
               <tr>
                 <td><code>folio_lint_document</code></td>
-                <td>Lints Markdown for broken KaTeX math, unclosed Mermaid fences, invalid layout keys, or broken links.</td>
+                <td>Takes <code>source</code> or <code>filePath</code>; checks fences, landscape markers, local heading anchors, tables, and frontmatter guidance. Returns counts and <code>findings</code>.</td>
               </tr>
               <tr>
                 <td><code>folio_export_pdf</code></td>
-                <td>Compiles Markdown to an A4 PDF using the headless Electron renderer (Paged.js + KaTeX + Mermaid).</td>
+                <td>Takes <code>inputPath</code> or <code>source</code>, required <code>outputPath</code>, and optional <code>theme</code>/<code>lang</code> export overrides. Renders portrait or landscape PDF pages.</td>
               </tr>
               <tr>
                 <td><code>folio_register_document_type</code></td>
-                <td>Persists a custom reusable document format into <code>.folio/presets/&lt;id&gt;.json</code>.</td>
+                <td>Takes required <code>id</code>, <code>name</code>, <code>description</code>, and <code>baseLayout</code>; optional defaults, headers/footers, fields, and <code>starterTemplate</code>. Saves to <code>.folio/presets/&lt;id&gt;.json</code>.</td>
               </tr>
               <tr><td><code>folio_list_styles</code></td><td>Reads named document styles, the active style, font choices, and editable tokens from a .folio file.</td></tr>
               <tr><td><code>folio_create_style</code></td><td>Creates a named style inside the document from a base theme and overrides.</td></tr>
@@ -427,16 +548,36 @@ theme-overrides:
             </tbody>
           </table>
         </div>
+        <p>Pass <code>outputPath</code> to create/customize when you want to save the returned Markdown. Customizing a file without an output path returns changes without writing them; use the same input and output path to overwrite it. Metadata updates may rewrite YAML comments. Supply an empty <code>content</code> string to create from the preset's starter body.</p>
+        <p>Style tools take a required <code>filePath</code>. List styles to discover IDs and available font/color tokens. Create, duplicate, and update change the library; apply changes the document's appearance. Style mutations preserve attachments and record a restorable revision when something changes. Updates to an open file use the editor's external-change/reload flow.</p>
+        <p>For <code>folio_create_style</code>, supply <code>name</code>, <code>theme</code>, and optional <code>overrides</code>. Duplicate accepts optional <code>styleId</code> and <code>name</code>. Update requires <code>styleId</code> with optional <code>name</code>, <code>theme</code>, and <code>overrides</code>; its override map replaces the saved map. Apply requires <code>styleId</code>.</p>
+
+        <h3 class="sub-heading">Create a Scientific Article</h3>
+        <p>Inspect <code>scientific-paper</code> with <code>folio_get_document_type</code>, then call <code>folio_create_document</code> with these arguments:</p>
+        <div class="code-block"><div class="code-header"><span>folio_create_document arguments</span></div><pre><code>&#123;
+  "type": "scientific-paper",
+  "title": "Reproducible State Estimation",
+  "metadata": &#123;
+    "authors": ["Alex Rivera", "Sam Chen"],
+    "affiliations": ["Example Research Lab"],
+    "orientation": "portrait"
+  &#125;,
+  "content": "## 1. Introduction\n\nResearch question and contribution.\n",
+  "outputPath": "./article.md"
+&#125;</code></pre></div>
+        <p>Lint with <code>folio_lint_document</code> using <code>filePath: "./article.md"</code>, then export with <code>folio_export_pdf</code> using <code>inputPath: "./article.md"</code> and <code>outputPath: "./article.pdf"</code>. Set <code>metadata.orientation</code> to <code>landscape</code> for a wide document. Layouts are <code>report</code>, <code>simple</code>, <code>invoice</code>, <code>cv</code>, and <code>scientific</code>.</p>
+        <p>To export a saved style through MCP, apply it to the existing Folio file, then pass the returned <code>markdown</code> as <code>source</code> to lint and PDF export. The create/export document tools do not directly read or create Folio archives.</p>
+        <p>See the <a href="https://github.com/carlosrivera/folio/blob/main/docs/mcp.md" target="_blank" rel="noopener noreferrer">complete MCP reference</a> for all parameter names and examples.</p>
 
         <h3 id="mcp-presets" class="sub-heading">Custom Presets in <code>.folio/presets/</code></h3>
         <p>
-          When an agent or user registers a custom document format via <code>folio_register_document_type</code>, Folio saves it into <code>.folio/presets/&lt;id&gt;.json</code> in your repository root. These presets are automatically discovered on future runs across all agent sessions.
+          Registering a custom document format saves it into <code>.folio/presets/&lt;id&gt;.json</code> under the MCP server's working directory. Start the server in your workspace to discover that workspace's presets.
         </p>
       </section>
 
       <!-- 5. DEVELOPMENT -->
       <section id="development" class="docs-section">
-        <h2 class="section-heading">5. Development & Contributing</h2>
+        <h2 class="section-heading">6. Development & Contributing</h2>
         <p>
           Contributing to Folio or running the app from source is straightforward:
         </p>
@@ -444,7 +585,7 @@ theme-overrides:
         <h3 class="sub-heading">Prerequisites</h3>
         <ul>
           <li><strong>macOS</strong> (Apple Silicon or Intel)</li>
-          <li><strong>Node.js 20</strong> or newer</li>
+          <li><strong>Node.js 22.12</strong> or newer</li>
           <li><strong>pnpm 11+</strong> (<code>corepack enable &amp;&amp; corepack prepare pnpm@latest --activate</code>)</li>
         </ul>
 
@@ -481,7 +622,7 @@ pnpm mcp</code></pre>
 
         <h3 id="packaging-app" class="sub-heading">Packaging macOS Releases Locally</h3>
         <p>
-          Folio uses <code>electron-builder</code> to produce universal and signed macOS distributions:
+          Folio uses <code>electron-builder</code> to produce separate Apple Silicon and Intel apps, disk images, and ZIP archives:
         </p>
         <div class="code-block">
           <pre><code># Build macOS distributables (.dmg and .zip) into dist-packaged.noindex/
@@ -490,6 +631,8 @@ pnpm dist:mac
 # Build unpackaged directory app for inspection
 pnpm dist:dir</code></pre>
         </div>
+        <p>For a signed release, <code>FOLIO_NOTARY_PROFILE=ocelo-notary pnpm release:mac:local</code> uses the configured Keychain credentials, verifies both app bundles, and notarizes and staples the signed disk images. This requires the project's signing/notarization setup.</p>
+        <p>Create the GitHub release draft, then run <code>pnpm release:mac:upload</code> to upload the verified Mac artifacts. The upload checks remote sizes and SHA-256 hashes before removing that version's local staging files; failed uploads keep local output. Build output uses <code>dist-packaged.noindex/</code> to keep staging copies out of Spotlight.</p>
 
         <h3 class="sub-heading">Landing Page & Docs Development</h3>
         <div class="code-block">
@@ -497,8 +640,12 @@ pnpm dist:dir</code></pre>
 pnpm landing:dev
 
 # Build static production site to landing/dist/
-pnpm landing:build</code></pre>
+pnpm landing:build
+
+# Preview the production build
+pnpm landing:preview</code></pre>
         </div>
+        <p>Pushes to <code>main</code> deploy the website through GitHub Pages. Documentation lives at <code>/folio/docs/</code>; shared navigation uses the same directory URL on desktop and mobile.</p>
       </section>
     </main>
   </div>
@@ -507,6 +654,7 @@ pnpm landing:build</code></pre>
   <SiteFooter />
 
   <script>
+    import { macDownloadArchitecture, type MacArchitectureHints } from '../lib/mac-architecture'
     const ua = navigator.userAgent || ''
     const platform = (navigator as any).userAgentData?.platform || navigator.platform || ''
     const armBtn = document.getElementById('docs-mac-arm')
@@ -519,15 +667,17 @@ pnpm landing:build</code></pre>
       active?.classList.remove('secondary')
     }
 
-    if (/Win/i.test(ua) || /Win/i.test(platform)) {
-      setActiveBtn(winBtn)
-    } else if (/Linux/i.test(ua) || /Linux/i.test(platform)) {
-      setActiveBtn(linuxBtn)
-    } else if (/Intel/i.test(ua) && !/arm/i.test(ua)) {
-      setActiveBtn(intelBtn)
-    } else {
-      setActiveBtn(armBtn)
+    async function selectDownload() {
+      if (/Win/i.test(ua) || /Win/i.test(platform)) {
+        setActiveBtn(winBtn)
+      } else if (/Linux/i.test(ua) || /Linux/i.test(platform)) {
+        setActiveBtn(linuxBtn)
+      } else {
+        const architecture = await macDownloadArchitecture(navigator as Navigator & MacArchitectureHints)
+        setActiveBtn(architecture === 'x64' ? intelBtn : armBtn)
+      }
     }
+    void selectDownload()
   </script>
 </Layout>
 
@@ -541,6 +691,13 @@ pnpm landing:build</code></pre>
     padding-bottom: 96px;
     align-items: start;
   }
+
+  .docs-content { min-width: 0; }
+  .docs-content a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+  .docs-content .chip-btn { color: var(--accent-fg); text-decoration: none; }
+  .docs-content .chip-btn.secondary { color: var(--text); }
+  .docs-section li code, .docs-section p code, .docs-table code { overflow-wrap: anywhere; }
+  .docs-mobile-toc { display: none; }
 
   /* Sticky Sidebar */
   .docs-sidebar {
@@ -824,5 +981,8 @@ pnpm landing:build</code></pre>
     .docs-sidebar {
       display: none;
     }
+    .docs-mobile-toc { display: block; margin-top: 24px; padding: 14px 18px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+    .docs-mobile-toc summary { cursor: pointer; font-weight: 600; }
+    .docs-mobile-toc nav { display: grid; gap: 12px; padding-top: 16px; }
   }
 </style>

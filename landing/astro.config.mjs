@@ -5,4 +5,5 @@ export default defineConfig({
   site: 'https://carlosrivera.github.io',
   base: '/folio',
   output: 'static',
+  trailingSlash: 'always',
 })

@@ -15,7 +15,7 @@ export const changelog: ChangelogEntry[] = [
     changes: [
       'Simplified the style editor with visual font choices, style duplication, and a clearer path for creating a new style.',
       'Stored named custom styles inside portable .folio documents so a document keeps its complete visual identity when shared.',
-      'Added MCP tools for listing, reading, applying, saving, duplicating, and deleting document styles.',
+      'Added MCP tools for listing, creating, duplicating, updating, and applying document styles.',
     ],
   },
   {
