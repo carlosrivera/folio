@@ -1,22 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import katex from 'katex'
-import hljs from 'highlight.js/lib/core'
-import typescript from 'highlight.js/lib/languages/typescript'
-
-hljs.registerLanguage('typescript', typescript)
-const codeExample = `type Report = {
-  title: string
-  status: "draft" | "ready"
-}
-
-const publish = (report: Report) =>
-  report.status === "ready"`
-const highlightedCode = hljs.highlight(codeExample, { language: 'typescript' }).value
-const mermaidExample = `flowchart LR
-  A[Markdown draft] --> B{Ready to publish?}
-  B -->|Revise| A
-  B -->|Yes| C[Finished PDF]`
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '')
 const githubRepo = 'https://github.com/carlosrivera/folio'
@@ -37,8 +21,6 @@ const eqRiccati = katex.renderToString('A^T P + P A - P B R^{-1} B^T P + Q = 0',
 const inlineP = katex.renderToString('P \\succ 0', { displayMode: false })
 const inlineOmega = katex.renderToString('\\Omega \\subset \\mathbb{R}^n', { displayMode: false })
 
-// Pre-render KaTeX showcase equation
-const eqShowcase = katex.renderToString('\\mathcal{L}_{\\text{total}}(\\theta) = \\mathbb{E}_{x \\sim p_{\\text{data}}}\\left[ -\\log p_\\theta(x) \\right] + \\beta \\cdot D_{\\text{KL}}\\left( q_\\phi(z|x) \\,\\parallel\\, p(z) \\right)', { displayMode: true, throwOnError: false })
 
 const themes = [
   { id: 'voltage', name: 'Voltage', swatch: '#d4ff2b', bg: '#000000', fonts: 'Space Grotesk · JetBrains Mono', desc: 'Pure pitch black, acid lime accents, sharp monospace details.' },
@@ -632,65 +614,48 @@ const themes = [
           </p>
         </div>
 
-        <div class="latex-showcase-box">
-          <div class="render-tabs" role="tablist" aria-label="Rendering examples">
-            <button type="button" class="render-tab is-active" role="tab" aria-selected="true" aria-controls="render-code" data-render-tab="code">Code</button>
-            <button type="button" class="render-tab" role="tab" aria-selected="false" aria-controls="render-mermaid" data-render-tab="mermaid">Mermaid</button>
-            <button type="button" class="render-tab" role="tab" aria-selected="false" aria-controls="render-latex" data-render-tab="latex">LaTeX</button>
-          </div>
+        <div class="technical-proof">
+          <div class="technical-source">
+            <span class="proof-label">Plain Markdown</span>
+            <pre><code># Release pipeline
 
-          <div class="render-example is-active" id="render-code" role="tabpanel" data-render-panel="code">
-            <div class="latex-pane-code">
-              <div class="pane-tag">Markdown source</div>
-              <pre><code>{'```ts\n' + codeExample + '\n```'}</code></pre>
-            </div>
-            <div class="latex-pane-render">
-              <div class="pane-tag">Rendered with highlight.js</div>
-              <pre class="rendered-code" aria-label="Syntax highlighted TypeScript example"><code set:html={highlightedCode} /></pre>
-              <div class="latex-render-meta">
-                <span>✓ Language detection</span>
-                <span>✓ Theme-aware colors</span>
-                <span>✓ Safe line wrapping</span>
-              </div>
-            </div>
-          </div>
+```ts
+const publish = (ready: boolean) =&gt; ready
+```
 
-          <div class="render-example" id="render-mermaid" role="tabpanel" data-render-panel="mermaid" hidden>
-            <div class="latex-pane-code">
-              <div class="pane-tag">Markdown source</div>
-              <pre><code>{'```mermaid\n' + mermaidExample + '\n```'}</code></pre>
-            </div>
-            <div class="latex-pane-render">
-              <div class="pane-tag">Rendered with Mermaid</div>
-              <div class="mermaid-preview" data-mermaid-source={mermaidExample} aria-label="Rendered Mermaid flowchart"></div>
-              <div class="latex-render-meta">
-                <span>✓ Fits page margins</span>
-                <span>✓ Scales for print</span>
-                <span>✓ Updates as you type</span>
-              </div>
-            </div>
-          </div>
+```mermaid
+flowchart LR
+  Draft --&gt; Review --&gt; Publish
+```
 
-          <div class="render-example" id="render-latex" role="tabpanel" data-render-panel="latex" hidden>
-            <div class="latex-pane-code">
-            <div class="pane-tag">Plain Markdown Syntax</div>
-            <pre><code>$$
-\mathcal&#123;L&#125;_&#123;\text&#123;total&#125;&#125;(\theta) = \mathbb&#123;E&#125;_&#123;x \sim p_&#123;\text&#123;data&#125;&#125;&#125;\left[ -\log p_\theta(x) \right] + \beta \cdot D_&#123;\text&#123;KL&#125;&#125;\left( q_\phi(z|x) \,\parallel\, p(z) \right)
+$$
+E = mc^2
 $$</code></pre>
-            </div>
-            <div class="latex-pane-render">
-              <div class="pane-tag">Typeset with KaTeX</div>
-              <div class="latex-rendered-math">
-                <div class="math-content" set:html={eqShowcase} />
-                <span class="eq-badge">(3.2)</span>
-              </div>
-              <div class="latex-render-meta">
-                <span>✓ Scalable vector glyphs</span>
-                <span>✓ MathML accessible</span>
-                <span>✓ Print-sharp equations</span>
-              </div>
-            </div>
           </div>
+          <figure class="technical-paper">
+            <div class="proof-paper-header"><span>ENGINEERING NOTE</span><span>FOLIO / 01</span></div>
+            <h3>Release pipeline</h3>
+            <div class="proof-block">
+              <span class="proof-label">Syntax-highlighted code</span>
+              <pre class="proof-code"><code><span class="proof-keyword">const</span> publish = (ready: <span class="proof-type">boolean</span>) =&gt; ready</code></pre>
+            </div>
+            <div class="proof-block">
+              <span class="proof-label">Mermaid diagrams</span>
+              <svg class="proof-diagram" viewBox="0 0 420 84" role="img" aria-label="Draft flows to Review, then Publish">
+                <defs><marker id="proof-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#9b8e83" /></marker></defs>
+                <path d="M112 42H153M267 42H308" stroke="#9b8e83" stroke-width="1.5" marker-end="url(#proof-arrow)" />
+                <rect x="2" y="14" width="110" height="56" rx="6" fill="#faf8f4" stroke="#ded7ce" />
+                <rect x="155" y="14" width="110" height="56" rx="6" fill="#faf8f4" stroke="#ded7ce" />
+                <rect x="310" y="14" width="108" height="56" rx="6" fill="#f7ede8" stroke="#d25c3a" />
+                <g text-anchor="middle" dominant-baseline="middle" fill="#40372f" font-size="14" font-family="Inter, sans-serif"><text x="57" y="43">Draft</text><text x="210" y="43">Review</text><text x="364" y="43">Publish</text></g>
+              </svg>
+            </div>
+            <div class="proof-block proof-equation">
+              <span class="proof-label">LaTeX equations</span>
+              <div class="proof-formula"><span>E = mc<sup>2</sup></span><span class="proof-equation-number">(1)</span></div>
+            </div>
+            <figcaption>One document. Code, diagrams, and equations ready for print.</figcaption>
+          </figure>
         </div>
       </div>
     </section>
@@ -987,39 +952,6 @@ $$</code></pre>
 
 <script>
   import { macDownloadArchitecture, type MacArchitectureHints } from '../lib/mac-architecture'
-  let diagramRendered = false
-  async function renderDiagram() {
-    const target = document.querySelector<HTMLElement>('[data-mermaid-source]')
-    if (!target || diagramRendered) return
-    try {
-      const { default: mermaid } = await import('mermaid')
-      mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'neutral', flowchart: { useMaxWidth: true }, themeVariables: { fontFamily: 'Inter, sans-serif' } })
-      const { svg } = await mermaid.render('landing-mermaid-example', target.dataset.mermaidSource || '')
-      target.innerHTML = svg
-      diagramRendered = true
-    } catch {
-      target.textContent = 'Diagram preview could not load. Try refreshing the page.'
-    }
-  }
-  const renderTabs = document.querySelectorAll<HTMLButtonElement>('[data-render-tab]')
-  const renderPanels = document.querySelectorAll<HTMLElement>('[data-render-panel]')
-
-  renderTabs.forEach((tab) => {
-    tab.addEventListener('click', () => {
-      const selected = tab.dataset.renderTab
-      renderTabs.forEach((item) => {
-        const isSelected = item === tab
-        item.classList.toggle('is-active', isSelected)
-        item.setAttribute('aria-selected', String(isSelected))
-      })
-      renderPanels.forEach((panel) => {
-        const isSelected = panel.dataset.renderPanel === selected
-        panel.classList.toggle('is-active', isSelected)
-        panel.hidden = !isSelected
-      })
-      if (selected === 'mermaid') void renderDiagram()
-    })
-  })
 
   // Interactive Theme Switching Logic
   const themeCards = document.querySelectorAll<HTMLButtonElement>('.theme-card')
@@ -3088,270 +3020,34 @@ $$</code></pre>
     line-height: 1.45;
   }
 
-  /* Code, Mermaid, and LaTeX rendering showcase */
-  .latex-showcase-box {
-    background: var(--surface);
+  /* Static technical document illustration */
+  .technical-proof {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    overflow: hidden;
     border: 1px solid var(--border);
     border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.05);
   }
-
-  .render-tabs {
-    display: flex;
-    gap: 4px;
-    padding: 8px;
-    background: #0e0f12;
-    border-bottom: 1px solid #292b32;
-  }
-
-  .render-tab {
-    border: 0;
-    border-radius: 7px;
-    padding: 8px 14px;
-    background: transparent;
-    color: #a1a1aa;
-    font: 650 0.82rem/1 "Inter", sans-serif;
-    cursor: pointer;
-    transition: background 0.16s ease, color 0.16s ease;
-  }
-
-  .render-tab:hover { color: #f4f4f5; }
-
-  .render-tab.is-active {
-    background: #292b32;
-    color: #ffffff;
-  }
-
-  .render-example {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    min-height: 330px;
-  }
-
-  .render-example[hidden] { display: none; }
-
+  .technical-source { padding: clamp(24px, 4vw, 42px); background: #17181d; color: #e4e4e7; }
+  .proof-label { display: block; margin-bottom: 14px; font: 600 0.68rem/1.4 "Inter", sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: #8d8177; }
+  .technical-source .proof-label { color: #a1a1aa; }
+  .technical-source pre { margin-top: 28px; white-space: pre-wrap; overflow-wrap: anywhere; color: #c6d59f; font: 400 0.83rem/1.8 "JetBrains Mono", monospace; }
+  .technical-paper { margin: 0; padding: clamp(24px, 4vw, 42px); background: #fffdf9; color: #29231e; min-width: 0; }
+  .proof-paper-header { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid #e5ddd3; color: #9b8e83; font: 500 0.6rem/1.4 "JetBrains Mono", monospace; letter-spacing: 0.08em; }
+  .technical-paper h3 { margin: 24px 0 28px; font: 600 clamp(1.5rem, 3vw, 2rem)/1.2 "Space Grotesk", sans-serif; letter-spacing: -0.03em; color: #29231e; }
+  .proof-block + .proof-block { margin-top: 28px; }
+  .proof-code { margin: 0; padding: 18px; border: 1px solid #e5ddd3; border-radius: 5px; background: #f5f2ed; white-space: pre-wrap; overflow-wrap: anywhere; font: 400 0.77rem/1.7 "JetBrains Mono", monospace; color: #4b4138; }
+  .proof-keyword { color: #9e466c; }
+  .proof-type { color: #38788a; }
+  .proof-diagram { display: block; width: 100%; height: auto; }
+  .proof-formula { display: flex; align-items: center; justify-content: center; position: relative; padding: 10px 32px; font: italic 2rem/1.5 Georgia, serif; }
+  .proof-formula sup { font-size: 0.6em; }
+  .proof-equation-number { position: absolute; right: 0; font: 400 0.75rem/1.4 Georgia, serif; color: #9b8e83; }
+  .technical-paper figcaption { margin-top: 28px; padding-top: 16px; border-top: 1px solid #e5ddd3; color: #8d8177; font-size: 0.72rem; line-height: 1.5; }
   @media (max-width: 768px) {
-    .render-example { grid-template-columns: 1fr; }
-  }
-
-  .latex-pane-code {
-    background: #141518;
-    color: #e4e4e7;
-    padding: 24px;
-    border-right: 1px solid #22242a;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-  }
-
-  .pane-tag {
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #a1a1aa;
-    margin-bottom: 14px;
-  }
-
-  .latex-pane-code pre {
-    margin: 0;
-    white-space: pre-wrap;
-    word-break: break-word;
-    font-size: 0.88rem;
-    line-height: 1.5;
-    color: #a3e635;
-    font-family: "JetBrains Mono", monospace;
-  }
-
-  .latex-pane-render {
-    background: #ffffff;
-    color: #09090b;
-    padding: 26px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: background-color 0.3s ease;
-  }
-
-  .rendered-code {
-    flex: 1;
-    margin-bottom: 20px;
-    border: 1px solid #2d3038;
-    border-left: 4px solid #d25c3a;
-    border-radius: 7px;
-    padding: 20px;
-    background: #191a1f;
-    color: #d4d4d8;
-    font: 500 0.87rem/1.65 "JetBrains Mono", monospace;
-    overflow-x: auto;
-  }
-
-  .rendered-code { white-space: pre-wrap; overflow-wrap: anywhere; }
-  .rendered-code :global(.hljs-keyword) { color: #c084fc; }
-  .rendered-code :global(.hljs-built_in),
-  .rendered-code :global(.hljs-title.class_) { color: #67e8f9; }
-  .rendered-code :global(.hljs-string) { color: #a3e635; }
-  .rendered-code :global(.hljs-title.function_) { color: #fbbf24; }
-
-  .mermaid-preview {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex: 1;
-    margin-bottom: 20px;
-    padding: 28px 16px;
-    border: 1px solid #e7e5e4;
-    border-radius: 7px;
-    background: #fafaf9;
-  }
-  .mermaid-preview :global(svg) { width: 100%; height: auto; max-height: 250px; }
-
-  .diagram-node {
-    border: 1.5px solid #a8a29e;
-    border-radius: 7px;
-    padding: 12px 8px;
-    color: #292524;
-    background: #ffffff;
-    font: 700 0.82rem/1 "Inter", sans-serif;
-    text-align: center;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  }
-
-  .diagram-node-accent {
-    border-color: #d25c3a;
-    background: #f7ede8;
-    color: #9f3f27;
-  }
-
-  .diagram-arrow {
-    position: relative;
-    height: 1px;
-    background: #a8a29e;
-  }
-
-  .diagram-arrow::after {
-    content: '';
-    position: absolute;
-    top: -3px;
-    right: 0;
-    width: 6px;
-    height: 6px;
-    border-top: 1.5px solid #78716c;
-    border-right: 1.5px solid #78716c;
-    transform: rotate(45deg);
-  }
-
-  .latex-pane-render .pane-tag {
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #ba4e31;
-    margin-bottom: 14px;
-    transition: color 0.3s ease;
-  }
-
-  /* High-contrast theme-specific colors for pane-tag on white paper */
-  html[data-theme="voltage"] .latex-pane-render .pane-tag { color: #4d6600; }
-  html[data-theme="editorial"] .latex-pane-render .pane-tag { color: #ba4e31; }
-  html[data-theme="slate"] .latex-pane-render .pane-tag { color: #0284c7; }
-  html[data-theme="scientific"] .latex-pane-render .pane-tag { color: #1d4ed8; }
-  html[data-theme="contrast"] .latex-pane-render .pane-tag { color: #09090b; }
-  html[data-theme="graphite"] .latex-pane-render .pane-tag { color: #3f6212; }
-  html[data-theme="nocturne"] .latex-pane-render .pane-tag { color: #86198f; }
-
-  .latex-rendered-math {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-    padding: 18px 16px;
-    background: #fafaf9;
-    border: 1px solid #e7e5e4;
-    border-left: 4px solid #ba4e31;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-  }
-
-  /* Theme-specific calibrated equation card styling */
-  html[data-theme="voltage"] .latex-rendered-math {
-    background: #fafdf2;
-    border-color: #d9f99d;
-    border-left: 4px solid #84cc16;
-  }
-  html[data-theme="editorial"] .latex-rendered-math {
-    background: #fdfaf6;
-    border-color: #ebdcd3;
-    border-left: 4px solid #ba4e31;
-  }
-  html[data-theme="slate"] .latex-rendered-math {
-    background: #f8fafc;
-    border-color: #bae6fd;
-    border-left: 4px solid #0284c7;
-  }
-  html[data-theme="scientific"] .latex-rendered-math {
-    background: #ffffff;
-    border-color: #cbd5e1;
-    border-left: 4px solid #2563eb;
-  }
-  html[data-theme="contrast"] .latex-rendered-math {
-    background: #ffffff;
-    border-color: #09090b;
-    border-left: 4px solid #09090b;
-  }
-  html[data-theme="graphite"] .latex-rendered-math {
-    background: #fcfcf9;
-    border-color: #d9f99d;
-    border-left: 4px solid #65a30d;
-  }
-  html[data-theme="nocturne"] .latex-rendered-math {
-    background: #faf5ff;
-    border-color: #fbcfe8;
-    border-left: 4px solid #d946ef;
-  }
-
-  /* CRITICAL: KaTeX math glyphs MUST ALWAYS be deep black ink for maximum paper contrast */
-  .latex-rendered-math .math-content,
-  .latex-rendered-math .math-content *,
-  .latex-rendered-math .katex,
-  .latex-rendered-math .katex *,
-  .latex-rendered-math .katex-html,
-  .latex-rendered-math .katex-html * {
-    color: #09090b !important;
-  }
-
-  .latex-rendered-math .math-content {
-    flex: 1;
-    min-width: 0;
-    font-size: 0.98rem;
-    overflow-x: auto;
-    text-align: center;
-    padding: 2px 4px;
-  }
-
-  .eq-badge {
-    flex-shrink: 0;
-    font-size: 0.82rem;
-    font-family: "JetBrains Mono", monospace;
-    font-weight: 600;
-    color: #4b5563 !important;
-  }
-
-  .latex-render-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #374151;
-    border-top: 1px solid #e5e7eb;
-    padding-top: 14px;
-  }
-
-  .latex-render-meta span {
-    color: #374151 !important;
+    .technical-proof { grid-template-columns: 1fr; }
+    .technical-source pre { font-size: 0.78rem; line-height: 1.65; }
   }
 
   /* MCP agent workflow */
