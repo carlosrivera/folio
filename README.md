@@ -155,6 +155,7 @@ pnpm dist:dir
 ```
 
 - **Auto-Updates**: Integrated via `electron-updater` checking GitHub Releases (`carlosrivera/folio`). Checks can be triggered manually from **Folio > Check for Updates…** or run quietly on startup.
+- **macOS signing**: Publishing requires `CSC_LINK`, `CSC_KEY_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, and `APPLE_TEAM_ID` repository secrets. Mac builds must pass Developer ID signing, notarization, signature verification, and stapled-ticket validation before upload.
 - **GitHub Actions Release**: Tag pushes (`v*`) automatically trigger `.github/workflows/release-app.yml` to compile and publish macOS, Windows, and Linux releases.
 
 ## Landing Page

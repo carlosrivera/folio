@@ -32,20 +32,37 @@ jobs:
       - name: Build application
         run: pnpm build
 
-      - name: Build & Publish macOS Release
+      - name: Build signed and notarized macOS release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          if [ -n "${{ secrets.CSC_LINK }}" ]; then
-            export CSC_LINK="${{ secrets.CSC_LINK }}"
-            export CSC_KEY_PASSWORD="${{ secrets.CSC_KEY_PASSWORD }}"
-            export APPLE_ID="${{ secrets.APPLE_ID }}"
-            export APPLE_APP_SPECIFIC_PASSWORD="${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}"
-            export APPLE_TEAM_ID="${{ secrets.APPLE_TEAM_ID }}"
-            unset CSC_IDENTITY_AUTO_DISCOVERY
+          for credential in CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID; do
+            if [ -z "${!credential}" ]; then
+              echo "::error::Missing $credential. macOS releases must be signed and notarized."
+              exit 1
+            fi
+          done
+          pnpm exec electron-builder --mac --publish never --config.forceCodeSigning=true
+          for bundle in dist-packaged/mac*/Folio.app; do
+            codesign --verify --deep --strict "$bundle"
+            spctl --assess --type execute --verbose "$bundle"
+            xcrun stapler validate "$bundle"
+          done
+
+      - name: Upload verified macOS artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          release_tag="v$(node -p 'require("./package.json").version')"
+          if ! gh release view "$release_tag" >/dev/null 2>&1; then
+            gh release create "$release_tag" --verify-tag --draft --title "Folio ${release_tag#v}"
           fi
-          pnpm exec electron-builder --mac --publish always
+          gh release upload "$release_tag" dist-packaged/*.dmg dist-packaged/*.zip dist-packaged/*.blockmap dist-packaged/latest-mac.yml --clobber
 
   release-win:
     name: Build & Release Windows (x64 & arm64)

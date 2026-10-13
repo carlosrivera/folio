@@ -866,6 +866,7 @@ $$</code></pre>
 </Layout>
 
 <script>
+  import { macDownloadArchitecture, type MacArchitectureHints } from '../lib/mac-architecture'
   // Interactive Theme Switching Logic
   const themeCards = document.querySelectorAll<HTMLButtonElement>('.theme-card')
   const cmThemeCode = document.getElementById('cm-theme-code')
@@ -1054,7 +1055,7 @@ $$</code></pre>
   setupDropdown('closing-dl-toggle', 'closing-dl-menu')
 
   // Auto-detect user OS and configure default download button & badges
-  function autoDetectOS() {
+  async function autoDetectOS() {
     const ua = navigator.userAgent || ''
     const platform = (navigator as any).userAgentData?.platform || navigator.platform || ''
 
@@ -1132,7 +1133,7 @@ $$</code></pre>
         'opt-closing-linux-appimage'
       )
     } else {
-      const isIntel = /Intel/i.test(ua) && !/arm/i.test(ua)
+      const isIntel = await macDownloadArchitecture(navigator as Navigator & MacArchitectureHints) === 'x64'
       if (isIntel) {
         applyTarget(
           'https://github.com/carlosrivera/folio/releases/download/v0.3.0/Folio-0.3.0.dmg',
@@ -1155,7 +1156,7 @@ $$</code></pre>
     }
   }
 
-  autoDetectOS()
+  void autoDetectOS()
 
   // Responsive Mobile Navigation Drawer
   const mobileNavToggle = document.getElementById('mobile-nav-toggle')
