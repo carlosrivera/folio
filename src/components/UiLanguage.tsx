@@ -2,6 +2,13 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import type { SupportedLanguage } from '../lib/i18n'
 
 const spanish: Record<string, string> = {
+  'Page orientation': 'Orientación de página', 'Portrait': 'Vertical', 'Landscape': 'Horizontal',
+  'Landscape Presentation': 'Presentación horizontal',
+  'Wide pages with a title slide and sections separated by page breaks.': 'Páginas horizontales con una diapositiva de título y secciones separadas por saltos de página.',
+  'Scientific Article': 'Artículo científico', 'Article': 'Artículo',
+  'Title, authors, abstract & compact research sections': 'Título, autores, resumen y secciones de investigación',
+  'Authors': 'Autores', 'Affiliations': 'Afiliaciones', 'Abstract': 'Resumen', 'Journal': 'Revista',
+  'Research manuscript with authors, abstract, methods, results, and references.': 'Artículo con autores, resumen, métodos, resultados y referencias',
   'Petstore API Documentation': 'Documentación de la API Petstore',
   'API reference with authentication, endpoints, code examples, and an integration flow.': 'Referencia de API con autenticación, endpoints, ejemplos de código y un flujo de integración.',
   'Save as Folio document…': 'Guardar como documento Folio…',

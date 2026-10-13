@@ -7,6 +7,7 @@ import { parseDocument, formatChromeText, type DocumentTheme } from '../lib/docu
 import { ReportTemplate } from './ReportTemplate'
 import { CvTemplate } from './CvTemplate'
 import { SimpleTemplate } from './SimpleTemplate'
+import { ScientificTemplate } from './ScientificTemplate'
 import { InvoiceTemplate } from './InvoiceTemplate'
 import { getTranslations, type SupportedLanguage } from '../lib/i18n'
 import { transformCvHtml } from '../lib/cv-html'
@@ -214,7 +215,7 @@ function sizeDiagramToPage(svgEl: SVGElement, figure: HTMLElement | null) {
   const naturalHeight = viewBox && viewBox.length === 4 && viewBox[3] > 0 ? viewBox[3] : 0
   if (!naturalWidth || !naturalHeight) return
 
-  const budget = figure?.closest('.folio-landscape') ? PAGE_BUDGETS.landscape : PAGE_BUDGETS.portrait
+  const budget = figure?.closest('.folio-landscape, .folio-document-landscape') ? PAGE_BUDGETS.landscape : PAGE_BUDGETS.portrait
   const requested = figure?.getAttribute('data-diagram-width')
   // `full` fills the measure even when the drawing is small; `half` keeps a
   // narrow diagram narrow so it can sit beside surrounding prose comfortably.
@@ -231,8 +232,18 @@ function sizeDiagramToPage(svgEl: SVGElement, figure: HTMLElement | null) {
 
   svgEl.removeAttribute('width')
   svgEl.removeAttribute('height')
+  svgEl.style.display = 'block'
   svgEl.style.width = `${width.toFixed(2)}mm`
   svgEl.style.height = `${height.toFixed(2)}mm`
+  if (figure) {
+    // Reserve the drawing's full height before Paged.js clones and fragments it.
+    // Content-box sizing keeps the frame's padding and border outside this budget.
+    figure.style.display = 'flex'
+    figure.style.boxSizing = 'content-box'
+    figure.style.height = `${height.toFixed(2)}mm`
+    const diagram = svgEl.parentElement
+    if (diagram) { diagram.style.display = 'flex'; diagram.style.height = `${height.toFixed(2)}mm`; diagram.style.flexShrink = '0' }
+  }
 }
 
 // Diagram sources rarely change while prose is being edited, but every preview
@@ -369,6 +380,9 @@ function addPageChrome(
   const pages = Array.from(root.querySelectorAll<HTMLElement>('.pagedjs_page'))
   const t = getTranslations(lang)
   const layout = doc.metadata.layout
+  if (doc.metadata.orientation === 'landscape') {
+    pages.forEach(page => page.classList.add('pagedjs_landscape_page'))
+  }
 
   if (layout === 'cv') {
     const cvHeader = transformCvHtml(doc.html).header
@@ -428,9 +442,10 @@ function addPageChrome(
     return
   }
 
-  if (layout === 'simple') {
+  if (layout === 'simple' || layout === 'scientific') {
     pages.forEach((page, index) => {
       page.classList.add('folio-simple-sheet', `theme-${theme}`)
+      if (layout === 'scientific') page.classList.add('folio-scientific-sheet')
       if (page.querySelector('.folio-toc-page') !== null) {
         page.classList.add('folio-toc-sheet')
       }
@@ -446,7 +461,7 @@ function addPageChrome(
       }
 
       if (doc.metadata.footer) {
-        const defaultLeft = doc.metadata.title && pages.length > 1 ? doc.metadata.title : ''
+        const defaultLeft = layout === 'scientific' ? (doc.metadata.journal || '') : (doc.metadata.title && pages.length > 1 ? doc.metadata.title : '')
         const defaultRight = `${t.page} ${index + 1} ${t.of} ${pages.length}`
         const left = doc.metadata.footerLeft ? formatChromeText(doc.metadata.footerLeft, doc, index, pages.length, lang) : defaultLeft
         const center = doc.metadata.footerCenter ? formatChromeText(doc.metadata.footerCenter, doc, index, pages.length, lang) : ''
@@ -651,6 +666,14 @@ export function PaginatedDocument({
 
           const template = window.document.createElement('div')
           template.innerHTML = sourceRef.current.innerHTML
+          if (document.metadata.orientation === 'landscape') {
+            const wideDocument = window.document.createElement('div')
+            wideDocument.className = 'folio-document-landscape'
+            // Remove hidden artwork so it cannot create an empty cover fragment.
+            if (activeTheme === 'scientific') template.querySelector('.cover-accent')?.remove()
+            wideDocument.append(...Array.from(template.childNodes))
+            template.append(wideDocument)
+          }
           const images = Array.from(template.querySelectorAll<HTMLImageElement>('img'))
           if (images.length && window.folio?.resolveImages) {
             const resolved = await window.folio.resolveImages(documentPath ?? null, images.map(image => image.getAttribute('src') ?? ''))
@@ -782,6 +805,8 @@ export function PaginatedDocument({
             overrideTheme={activeTheme}
             overrideLang={activeLang}
           />
+        ) : document.metadata.layout === 'scientific' ? (
+          <ScientificTemplate document={document} overrideTheme={activeTheme} overrideLang={activeLang} />
         ) : document.metadata.layout === 'simple' ? (
           <SimpleTemplate
             document={document}

@@ -698,7 +698,7 @@ if (isMcpMode) {
     if (process.platform === 'darwin') {
       app.setAboutPanelOptions({
         applicationName: 'Folio',
-        applicationVersion: '0.2.0',
+        applicationVersion: app.getVersion(),
         copyright: '© 2026 Folio',
         credits: 'A Markdown document editor with paginated preview, PDF export, and Model Context Protocol agent support.',
       })

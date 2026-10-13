@@ -348,6 +348,62 @@ Please remit payment via ACH or wire transfer to:
 
 
 /** A ready-to-edit API reference based on Swagger's public Petstore v3 definition. */
+export const scientificStarterDocument = `---
+layout: scientific
+theme: scientific
+title: Title of Your Article
+authors:
+  - First Author
+  - Second Author
+affiliations:
+  - Department, Institution, City, Country
+abstract: |
+  Summarize the research question, approach, main findings, and implications in one concise paragraph.
+keywords: [keyword one, keyword two, keyword three]
+---
+
+# Title of Your Article
+
+## 1. Introduction
+
+Explain the problem, relevant prior work, and the contribution of this study. Cite sources using numbered references [1] or Markdown footnotes.[^source]
+
+## 2. Methods
+
+Describe materials, procedures, and analysis in enough detail to reproduce the study.
+
+### 2.1. Experimental design
+
+Define the variables, controls, and evaluation criteria.
+
+## 3. Results
+
+Report observations separately from their interpretation. Replace the illustrative table with your results.
+
+| Condition | Measurement | Uncertainty |
+|:---|---:|---:|
+| Control | — | — |
+| Treatment | — | — |
+
+## 4. Discussion
+
+Interpret the findings, compare with prior work, and describe limitations.
+
+## 5. Conclusion
+
+State the main finding and directions for future research.
+
+## Acknowledgments
+
+Credit contributions, funding, and disclose competing interests as applicable.
+
+## References
+
+1. Author, A. (Year). Title of the cited work. *Journal*, volume, pages. DOI.
+
+[^source]: Replace this note with a real source or explanatory note.
+`
+
 export const samplePetstoreDocument = `---
 title: Petstore API Documentation
 layout: simple

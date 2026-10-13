@@ -69,7 +69,10 @@ app.whenReady().then(async () => {
     await click(win, '.document-properties button', 'Apply')
     assert.match(await text(win), /prepared-by: Writer/); assert.match(await text(win), /custom: retained/)
     await click(win, '.editor-toolbar button', 'Document')
-    await click(win, '.document-properties button', 'Insert page break')
+    assert.equal(await js(win, `Array.from(document.querySelectorAll('.document-properties button')).some(button => button.textContent.includes('page break'))`), false)
+    await click(win, '.document-properties button', 'Cancel')
+    await click(win, '.editor-insert-menu summary', 'Insert')
+    await click(win, '.editor-insert-menu button', 'Page break')
     assert.ok((await text(win)).includes('<!-- pagebreak -->'))
 
     let current = await text(win)

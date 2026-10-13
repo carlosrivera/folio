@@ -1,7 +1,7 @@
 import { useMenuKeyboard } from './use-menu-keyboard'
 import { useUi } from './UiLanguage'
 import { useEffect, useRef, useState } from 'react'
-import { Briefcase, Check, ChevronDown, FileText, ReceiptText, User } from 'lucide-react'
+import { BookOpen, Briefcase, Check, ChevronDown, FileText, ReceiptText, User } from 'lucide-react'
 import type { DocumentLayout } from '../lib/document'
 
 export const DOCUMENT_LAYOUTS: { id: DocumentLayout; label: string; title: string; note: string }[] = [
@@ -29,6 +29,12 @@ export const DOCUMENT_LAYOUTS: { id: DocumentLayout; label: string; title: strin
     title: 'Curriculum Vitae',
     note: 'Hero header, contact bar & compact resume flow',
   },
+  {
+    id: 'scientific',
+    label: 'Article',
+    title: 'Scientific Article',
+    note: 'Title, authors, abstract & compact research sections',
+  },
 ]
 
 export function layoutLabel(id: DocumentLayout): string {
@@ -37,6 +43,8 @@ export function layoutLabel(id: DocumentLayout): string {
 
 function LayoutIcon({ id, size = 13 }: { id: DocumentLayout; size?: number }) {
   switch (id) {
+    case 'scientific':
+      return <BookOpen size={size} />
     case 'cv':
       return <User size={size} />
     case 'invoice':

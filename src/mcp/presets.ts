@@ -5,6 +5,23 @@ import type { DocumentTypePreset } from './types'
 
 export const BUILTIN_PRESETS: DocumentTypePreset[] = [
   {
+    id: 'scientific-paper',
+    name: 'Scientific Article',
+    description: 'Scholarly manuscript with a title, authors, affiliations, abstract, keywords, and compact research sections.',
+    baseLayout: 'scientific',
+    defaultTheme: 'scientific',
+    fields: [
+      { name: 'title', description: 'Article title', required: true },
+      { name: 'authors', description: 'Author names', required: true },
+      { name: 'affiliations', description: 'Departments and institutions', required: false },
+      { name: 'abstract', description: 'Research summary', required: false },
+      { name: 'keywords', description: 'Research keywords', required: false },
+      { name: 'journal', description: 'Journal or publication name', required: false },
+      { name: 'doi', description: 'Digital object identifier', required: false },
+    ],
+    starterTemplate: '## 1. Introduction\n\nResearch question and contribution.\n\n## 2. Methods\n\nReproducible procedure.\n\n## 3. Results\n\nObservations.\n\n## 4. Discussion\n\nInterpretation and limitations.\n\n## 5. Conclusion\n\nMain findings.\n\n## References\n\nCited works.\n',
+  },
+  {
     id: 'report',
     name: 'Report / Statement of Work',
     description: 'Formal document structure featuring a cover page, metadata table, and optional table of contents.',

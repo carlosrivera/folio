@@ -12,6 +12,8 @@ export type LintFinding = {
 }
 
 const KNOWN_FRONTMATTER_KEYS = new Set([
+  'authors', 'affiliations', 'abstract', 'keywords', 'journal', 'doi',
+  'orientation',
   'layout',
   'title',
   'client',

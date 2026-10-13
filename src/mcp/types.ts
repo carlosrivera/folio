@@ -49,7 +49,7 @@ export const RegisterPresetSchema = z.object({
     .regex(/^[a-z0-9_-]+$/i, 'ID must be alphanumeric with dashes or underscores'),
   name: z.string().min(2).max(100),
   description: z.string().min(5).max(500),
-  baseLayout: z.enum(['report', 'simple', 'invoice', 'cv']),
+  baseLayout: z.enum(['report', 'simple', 'invoice', 'cv', 'scientific']),
   defaultTheme: z
     .enum(['editorial', 'voltage', 'graphite', 'contrast', 'slate', 'nocturne', 'scientific'])
     .optional(),
@@ -107,7 +107,7 @@ export const CreateDocumentSchema = z.object({
 export const CustomizeDocumentSchema = z.object({
   source: z.string().optional().describe('Markdown source string to customize'),
   filePath: z.string().optional().describe('File path of existing markdown document to customize'),
-  setLayout: z.enum(['report', 'simple', 'invoice', 'cv']).optional(),
+  setLayout: z.enum(['report', 'simple', 'invoice', 'cv', 'scientific']).optional(),
   setTheme: z
     .enum(['editorial', 'voltage', 'graphite', 'contrast', 'slate', 'nocturne', 'scientific'])
     .optional(),

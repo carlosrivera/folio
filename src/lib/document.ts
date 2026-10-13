@@ -15,9 +15,11 @@ export type DocumentTheme =
   | 'nocturne'
   | 'scientific'
 
-export type DocumentLayout = 'report' | 'simple' | 'invoice' | 'cv'
+export type DocumentOrientation = 'portrait' | 'landscape'
 
-export const SUPPORTED_LAYOUTS: DocumentLayout[] = ['report', 'simple', 'invoice', 'cv']
+export type DocumentLayout = 'report' | 'simple' | 'invoice' | 'cv' | 'scientific'
+
+export const SUPPORTED_LAYOUTS: DocumentLayout[] = ['report', 'simple', 'invoice', 'cv', 'scientific']
 
 const LAYOUT_ALIASES: Record<string, DocumentLayout> = {
   report: 'report',
@@ -44,6 +46,9 @@ const LAYOUT_ALIASES: Record<string, DocumentLayout> = {
   'curriculum-vitae': 'cv',
   curriculum: 'cv',
   bio: 'cv',
+  scientific: 'scientific',
+  article: 'scientific',
+  paper: 'scientific',
 }
 
 /**
@@ -67,6 +72,7 @@ const THEME_ALIASES: Record<string, DocumentTheme> = {
 
 export type DocumentMetadata = {
   layout: DocumentLayout
+  orientation: DocumentOrientation
   title: string
   client: string
   preparedFor: string
@@ -74,6 +80,12 @@ export type DocumentMetadata = {
   date: string
   validUntil: string
   documentId: string
+  authors?: string
+  affiliations?: string
+  abstract?: string
+  keywords?: string
+  journal?: string
+  doi?: string
   name?: string
   role?: string
   kicker?: string
@@ -288,6 +300,7 @@ markdown.renderer.rules.heading_open = (tokens, idx, options, _env, self) => {
 }
 
 const defaults: DocumentMetadata = {
+  orientation: 'portrait',
   layout: 'report',
   title: 'Untitled document',
   client: 'Client',
@@ -461,7 +474,7 @@ export function formatChromeText(
     .replace(/\{title\}/gi, meta.title || '')
     .replace(/\{date\}/gi, meta.date || '')
     .replace(/\{(?:client|customer)\}/gi, meta.client || '')
-    .replace(/\{(?:author|preparedBy|prepared-by|from)\}/gi, meta.preparedBy || meta.from || meta.name || '')
+    .replace(/\{(?:author|preparedBy|prepared-by|from)\}/gi, meta.authors || meta.preparedBy || meta.from || meta.name || '')
     .replace(/\{(?:documentId|document-id|invoiceNumber|invoice-number|id)\}/gi, meta.invoiceNumber || meta.documentId || '')
 }
 
@@ -481,13 +494,16 @@ export function parseDocument(source: string, sourcePositions = false): ParsedDo
   }
 
   const value = (camel: string, kebab = camel) => asText(raw[camel] ?? raw[kebab])
+  const listValue = (key: string, separator: string) => Array.isArray(raw[key])
+    ? (raw[key] as unknown[]).map(asText).filter(Boolean).join(separator)
+    : value(key)
   
   // Detect layout from frontmatter or fall back
   const rawLayout = (value('layout') || '').toLowerCase().trim()
   const layout: DocumentLayout = LAYOUT_ALIASES[rawLayout] ?? 'report'
 
   // Detect theme from frontmatter or fall back
-  const rawTheme = (value('theme') || 'editorial').toLowerCase().trim()
+  const rawTheme = (value('theme') || (layout === 'scientific' ? 'scientific' : 'editorial')).toLowerCase().trim()
   const theme: DocumentTheme = THEME_ALIASES[rawTheme] ?? 'editorial'
 
   // Detect toc (Report defaults to true; CV, simple, invoice default to false)
@@ -632,13 +648,20 @@ export function parseDocument(source: string, sourcePositions = false): ParsedDo
 
   const metadata: DocumentMetadata = {
     layout,
+    orientation: value('orientation').toLowerCase().trim() === 'landscape' ? 'landscape' : 'portrait',
     title: value('title') || defaultTitle,
     client: value('client') || value('billTo', 'bill-to') || value('to') || (layout === 'report' ? defaults.client : ''),
     preparedFor: value('preparedFor', 'prepared-for') || value('billTo', 'bill-to') || value('to'),
     preparedBy: value('preparedBy', 'prepared-by') || from || (layout === 'report' ? defaults.preparedBy : ''),
-    date: value('date') || value('issueDate', 'issue-date') || defaults.date,
+    date: value('date') || value('issueDate', 'issue-date') || (layout === 'scientific' ? '' : defaults.date),
     validUntil: value('validUntil', 'valid-until') || dueDate,
     documentId: invoiceNumber || value('documentId', 'document-id') || defaults.documentId,
+    authors: listValue('authors', ', ') || undefined,
+    affiliations: listValue('affiliations', '\n') || undefined,
+    abstract: value('abstract') || undefined,
+    keywords: listValue('keywords', '; ') || undefined,
+    journal: value('journal') || undefined,
+    doi: value('doi') || undefined,
     name: name || undefined,
     role: role || undefined,
     kicker: kicker || undefined,

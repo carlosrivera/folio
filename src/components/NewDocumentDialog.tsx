@@ -1,7 +1,7 @@
 import { useUi } from './UiLanguage'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowRight, Briefcase, Clock, FileCode, FileText, FolderOpen, ReceiptText, Sparkles, UserRound, X } from 'lucide-react'
-import { sampleCvDocument, sampleDocument, sampleInvoiceDocument, sampleSimpleDocument, samplePetstoreDocument } from '../lib/sample'
+import { sampleCvDocument, sampleDocument, sampleInvoiceDocument, sampleSimpleDocument, samplePetstoreDocument, scientificStarterDocument } from '../lib/sample'
 import type { DocumentLayout, DocumentTheme } from '../lib/document'
 
 export type TemplateCategory = 'all' | 'starters' | 'samples'
@@ -40,6 +40,58 @@ function formatFileName(fullPath: string): string {
 }
 
 export const TEMPLATES: TemplateDefinition[] = [
+  {
+    id: 'landscape',
+    title: 'Landscape Presentation',
+    subtitle: 'Wide pages with a title slide and sections separated by page breaks.',
+    category: 'starters',
+    badge: 'Landscape',
+    badgeVariant: 'accent',
+    icon: FileText,
+    layout: 'simple',
+    getContent: ({ theme }) => `---
+layout: simple
+orientation: landscape
+theme: ${theme}
+footer: true
+---
+
+# Presentation title
+
+Your name · Organization
+
+<!-- pagebreak -->
+
+## The idea
+
+Introduce your topic and its main message.
+
+<!-- pagebreak -->
+
+## Key points
+
+- First point
+- Second point
+- Third point
+
+<!-- pagebreak -->
+
+## Next steps
+
+Summarize the takeaway and the next action.
+`,
+  },
+  {
+    id: 'scientific',
+    title: 'Scientific Article',
+    subtitle: 'Research manuscript with authors, abstract, methods, results, and references.',
+    category: 'starters',
+    badge: 'Article',
+    badgeVariant: 'neutral',
+    icon: FileText,
+    layout: 'scientific',
+    getContent: () => scientificStarterDocument,
+  },
   {
     id: 'simple',
     title: 'Simple Markdown',

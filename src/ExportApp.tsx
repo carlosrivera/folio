@@ -32,13 +32,14 @@ function collectExportReport(markdown: string) {
   const isCv = metadata.layout === 'cv'
   const isInvoice = metadata.layout === 'invoice'
   const isSimple = metadata.layout === 'simple'
+  const isScientific = metadata.layout === 'scientific'
 
   const cvHeader = isCv ? transformCvHtml(parsedDoc.html).header : undefined
   const author = isCv
     ? (cvHeader?.name || metadata.name || metadata.title)
     : isInvoice
       ? (metadata.from || metadata.preparedBy || metadata.name || '')
-      : (metadata.preparedBy || metadata.name || '')
+      : (metadata.authors || metadata.preparedBy || metadata.name || '')
 
   const title = isInvoice && metadata.invoiceNumber
     ? (metadata.title || `Invoice ${metadata.invoiceNumber}`)
@@ -48,12 +49,14 @@ function collectExportReport(markdown: string) {
     ? (cvHeader?.role || metadata.role || 'Curriculum Vitae')
     : isInvoice
       ? (metadata.client ? `Invoice for ${metadata.client}` : 'Invoice')
-      : (metadata.client || metadata.title)
+      : (metadata.journal || metadata.client || metadata.title)
 
   const keywords = isCv
     ? (['CV', 'Curriculum Vitae', subject].filter(Boolean) as string[])
     : isInvoice
       ? (['Invoice', metadata.invoiceNumber || metadata.documentId, metadata.client].filter(Boolean) as string[])
+      : isScientific
+        ? (metadata.keywords || '').split(/[;,]/).map(word => word.trim()).filter(Boolean)
       : isSimple
         ? ([metadata.title].filter(Boolean) as string[])
         : ([metadata.documentId, metadata.client].filter(Boolean) as string[])

@@ -10,7 +10,7 @@ export async function prepareDocumentImages(container: HTMLElement) {
       // Paged.js marks inline-styled nodes as undisplayed unless display is
       // explicit, then skips them when choosing the next page's start node.
       image.style.display = 'block'
-      const landscape = !!image.closest('.folio-landscape')
+      const landscape = !!image.closest('.folio-landscape, .folio-document-landscape')
       const maxWidth = (landscape ? 235 : 158) * (Number(image.dataset.imageWidth || 100) / 100)
       const maxHeight = landscape ? 130 : 200
       const scale = Math.min(25.4 / 96, maxWidth / image.naturalWidth, maxHeight / image.naturalHeight)
@@ -72,6 +72,22 @@ export function documentOverflowRange(overflow: Range | undefined, rendered: HTM
   // still describe the old position during subsequent overflow callbacks.
   const limits = rendered.closest('.pagedjs_area')?.getBoundingClientRect() ?? bounds
   let earliest = overflow
+  if (overflow) {
+    const element = overflow.startContainer.nodeType === Node.ELEMENT_NODE ? overflow.startContainer as Element : overflow.startContainer.parentElement
+    const figure = element?.closest('.mermaid-figure')
+    if (figure) {
+      const box = figure.getBoundingClientRect()
+      // Invisible SVG nodes (style, defs, markers) report boxes at the viewport
+      // origin. In the offscreen buffer that looks like a future column to
+      // Paged.js, even though the drawing itself fits. Never fragment its tree.
+      earliest = undefined
+      if (box.left >= limits.right - 1 || box.top >= limits.bottom - 1 || box.bottom > limits.bottom + 1) {
+        earliest = document.createRange()
+        earliest.setStartBefore(figure)
+        earliest.setEndAfter(rendered.lastChild!)
+      }
+    }
+  }
   for (const block of rendered.querySelectorAll<HTMLElement>('.document-body p, .document-body pre, .document-body table, .document-image, .mermaid-figure')) {
     const box = block.getBoundingClientRect()
     if (box.left < limits.right - 1) continue
@@ -89,7 +105,7 @@ export function documentOverflowRange(overflow: Range | undefined, rendered: HTM
   const walker = document.createTreeWalker(rendered, NodeFilter.SHOW_TEXT)
   let node: Node | null
   while ((node = walker.nextNode())) {
-    if (!node.parentElement?.closest('.document-body') || !node.textContent?.trim()) continue
+    if (!node.parentElement?.closest('.document-body') || node.parentElement.closest('.mermaid-figure, svg') || !node.textContent?.trim()) continue
     const range = document.createRange()
     range.selectNodeContents(node)
     if (!Array.from(range.getClientRects()).some(outside)) continue
@@ -108,5 +124,5 @@ export function documentOverflowRange(overflow: Range | undefined, rendered: HTM
     range.setEndAfter(rendered.lastChild!)
     if (!earliest || range.compareBoundaryPoints(Range.START_TO_START, earliest) < 0) earliest = range
   }
-  return earliest !== overflow ? earliest : undefined
+  return earliest !== overflow ? earliest ?? null : undefined
 }

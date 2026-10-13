@@ -6,8 +6,9 @@ The first MVP includes:
 
 - Open, edit, save, and Save As local `.md` files, with optional autosave and external-change detection.
 - Optional YAML front matter for SOW metadata.
-- Live A4 page layout with realistic page boundaries.
-- Seven bundled document themes, including a scientific preset for equations, with per-document color and typography overrides.
+- Live A4 page layout with realistic page boundaries and a visible Portrait/Landscape control.
+- Seven bundled document themes, including Scientific for equations, with per-document color and typography overrides.
+- A Scientific Article layout with a first-page title, authors, affiliations, abstract, keywords, and compact manuscript typography.
 - Theme-aware Mermaid diagrams in preview and PDF output.
 - PDF export through the same paginated component and stylesheet used by the preview.
 - Native macOS window chrome, menus, keyboard shortcuts, and edited-document indicator.
@@ -154,7 +155,7 @@ pnpm dist:dir
 ```
 
 - **Auto-Updates**: Integrated via `electron-updater` checking GitHub Releases (`carlosrivera/folio`). Checks can be triggered manually from **Folio > Check for Updates…** or run quietly on startup.
-- **GitHub Actions Release**: Tag pushes (`v*`) automatically trigger `.github/workflows/release-app.yml` to compile and publish macOS releases.
+- **GitHub Actions Release**: Tag pushes (`v*`) automatically trigger `.github/workflows/release-app.yml` to compile and publish macOS, Windows, and Linux releases.
 
 ## Landing Page
 
@@ -188,3 +189,33 @@ identity), `document.md`, `styles.json`, `assets/`, and `history/<revision-id>/`
 Assets use content hashes and are shared between revisions. Theme snapshots store
 validated values rather than executable stylesheets. Future changes to layout
 rendering or unavailable system fonts may still affect appearance.
+
+## Scientific articles
+
+Choose **New → Scientific Article** for a manuscript starter, or **Document properties → Document layout → Scientific Article** for an existing document. The layout starts the article body on the first page and supports equations, figures, footnotes, tables, and references through ordinary Markdown. Scientific is also available as an independent visual theme.
+
+Article details are editable under **Document properties** or directly in frontmatter:
+
+```yaml
+---
+layout: scientific
+theme: scientific
+title: Article title
+authors: [First Author, Second Author]
+affiliations:
+  - Department, Institution, City, Country
+abstract: |
+  A concise summary of the question, methods, findings, and implications.
+keywords: [methods, reproducibility]
+journal: Publication name
+doi: "10.xxxx/example"
+---
+```
+
+The article layout defaults to the Scientific theme when no theme is specified. Dates and publication details appear only when provided; headers and a table of contents are optional. The `scientific-paper` document preset exposes the same layout to MCP clients, and PDF exports carry the title, authors, and keywords.
+
+## Landscape pages
+
+Use **Document properties → Page orientation** to choose Portrait or Landscape. Document layout is available in the same window. The choice is saved as `orientation: landscape` in frontmatter and applies to all pages, including report covers and PDF exports. **New → Landscape Presentation** starts a wide document with page breaks between sections.
+
+For individual landscape sections in a portrait document, surround the section with `<!-- landscape -->` and `<!-- /landscape -->` on separate lines.

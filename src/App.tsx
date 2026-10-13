@@ -16,7 +16,7 @@ import type { EditorView } from '@codemirror/view'
 import { DocumentInspector, type InspectorTab } from './components/DocumentInspector'
 import { PreviewControls } from './components/PreviewControls'
 import { ThemePicker, themeLabel } from './components/ThemePicker'
-import { LayoutPicker, layoutLabel } from './components/LayoutPicker'
+import { layoutLabel } from './components/LayoutPicker'
 import { NewDocumentDialog } from './components/NewDocumentDialog'
 import { headingAnchors, parseDocument, suggestedFileName, upsertLayout, upsertTheme, upsertThemeOverrides, type DocumentLayout, type DocumentTheme } from './lib/document'
 import { diffDocuments } from './lib/diff'
@@ -110,10 +110,6 @@ export default function App() {
   const currentStyles = useMemo(() => captureFolioStyles(appStyles, currentTheme, styles), [currentTheme, styles])
   const currentLayout: DocumentLayout = parsed.metadata.layout || 'report'
   const t = useMemo(() => getTranslations(uiLanguage), [uiLanguage])
-
-  const selectLayout = useCallback((layout: DocumentLayout) => {
-    setMarkdown((current) => upsertLayout(current, layout))
-  }, [])
 
   const dismissToast = useCallback(() => {
     if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current)
@@ -555,11 +551,6 @@ export default function App() {
         </div>
 
         <div className="toolbar-selectors">
-          <LayoutPicker
-            value={currentLayout}
-            onChange={selectLayout}
-          />
-
           <ThemePicker
             value={currentTheme}
             onChange={selectTheme}
@@ -738,7 +729,7 @@ export default function App() {
         const anchor = Math.max(bodyOffset(text), view.state.selection.main.head + bodyOffset(text) - bodyOffset(view.state.doc.toString()))
         applyEditorResult(view, { text, from: Math.min(anchor, text.length), to: Math.min(anchor, text.length) })
         setPropertiesOpen(false)
-      }} onClose={() => { setPropertiesOpen(false); editorViewRef.current?.focus() }} onPageBreak={() => { setPropertiesOpen(false); formatSelection('page-break') }} />}
+      }} onClose={() => { setPropertiesOpen(false); editorViewRef.current?.focus() }} />}
       {welcome === 'start' && (
         <NewDocumentDialog
           canDismiss={path !== null || dirty || (markdown !== sampleDocument && markdown !== sampleCvDocument)}

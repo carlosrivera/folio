@@ -6,7 +6,7 @@ declare module 'pagedjs' {
     polisher?: { destroy(): void }
     chunker?: {
       destroy(): void
-      hooks: { onOverflow: { register(callback: (overflow: Range | undefined, rendered: HTMLElement, bounds: DOMRect) => Range | undefined): void } }
+      hooks: { onOverflow: { register(callback: (overflow: Range | undefined, rendered: HTMLElement, bounds: DOMRect) => Range | null | undefined): void } }
     }
     preview(
       content: HTMLElement | string,
