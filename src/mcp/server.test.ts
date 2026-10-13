@@ -204,7 +204,7 @@ describe('Folio MCP Linter Tool', () => {
 })
 
 describe('Folio MCP Server Instance', () => {
-  it('instantiates and defines all 7 tools', () => {
+  it('instantiates the document and style tools', () => {
     const server = createFolioMcpServer()
     expect(server).toBeDefined()
   })

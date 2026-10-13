@@ -31,7 +31,7 @@ import { usePreviewViewport } from './lib/use-preview-viewport'
 import { sampleCvDocument, sampleDocument } from './lib/sample'
 import { getTranslations } from './lib/i18n'
 import type { FormatAction } from './lib/editor-format'
-import { parseStyleLibrary, sameStyle, STYLE_LIBRARY_KEY, type SavedStyle } from './lib/style-library'
+import { parseStyleLibrary, sameStyle, STYLE_LIBRARY_KEY, validateStyleLibrary, type SavedStyle } from './lib/style-library'
 
 type Action = 'opening' | 'saving' | 'exporting' | null
 type Toast = {
@@ -46,7 +46,7 @@ function readDraft(): Draft | null {
   try {
     const value = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null')
     return value && typeof value.markdown === 'string' && typeof value.savedMarkdown === 'string' &&
-      (value.path === null || typeof value.path === 'string') && value.markdown !== value.savedMarkdown ? value : null
+      (value.path === null || typeof value.path === 'string') && (value.markdown !== value.savedMarkdown || JSON.stringify(value.styles ?? null) !== JSON.stringify(value.savedStyles ?? null)) ? value : null
   } catch { return null }
 }
 
@@ -57,10 +57,11 @@ function fileName(path: string | null) {
 export default function App() {
   const { tr, language: uiLanguage } = useUi()
   const [styles, setStyles] = useState<FolioStyles | null>(null)
-  const [styleLibrary, setStyleLibrary] = useState<SavedStyle[]>(() => {
+  const [legacyStyleLibrary] = useState<SavedStyle[]>(() => {
     try { return parseStyleLibrary(localStorage.getItem(STYLE_LIBRARY_KEY)) } catch { return [] }
   })
-  const [activeStyleId, setActiveStyleId] = useState<string | null>(null)
+  const styleLibrary = styles?.namedStyles ?? legacyStyleLibrary
+  const activeStyleId = styles?.activeStyleId ?? null
   const [savedStyles, setSavedStyles] = useState<FolioStyles | null>(null)
   const [history, setHistory] = useState<FolioRevision[]>([])
   const [historyOpen, setHistoryOpen] = useState(false)
@@ -105,7 +106,7 @@ export default function App() {
   const [saveError, setSaveError] = useState(false)
   const [caretLine, setCaretLine] = useState(0)
 
-  const dirty = markdown !== savedMarkdown || (!!path?.toLowerCase().endsWith('.folio') && JSON.stringify(styles) !== JSON.stringify(savedStyles))
+  const dirty = markdown !== savedMarkdown || JSON.stringify(styles) !== JSON.stringify(savedStyles)
   const previewMarkdown = useDeferredValue(markdown)
   const parsed = useMemo(() => parseDocument(markdown), [markdown])
   const title = parsed.metadata.title
@@ -139,7 +140,6 @@ export default function App() {
   const loadDocument = useCallback((document: Extract<OpenFileResult, { canceled: false }>, notify = true) => {
     startupInterrupted.current = true
     setMarkdown(document.content)
-    setActiveStyleId(null)
     setSavedMarkdown(document.content)
     setPath(document.path)
     setStyles(document.styles ?? null)
@@ -173,6 +173,11 @@ export default function App() {
     setSaveError(false)
     setAction('saving')
     try {
+      if (currentStyles.namedStyles?.length && !path?.toLowerCase().endsWith('.folio')) {
+        if (silent) return false
+        saveAs = true
+        format = 'folio'
+      }
       const result = await window.folio.saveMarkdown(path, markdown, saveAs, { expectedContent: savedMarkdown, overwrite, styles: currentStyles, expectedStyles: savedStyles, format, includeHistory })
       if (!result.canceled) {
         setPath(result.path)
@@ -206,9 +211,10 @@ export default function App() {
   useEffect(() => { try { localStorage.setItem('folio:view-mode', viewMode) } catch { /* Session only. */ } }, [viewMode])
   useEffect(() => {
     if (!autosave || !path || !dirty || action || welcome || confirmation || diskChange || insertion || propertiesOpen || historyOpen || saveError) return
+    if (styles?.namedStyles?.length && !path.toLowerCase().endsWith('.folio')) return
     const timer = window.setTimeout(() => { void saveDocument(false, false, true) }, 1500)
     return () => window.clearTimeout(timer)
-  }, [autosave, path, dirty, markdown, action, welcome, confirmation, diskChange, insertion, propertiesOpen, historyOpen, saveError, saveDocument])
+  }, [autosave, path, dirty, markdown, action, welcome, confirmation, diskChange, insertion, propertiesOpen, historyOpen, saveError, saveDocument, styles])
 
   const requestProceed = useCallback((reason: string) => {
     if (!dirty) return Promise.resolve(true)
@@ -270,7 +276,6 @@ export default function App() {
       nextMarkdown = upsertLayout(nextMarkdown, layout)
     }
     setMarkdown(nextMarkdown)
-    setActiveStyleId(null)
     setSavedMarkdown(nextMarkdown)
     setPath(null)
     setStyles(null)
@@ -410,22 +415,20 @@ export default function App() {
   )
   const selectTheme = useCallback(
     (theme: DocumentTheme) => {
-      setActiveStyleId(null)
-      setStyles(null)
+      setStyles(current => captureFolioStyles(appStyles, theme, current?.namedStyles ? { ...current, theme: '' } : null))
       setMarkdown((current) => upsertThemeOverrides(upsertTheme(current, theme), {}))
     },
     [],
   )
   const applyStyle = (style: SavedStyle) => {
-    setActiveStyleId(style.id)
-    setStyles(null)
+    setStyles(current => ({ ...captureFolioStyles(appStyles, style.theme), namedStyles: current?.namedStyles ?? styleLibrary, activeStyleId: style.id }))
     setMarkdown(current => upsertThemeOverrides(upsertTheme(current, style.theme), style.overrides))
   }
   const saveStyle = (style: SavedStyle) => {
     const next = [...styleLibrary.filter(item => item.id !== style.id), style]
-    try { localStorage.setItem(STYLE_LIBRARY_KEY, JSON.stringify(next)) }
-    catch { showToast(tr('Could not save the style library. Free some storage and try again.')); return false }
-    setStyleLibrary(next)
+    try { validateStyleLibrary(next) }
+    catch (error) { showToast(error instanceof Error ? error.message : tr('Could not save the style library. Free some storage and try again.')); return false }
+    setStyles(current => ({ ...captureFolioStyles(appStyles, currentTheme, current), namedStyles: next }))
     return true
   }
   const activeStyle = styleLibrary.find(style => style.id === activeStyleId && style.theme === currentTheme)

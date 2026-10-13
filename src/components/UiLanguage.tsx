@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import type { SupportedLanguage } from '../lib/i18n'
 
 const spanish: Record<string, string> = {
+  'Styles travel with this document. Save as a Folio document to keep the style library.': 'Los estilos viajan con este documento. Guarda como documento Folio para conservar la biblioteca de estilos.',
   'Style': 'Estilo', 'Built-in styles': 'Estilos incluidos', 'My styles': 'Mis estilos',
   'Duplicate style': 'Duplicar estilo', 'New style': 'Nuevo estilo', 'Save style changes': 'Guardar cambios del estilo',
   'Style name': 'Nombre del estilo', 'Start from': 'Basado en', 'Create style': 'Crear estilo',

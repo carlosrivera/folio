@@ -77,6 +77,31 @@ export async function readFolioRevision(file: string, id: string) {
   return { content: strFromU8(bundle.files[`history/${id}/document.md`]), styles: validateFolioStyles(JSON.parse(strFromU8(bundle.files[`history/${id}/styles.json`]))) }
 }
 
+/** Edit a bundle in place without extracting/repackaging its attachments. */
+export async function editFolioStyles(file: string, edit: (document: { content: string; styles: FolioStyles }) => { content: string; styles: FolioStyles }) {
+  if (!isFolio(file)) throw new Error('Choose a .folio document for named styles.')
+  const original = await readFile(file)
+  const bundle = decode(original)
+  const next = edit({ content: bundle.content, styles: bundle.styles })
+  const styles = validateFolioStyles(next.styles)
+  if (next.content === bundle.content && JSON.stringify(styles) === JSON.stringify(bundle.styles)) return openFolio(file)
+  const id = randomUUID(), savedAt = new Date().toISOString()
+  bundle.manifest.history.push({ id, savedAt, title: next.content.match(/^#\s+(.+)$/m)?.[1] ?? 'Untitled' })
+  bundle.manifest.history = bundle.manifest.history.slice(-100)
+  bundle.files['document.md'] = strToU8(next.content)
+  bundle.files['styles.json'] = strToU8(JSON.stringify(styles, null, 2))
+  bundle.files[`history/${id}/document.md`] = strToU8(next.content)
+  bundle.files[`history/${id}/styles.json`] = strToU8(JSON.stringify(styles))
+  bundle.files['manifest.json'] = strToU8(JSON.stringify(bundle.manifest, null, 2))
+  const retained = new Set(bundle.manifest.history.map(revision => revision.id))
+  for (const name of Object.keys(bundle.files)) if (name.startsWith('history/') && !retained.has(name.split('/')[1])) delete bundle.files[name]
+  const bytes = await encode(bundle.files)
+  decode(bytes)
+  if (!(await readFile(file)).equals(original)) throw new Error('The Folio document changed during the style update. Try again.')
+  await atomicWrite(file, bytes)
+  return { content: next.content, styles, history: [...bundle.manifest.history].reverse() }
+}
+
 export async function saveFolio(file: string, content: string, styles: FolioStyles, sourcePath: string | null, draftDirectory: string, previousFile: string | null, expectedContent?: string, overwrite = false, includeHistory = true, expectedStyles?: FolioStyles | null) {
   let previous: Bundle | null = null
   if (previousFile) previous = await load(previousFile)

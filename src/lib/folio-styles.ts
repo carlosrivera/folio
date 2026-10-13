@@ -1,6 +1,7 @@
 import { isSafeTokenValue, themeOverrideCss } from './theme-tokens'
+import { validateStyleLibrary, type SavedStyle } from './style-library'
 
-export type FolioStyles = { theme: string; themeVersion: number; tokens: Record<string, string> }
+export type FolioStyles = { theme: string; themeVersion: number; tokens: Record<string, string>; namedStyles?: SavedStyle[]; activeStyleId?: string }
 export type FolioRevision = { id: string; savedAt: string; title: string }
 const themes = new Set(['editorial', 'voltage', 'graphite', 'contrast', 'slate', 'nocturne', 'scientific'])
 
@@ -13,14 +14,16 @@ export function validateFolioStyles(raw: unknown): FolioStyles {
     if (!/^[a-z][a-z0-9-]{0,60}$/.test(key) || typeof entry !== 'string' || !isSafeTokenValue(entry)) throw new Error('Invalid Folio theme value.')
     tokens[key] = entry
   }
-  return { theme: value.theme, themeVersion: 1, tokens }
+  const namedStyles = value.namedStyles === undefined ? undefined : validateStyleLibrary(value.namedStyles)
+  if (value.activeStyleId !== undefined && (typeof value.activeStyleId !== 'string' || !namedStyles?.some(style => style.id === value.activeStyleId))) throw new Error('Invalid active document style.')
+  return { theme: value.theme, themeVersion: 1, tokens, ...(namedStyles ? { namedStyles } : {}), ...(value.activeStyleId ? { activeStyleId: value.activeStyleId } : {}) }
 }
 
 export function captureFolioStyles(css: string, theme: string, preserved?: FolioStyles | null): FolioStyles {
   if (preserved?.theme === theme) return validateFolioStyles(preserved)
   const block = css.match(new RegExp(`\\.theme-${theme}\\s*\\{([^}]+)\\}`))?.[1] ?? ''
   const tokens = Object.fromEntries([...block.matchAll(/--([a-z0-9-]+)\s*:\s*([^;]+);/g)].map(match => [match[1], match[2].trim()]))
-  return validateFolioStyles({ theme, themeVersion: 1, tokens })
+  return validateFolioStyles({ theme, themeVersion: 1, tokens, ...(preserved?.namedStyles ? { namedStyles: preserved.namedStyles } : {}) })
 }
 
 export function folioStylesCss(styles: FolioStyles | null | undefined, theme: string): string {

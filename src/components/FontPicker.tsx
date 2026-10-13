@@ -2,19 +2,9 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
 import { useMenuKeyboard } from './use-menu-keyboard'
 import { useUi } from './UiLanguage'
+import { DOCUMENT_FONTS } from '../lib/document-fonts'
 
-const FONTS = [
-  { label: 'System Sans', value: '-apple-system, BlinkMacSystemFont, sans-serif', mono: false },
-  { label: 'Inter', value: 'Inter, -apple-system, sans-serif', mono: false },
-  { label: 'Barlow', value: 'Barlow, Arial, sans-serif', mono: false },
-  { label: 'Space Grotesk', value: '"Space Grotesk", Inter, sans-serif', mono: false },
-  { label: 'Georgia', value: 'Georgia, "Times New Roman", serif', mono: false },
-  { label: 'Times New Roman', value: '"Times New Roman", Times, serif', mono: false },
-  { label: 'Palatino', value: 'Palatino, "Palatino Linotype", serif', mono: false },
-  { label: 'JetBrains Mono', value: '"JetBrains Mono", Menlo, monospace', mono: true },
-  { label: 'Menlo', value: 'Menlo, Consolas, monospace', mono: true },
-  { label: 'System Mono', value: '"SFMono-Regular", Menlo, Consolas, monospace', mono: true },
-]
+
 const firstFont = (value: string) => value.split(',')[0].replace(/["']/g, '').trim()
 
 export function FontPicker({ label, value, mono, onChange }: { label: string; value: string; mono: boolean; onChange: (value: string) => void }) {
@@ -23,7 +13,7 @@ export function FontPicker({ label, value, mono, onChange }: { label: string; va
   const [position, setPosition] = useState({ top: 0, left: 0, width: 280 })
   const ref = useRef<HTMLDivElement>(null)
   useMenuKeyboard(ref, open, setOpen)
-  const options = FONTS.filter(font => !mono || font.mono)
+  const options = DOCUMENT_FONTS.filter(font => !mono || font.mono)
   const active = options.find(font => firstFont(font.value) === firstFont(value))
   useLayoutEffect(() => {
     if (!open || !ref.current) return

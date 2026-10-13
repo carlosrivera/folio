@@ -43,10 +43,11 @@
     "landing:preview": "pnpm --filter folio-landing preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "tsc -b --pretty false && vitest run && pnpm test:render && pnpm test:editor",
+    "check": "tsc -b --pretty false && vitest run && pnpm test:render && pnpm test:editor && pnpm test:mcp",
     "test:editor": "electron tests/editor/run.cjs && electron tests/editor/ux.cjs && electron tests/editor/image-layout.cjs && electron tests/editor/writing.cjs && electron tests/editor/folio.cjs && electron tests/editor/mermaid-layout.cjs && electron tests/editor/scientific-layout.cjs && electron tests/editor/orientation.cjs && electron tests/editor/styles.cjs",
     "test:editor:ux": "electron tests/editor/ux.cjs",
     "test:editor:styles": "electron tests/editor/styles.cjs",
+    "test:mcp": "tsx tests/mcp/styles.ts",
     "test:render": "pnpm build && electron tests/render/run.cjs",
     "test:render:update": "pnpm build && cross-env UPDATE_GOLDEN=1 electron tests/render/run.cjs"
   },
