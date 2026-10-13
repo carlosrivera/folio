@@ -3,6 +3,8 @@ import { useUi } from './UiLanguage'
 import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown, SlidersHorizontal } from 'lucide-react'
 import type { DocumentTheme } from '../lib/document'
+import type { SavedStyle } from '../lib/style-library'
+import type { CSSProperties } from 'react'
 
 export const DOCUMENT_THEMES: { id: DocumentTheme; label: string; note: string }[] = [
   { id: 'editorial', label: 'Editorial', note: 'Serif display, deep green cover' },
@@ -23,9 +25,9 @@ export function themeLabel(id: DocumentTheme): string {
  * A swatch rendered with the theme's own class, so it shows the real tokens —
  * including any customisation the document carries.
  */
-function ThemeSwatch({ id }: { id: DocumentTheme }) {
+function ThemeSwatch({ id, overrides = {} }: { id: DocumentTheme; overrides?: Record<string, string> }) {
   return (
-    <span className={`theme-swatch theme-${id}`} aria-hidden="true">
+    <span className={`theme-swatch theme-${id}`} style={Object.fromEntries(Object.entries(overrides).map(([name, value]) => [`--${name}`, value])) as CSSProperties} aria-hidden="true">
       <span className="theme-swatch-mark" />
       <span className="theme-swatch-title">Aa</span>
       <span className="theme-swatch-rule" />
@@ -42,14 +44,18 @@ type Props = {
   onChange: (theme: DocumentTheme) => void
   onCustomise: () => void
   customised: boolean
+  savedStyles: SavedStyle[]
+  activeStyleId: string | null
+  onApplyStyle: (style: SavedStyle) => void
 }
 
-export function ThemePicker({ value, onChange, onCustomise, customised }: Props) {
+export function ThemePicker({ value, onChange, onCustomise, customised, savedStyles, activeStyleId, onApplyStyle }: Props) {
   const { tr } = useUi()
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   useMenuKeyboard(containerRef, open, setOpen)
   const active = DOCUMENT_THEMES.find((theme) => theme.id === value) ?? DOCUMENT_THEMES[0]
+  const saved = savedStyles.find(style => style.id === activeStyleId)
 
   useEffect(() => {
     if (!open) return
@@ -77,9 +83,9 @@ export function ThemePicker({ value, onChange, onCustomise, customised }: Props)
         aria-haspopup="true"
         title={tr('Document template')}
       >
-        <ThemeSwatch id={value} />
+        <ThemeSwatch id={value} overrides={saved?.overrides} />
         <span className="theme-picker-label">
-          {tr(active.label)}
+          {saved?.name ?? tr(active.label)}
           {customised && <em title={tr('This document overrides template values')}>{tr('edited')}</em>}
         </span>
         <ChevronDown size={13} />
@@ -93,7 +99,7 @@ export function ThemePicker({ value, onChange, onCustomise, customised }: Props)
               type="button"
               key={theme.id}
               role="menuitemradio"
-              aria-checked={theme.id === value}
+              aria-checked={!saved && theme.id === value}
               className={`theme-option${theme.id === value ? ' is-active' : ''}`}
               onClick={() => {
                 onChange(theme.id)
@@ -105,9 +111,15 @@ export function ThemePicker({ value, onChange, onCustomise, customised }: Props)
                 <strong>{theme.label}</strong>
                 <span>{tr(theme.note)}</span>
               </span>
-              {theme.id === value && <Check size={13} />}
+              {!saved && theme.id === value && <Check size={13} />}
             </button>
           ))}
+          {savedStyles.length > 0 && <p className="theme-popover-heading">{tr('My styles')}</p>}
+          {savedStyles.map(style => <button type="button" key={style.id} role="menuitemradio" aria-checked={style.id === activeStyleId} className="theme-option" onClick={() => { onApplyStyle(style); setOpen(false) }}>
+            <ThemeSwatch id={style.theme} overrides={style.overrides} />
+            <span className="theme-option-text"><strong>{style.name}</strong><span>{tr(themeLabel(style.theme))}</span></span>
+            {style.id === activeStyleId && <Check size={13} />}
+          </button>)}
           <button
             type="button"
             className="theme-popover-action"
@@ -116,7 +128,7 @@ export function ThemePicker({ value, onChange, onCustomise, customised }: Props)
               setOpen(false)
             }}
           >
-            <SlidersHorizontal size={13} /> {tr('Customise this template…')}
+            <SlidersHorizontal size={13} /> {tr('Edit styles…')}
           </button>
         </div>
       )}

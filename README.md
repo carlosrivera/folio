@@ -38,6 +38,8 @@ pnpm start
 
 The theme selector writes its choice into the Markdown front matter. Unsaved edits are kept as a local recovery draft and offered for restoration at the next launch.
 
+Choose **Edit styles…** in the style picker, or open the inspector's **Style** tab, to choose fonts with live type samples and adjust the main colors. **More options** contains the detailed palette. **Duplicate style** copies the current style and edits; **New style** starts from a built-in style. Named styles are saved in the app and available across documents. **Save style changes** updates a reusable style without changing other documents that already use it. The applied font and color values stay in the document's frontmatter and travel with Markdown and Folio files.
+
 ## Editing tools
 
 Use the toolbar above the Markdown editor for headings, emphasis, links, lists, quotes, code, and tables. **Find** opens search and replace (`⌘F`). **Outline** lists document headings and jumps to the selected section. Line numbers and folding markers are controlled in Settings; the section-fold button folds the current section. Issues with a known line appear in the editor gutter and can still be reviewed in the inspector.

@@ -759,7 +759,7 @@ const THEME_OVERRIDES_KEY = 'theme-overrides'
 export function upsertThemeOverrides(source: string, overrides: Record<string, string>): string {
   const entries = Object.entries(overrides).sort(([a], [b]) => a.localeCompare(b))
   const block = entries.length > 0
-    ? `${THEME_OVERRIDES_KEY}:\n${entries.map(([name, value]) => `  ${name}: "${value}"`).join('\n')}`
+    ? `${THEME_OVERRIDES_KEY}:\n${entries.map(([name, value]) => `  ${name}: ${JSON.stringify(value)}`).join('\n')}`
     : ''
 
   const frontmatter = source.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/)

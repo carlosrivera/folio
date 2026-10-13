@@ -31,6 +31,7 @@ import { usePreviewViewport } from './lib/use-preview-viewport'
 import { sampleCvDocument, sampleDocument } from './lib/sample'
 import { getTranslations } from './lib/i18n'
 import type { FormatAction } from './lib/editor-format'
+import { parseStyleLibrary, sameStyle, STYLE_LIBRARY_KEY, type SavedStyle } from './lib/style-library'
 
 type Action = 'opening' | 'saving' | 'exporting' | null
 type Toast = {
@@ -56,6 +57,10 @@ function fileName(path: string | null) {
 export default function App() {
   const { tr, language: uiLanguage } = useUi()
   const [styles, setStyles] = useState<FolioStyles | null>(null)
+  const [styleLibrary, setStyleLibrary] = useState<SavedStyle[]>(() => {
+    try { return parseStyleLibrary(localStorage.getItem(STYLE_LIBRARY_KEY)) } catch { return [] }
+  })
+  const [activeStyleId, setActiveStyleId] = useState<string | null>(null)
   const [savedStyles, setSavedStyles] = useState<FolioStyles | null>(null)
   const [history, setHistory] = useState<FolioRevision[]>([])
   const [historyOpen, setHistoryOpen] = useState(false)
@@ -134,6 +139,7 @@ export default function App() {
   const loadDocument = useCallback((document: Extract<OpenFileResult, { canceled: false }>, notify = true) => {
     startupInterrupted.current = true
     setMarkdown(document.content)
+    setActiveStyleId(null)
     setSavedMarkdown(document.content)
     setPath(document.path)
     setStyles(document.styles ?? null)
@@ -264,6 +270,7 @@ export default function App() {
       nextMarkdown = upsertLayout(nextMarkdown, layout)
     }
     setMarkdown(nextMarkdown)
+    setActiveStyleId(null)
     setSavedMarkdown(nextMarkdown)
     setPath(null)
     setStyles(null)
@@ -402,9 +409,26 @@ export default function App() {
     [],
   )
   const selectTheme = useCallback(
-    (theme: DocumentTheme) => setMarkdown((current) => upsertTheme(current, theme)),
+    (theme: DocumentTheme) => {
+      setActiveStyleId(null)
+      setStyles(null)
+      setMarkdown((current) => upsertThemeOverrides(upsertTheme(current, theme), {}))
+    },
     [],
   )
+  const applyStyle = (style: SavedStyle) => {
+    setActiveStyleId(style.id)
+    setStyles(null)
+    setMarkdown(current => upsertThemeOverrides(upsertTheme(current, style.theme), style.overrides))
+  }
+  const saveStyle = (style: SavedStyle) => {
+    const next = [...styleLibrary.filter(item => item.id !== style.id), style]
+    try { localStorage.setItem(STYLE_LIBRARY_KEY, JSON.stringify(next)) }
+    catch { showToast(tr('Could not save the style library. Free some storage and try again.')); return false }
+    setStyleLibrary(next)
+    return true
+  }
+  const activeStyle = styleLibrary.find(style => style.id === activeStyleId && style.theme === currentTheme)
   const diff = useMemo(
     () => (comparison ? diffDocuments(comparison.content, markdown) : null),
     [comparison, markdown],
@@ -554,6 +578,9 @@ export default function App() {
           <ThemePicker
             value={currentTheme}
             onChange={selectTheme}
+            savedStyles={styleLibrary}
+            activeStyleId={activeStyle && sameStyle(activeStyle, currentTheme, parsed.metadata.themeOverrides) ? activeStyle.id : null}
+            onApplyStyle={applyStyle}
             customised={Object.keys(parsed.metadata.themeOverrides).length > 0}
             onCustomise={() => {
               setInspectorTab('template')
@@ -673,6 +700,11 @@ export default function App() {
             theme={currentTheme}
             themeOverrides={parsed.metadata.themeOverrides}
             onThemeOverridesChange={setThemeOverrides}
+            savedStyles={styleLibrary}
+            activeStyleId={activeStyleId}
+            onApplyStyle={applyStyle}
+            onSaveStyle={saveStyle}
+            onSelectTheme={selectTheme}
           />
         </div>
         <div className="pane preview-pane" aria-hidden={viewMode === 'editor'} inert={viewMode === 'editor'}>

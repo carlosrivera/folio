@@ -44,10 +44,10 @@ export const THEME_TOKENS: ThemeTokenDef[] = [
   { name: 'code-function', label: 'Functions and types', group: 'Code', kind: 'color' },
   { name: 'code-comment', label: 'Comments', group: 'Code', kind: 'color' },
 
-  { name: 'font-body', label: 'Body face', group: 'Typography', kind: 'font' },
-  { name: 'font-display', label: 'Display face', group: 'Typography', kind: 'font' },
-  { name: 'font-code', label: 'Code face', group: 'Typography', kind: 'font' },
-  { name: 'font-mono', label: 'Mono face', group: 'Typography', kind: 'font' },
+  { name: 'font-body', label: 'Body font', group: 'Typography', kind: 'font' },
+  { name: 'font-display', label: 'Heading font', group: 'Typography', kind: 'font' },
+  { name: 'font-code', label: 'Code font', group: 'Typography', kind: 'font' },
+  { name: 'font-mono', label: 'Labels font', group: 'Typography', kind: 'font' },
 ]
 
 export const THEME_TOKEN_GROUPS = ['Cover', 'Body', 'Code', 'Typography'] as const

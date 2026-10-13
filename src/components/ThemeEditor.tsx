@@ -2,9 +2,11 @@ import { useUi } from './UiLanguage'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { RotateCcw } from 'lucide-react'
 import type { DocumentTheme } from '../lib/document'
-import { THEME_TOKENS, THEME_TOKEN_GROUPS, isSafeTokenValue } from '../lib/theme-tokens'
+import { THEME_TOKENS, isSafeTokenValue } from '../lib/theme-tokens'
+import { FontPicker } from './FontPicker'
+import { StyleLibrary, type StyleLibraryProps } from './StyleLibrary'
 
-type Props = {
+type Props = StyleLibraryProps & {
   theme: DocumentTheme
   overrides: Record<string, string>
   onChange: (next: Record<string, string>) => void
@@ -28,7 +30,9 @@ function toHexInput(value: string): string | null {
   return null
 }
 
-export function ThemeEditor({ theme, overrides, onChange }: Props) {
+const SIMPLE_TOKENS = new Set(['font-body', 'font-display', 'font-code', 'font-mono', 'body-fg', 'heading', 'link', 'cover-bg', 'cover-accent', 'code-bg'])
+
+export function ThemeEditor({ theme, overrides, onChange, ...libraryProps }: Props) {
   const { tr } = useUi()
   const probeRef = useRef<HTMLSpanElement>(null)
   const [defaults, setDefaults] = useState<Record<string, string>>({})
@@ -47,7 +51,7 @@ export function ThemeEditor({ theme, overrides, onChange }: Props) {
   }, [theme])
 
   const grouped = useMemo(
-    () => THEME_TOKEN_GROUPS.map((group) => ({ group, tokens: THEME_TOKENS.filter((token) => token.group === group) })),
+    () => ['Typography', 'Body', 'Cover', 'Code'].map((group) => ({ group, tokens: THEME_TOKENS.filter((token) => token.group === group && SIMPLE_TOKENS.has(token.name)) })),
     [],
   )
 
@@ -72,11 +76,12 @@ export function ThemeEditor({ theme, overrides, onChange }: Props) {
     <div className="theme-editor">
       {/* Off-screen carrier for the active theme's default token values. */}
       <span ref={probeRef} className={`theme-probe theme-${theme}`} aria-hidden="true" />
+      <StyleLibrary theme={theme} overrides={overrides} {...libraryProps} />
 
       <div className="theme-editor-head">
         <span>
           {overrideCount === 0
-            ? tr('Using the template defaults. Any change is written into this document’s frontmatter.')
+            ? tr('Using the style defaults.')
             : `${tr('Custom changes')}: ${overrideCount}`}
         </span>
         <button type="button" className="inspector-clear" onClick={() => onChange({})} disabled={overrideCount === 0} title={tr('Reset all')}>
@@ -92,7 +97,7 @@ export function ThemeEditor({ theme, overrides, onChange }: Props) {
             const isOverridden = token.name in overrides
             const hex = token.kind === 'color' ? toHexInput(current) : null
             return (
-              <label key={token.name} className={`theme-field${isOverridden ? ' is-overridden' : ''}`}>
+              <div key={token.name} className={`theme-field${isOverridden ? ' is-overridden' : ''}`}>
                 <span className="theme-field-label">{tr(token.label)}</span>
                 {token.kind === 'color' ? (
                   <span className="theme-field-controls">
@@ -105,34 +110,40 @@ export function ThemeEditor({ theme, overrides, onChange }: Props) {
                     <input
                       type="text"
                       className="theme-field-text"
+                      aria-label={`${tr(token.label)} ${tr('colour')} value`}
                       value={current}
                       spellCheck={false}
                       onChange={(event) => set(token.name, event.target.value)}
                     />
                   </span>
-                ) : (
-                  <input
-                    type="text"
-                    className="theme-field-text is-wide"
-                    value={current}
-                    spellCheck={false}
-                    onChange={(event) => set(token.name, event.target.value)}
-                  />
-                )}
+                ) : <FontPicker label={tr(token.label)} value={current} mono={token.name === 'font-code'} onChange={value => set(token.name, value)} />}
                 <button
                   type="button"
                   className="theme-field-reset"
                   onClick={() => reset(token.name)}
                   disabled={!isOverridden}
                   title={tr('Back to the template value')}
+                  aria-label={`${tr('Reset')} ${tr(token.label)}`}
                 >
                   <RotateCcw size={11} />
                 </button>
-              </label>
+              </div>
             )
           })}
         </section>
       ))}
+      <details className="theme-editor-more">
+        <summary>{tr('More options')}</summary>
+        {THEME_TOKENS.filter(token => !SIMPLE_TOKENS.has(token.name)).map(token => {
+          const current = overrides[token.name] ?? defaults[token.name] ?? ''
+          return <div key={token.name} className="theme-field">
+            <span className="theme-field-label">{tr(`${token.group}`)} · {tr(token.label)}</span>
+            <input type="color" aria-label={tr(token.label)} value={toHexInput(current) ?? '#000000'} onChange={event => set(token.name, event.target.value)} />
+            <input className="theme-field-text" aria-label={`${tr(token.label)} ${tr('colour')}`} value={current} onChange={event => set(token.name, event.target.value)} />
+            <button type="button" className="theme-field-reset" disabled={!(token.name in overrides)} aria-label={`${tr('Reset')} ${tr(token.label)}`} onClick={() => reset(token.name)}><RotateCcw size={11} /></button>
+          </div>
+        })}
+      </details>
     </div>
   )
 }
