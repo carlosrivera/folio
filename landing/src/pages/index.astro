@@ -1,5 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import SiteHeader from '../components/SiteHeader.astro'
+import SiteFooter from '../components/SiteFooter.astro'
 import katex from 'katex'
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '')
@@ -35,61 +37,7 @@ const themes = [
 
 <Layout>
   <!-- Navigation -->
-  <header class="nav-wrap">
-    <div class="container nav-inner">
-      <a href={`${base}/`} class="brand" aria-label="Folio home">
-        <span class="brand-badge">F/</span>
-        <span class="brand-text">folio.</span>
-      </a>
-
-      <!-- Desktop Navigation Links -->
-      <nav class="nav-links" aria-label="Main Navigation">
-        <a href={`${base}/#rendering`}>Rich Rendering</a>
-        <a href={`${base}/#mcp-control`}>MCP</a>
-        <a href={`${base}/#faq`}>FAQ</a>
-        <a href={`${base}/docs/`}>Docs</a>
-      </nav>
-
-      <div class="nav-actions">
-        <a href={githubRepo} target="_blank" rel="noopener noreferrer" class="icon-link" aria-label="GitHub Repository">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-          </svg>
-        </a>
-        <a href={releasesUrl} target="_blank" rel="noopener noreferrer" class="btn-secondary nav-releases-btn" id="nav-releases-btn">
-          <span>Releases</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="7" y1="17" x2="17" y2="7"></line>
-            <polyline points="7 7 17 7 17 17"></polyline>
-          </svg>
-        </a>
-        <!-- Mobile Navigation Menu Toggle Button -->
-        <button type="button" class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
-          <span class="hamburger-bar bar-1"></span>
-          <span class="hamburger-bar bar-2"></span>
-          <span class="hamburger-bar bar-3"></span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Mobile Dropdown Navigation Menu -->
-    <div class="mobile-nav-menu" id="mobile-nav-menu">
-      <div class="container mobile-nav-inner">
-        <nav class="mobile-nav-links">
-          <a href={`${base}/#rendering`}>Rich Rendering</a>
-          <a href={`${base}/#mcp-control`}>MCP</a>
-          <a href={`${base}/#faq`}>FAQ</a>
-          <a href={`${base}/docs/`}>Documentation</a>
-        </nav>
-        <div class="mobile-nav-footer">
-          <a href={releasesUrl} target="_blank" rel="noopener noreferrer" class="btn-secondary mobile-releases-cta">
-            <span>All GitHub Releases</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-          </a>
-        </div>
-      </div>
-    </div>
-  </header>
+  <SiteHeader showSectionLinks />
 
   <main>
     <!-- Hero Section -->
@@ -907,26 +855,7 @@ $$</code></pre>
   </main>
 
   <!-- Clean, Minimal Footer (No Carlos Rivera link) -->
-  <footer class="footer">
-    <div class="container footer-inner">
-      <div class="footer-left">
-        <a href={`${base}/`} class="footer-brand">
-          <span class="brand-badge">F/</span>
-          <span class="brand-text">folio.</span>
-        </a>
-        <p class="footer-copy">Native macOS Markdown publisher. Built for documents destined for paper.</p>
-      </div>
-
-      <div class="footer-right">
-        <a href={`${base}/docs`}>Documentation</a>
-        <a href={`${base}/changelog`}>Changelog</a>
-        <a href={githubRepo} target="_blank" rel="noopener noreferrer">GitHub</a>
-        <a href="https://github.com/carlosrivera/folio/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
-        <a href="#themes">Themes</a>
-        <a href="#rendering">Rich Rendering</a>
-      </div>
-    </div>
-  </footer>
+  <SiteFooter showSectionLinks />
 </Layout>
 
 <script>
@@ -1223,32 +1152,6 @@ $$</code></pre>
 
   void autoDetectOS()
 
-  // Responsive Mobile Navigation Drawer
-  const mobileNavToggle = document.getElementById('mobile-nav-toggle')
-  const mobileNavMenu = document.getElementById('mobile-nav-menu')
-
-  function closeMobileNav() {
-    mobileNavMenu?.classList.remove('is-open')
-    mobileNavToggle?.setAttribute('aria-expanded', 'false')
-  }
-
-  mobileNavToggle?.addEventListener('click', (e) => {
-    e.stopPropagation()
-    const isOpen = mobileNavMenu?.classList.contains('is-open')
-    if (isOpen) {
-      closeMobileNav()
-    } else {
-      mobileNavMenu?.classList.add('is-open')
-      mobileNavToggle.setAttribute('aria-expanded', 'true')
-    }
-  })
-
-  mobileNavMenu?.querySelectorAll('a').forEach((link) => {
-    link.addEventListener('click', () => {
-      closeMobileNav()
-    })
-  })
-
   // Close menus on outside click or Escape
   document.addEventListener('click', (e) => {
     const target = e.target as HTMLElement
@@ -1259,9 +1162,6 @@ $$</code></pre>
     if (!target.closest('#app-theme-pill')) {
       titlebarThemeMenu?.classList.remove('is-open')
     }
-    if (!target.closest('#mobile-nav-toggle') && !target.closest('#mobile-nav-menu')) {
-      closeMobileNav()
-    }
   })
 
   document.addEventListener('keydown', (e) => {
@@ -1269,258 +1169,11 @@ $$</code></pre>
       document.querySelectorAll('.cta-dropdown-menu.is-open').forEach((m) => m.classList.remove('is-open'))
       document.querySelectorAll('.cta-dropdown-btn[aria-expanded="true"]').forEach((b) => b.setAttribute('aria-expanded', 'false'))
       titlebarThemeMenu?.classList.remove('is-open')
-      closeMobileNav()
     }
   })
 </script>
 
 <style>
-  /* Navigation */
-  .nav-wrap {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: var(--nav-bg, rgba(245, 242, 233, 0.88));
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    transition: background-color 0.4s ease, border-color 0.4s ease;
-  }
-
-  .nav-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
-  }
-
-  .brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 1.15rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-  }
-
-  .brand-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    background: var(--accent);
-    color: var(--accent-fg, #fff);
-    border-radius: 7px;
-    font-size: 0.85rem;
-    font-weight: 800;
-    transition: background-color 0.4s ease, color 0.4s ease;
-  }
-
-  .nav-links {
-    display: flex;
-    gap: 2rem;
-    font-size: 0.92rem;
-    font-weight: 500;
-    color: var(--text-2);
-  }
-
-  .nav-links a {
-    transition: color 0.15s ease;
-  }
-
-  .nav-links a:hover {
-    color: var(--text);
-  }
-
-  .nav-actions {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .icon-link {
-    color: var(--text-2);
-    display: flex;
-    align-items: center;
-    transition: color 0.15s ease;
-  }
-
-  .icon-link:hover {
-    color: var(--text);
-  }
-
-  .btn-secondary {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    background: transparent;
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    font-size: 0.86rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.2s var(--ease-out);
-  }
-
-  .btn-secondary:hover {
-    background: var(--surface);
-    border-color: var(--text-2);
-    color: var(--text);
-    transform: translateY(-1px);
-  }
-
-  .btn-secondary svg {
-    opacity: 0.65;
-    transition: transform 0.2s var(--ease-out), opacity 0.2s ease;
-  }
-
-  .btn-secondary:hover svg {
-    opacity: 1;
-    transform: translate(1px, -1px);
-  }
-
-  /* Responsive Mobile Navigation Toggle Button */
-  .mobile-nav-toggle {
-    display: none;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: 36px;
-    height: 36px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    cursor: pointer;
-    gap: 4px;
-    padding: 0;
-    transition: background 0.15s ease, border-color 0.15s ease;
-  }
-
-  .mobile-nav-toggle:hover {
-    background: var(--surface);
-    border-color: var(--text-2);
-  }
-
-  .hamburger-bar {
-    display: block;
-    width: 16px;
-    height: 1.75px;
-    background: var(--text);
-    border-radius: 2px;
-    transition: transform 0.25s ease, opacity 0.25s ease;
-  }
-
-  .mobile-nav-toggle[aria-expanded="true"] .bar-1 {
-    transform: translateY(5.75px) rotate(45deg);
-  }
-
-  .mobile-nav-toggle[aria-expanded="true"] .bar-2 {
-    opacity: 0;
-  }
-
-  .mobile-nav-toggle[aria-expanded="true"] .bar-3 {
-    transform: translateY(-5.75px) rotate(-45deg);
-  }
-
-  /* Mobile Navigation Dropdown Drawer */
-  .mobile-nav-menu {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: var(--bg);
-    border-bottom: 1px solid var(--border);
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.08);
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(-8px);
-    transition: opacity 0.25s ease, transform 0.25s ease;
-  }
-
-  .mobile-nav-menu.is-open {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateY(0);
-  }
-
-  .mobile-nav-inner {
-    padding: 1.2rem var(--gutter) 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-  }
-
-  .mobile-nav-links {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
-  .mobile-nav-links a {
-    padding: 0.65rem 0.85rem;
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: var(--text);
-    border-radius: 8px;
-    text-decoration: none;
-    transition: background 0.15s ease, color 0.15s ease;
-  }
-
-  .mobile-nav-links a:hover {
-    background: var(--surface);
-    color: var(--accent);
-  }
-
-  .mobile-nav-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border);
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .mobile-free-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-2);
-  }
-
-  .free-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--healthy);
-  }
-
-  @media (max-width: 840px) {
-    .nav-links {
-      display: none;
-    }
-    .mobile-nav-toggle {
-      display: flex;
-    }
-    .mobile-nav-menu {
-      display: block;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .nav-inner {
-      height: 56px;
-    }
-    .nav-releases-btn {
-      display: none;
-    }
-  }
 
   /* Hero Section */
   .hero {
@@ -3474,50 +3127,4 @@ $$</code></pre>
     justify-content: center;
   }
 
-  /* Clean Footer */
-  .footer {
-    border-top: 1px solid var(--border);
-    background: var(--bg);
-    padding: 2.5rem 0;
-  }
-
-  .footer-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1.5rem;
-  }
-
-  .footer-left {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .footer-brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 1.1rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-  }
-
-  .footer-copy {
-    font-size: 0.85rem;
-    color: var(--text-faint);
-  }
-
-  .footer-right {
-    display: flex;
-    gap: 1.8rem;
-    font-size: 0.88rem;
-    font-weight: 500;
-    color: var(--text-2);
-  }
-
-  .footer-right a:hover {
-    color: var(--text);
-  }
 </style>
