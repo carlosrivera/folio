@@ -11,6 +11,8 @@ permissions:
 
 jobs:
   release-mac:
+    # A local signing setup can keep private keys in the owner’s Keychain.
+    if: ${{ vars.MACOS_RELEASE_SOURCE != 'local' }}
     name: Build & Release macOS (arm64 & x64)
     runs-on: macos-latest
     steps:

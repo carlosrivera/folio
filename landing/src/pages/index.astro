@@ -5,7 +5,7 @@ import katex from 'katex'
 const base = import.meta.env.BASE_URL.replace(/\/$/, '')
 const githubRepo = 'https://github.com/carlosrivera/folio'
 const releasesUrl = `${githubRepo}/releases`
-const version = '0.3.0'
+const version = '0.3.1'
 const downloadSilicon = `https://github.com/carlosrivera/folio/releases/download/v${version}/Folio-${version}-arm64.dmg`
 const downloadIntel = `https://github.com/carlosrivera/folio/releases/download/v${version}/Folio-${version}.dmg`
 const downloadSiliconZip = `https://github.com/carlosrivera/folio/releases/download/v${version}/Folio-${version}-arm64-mac.zip`
@@ -1116,7 +1116,7 @@ $$</code></pre>
 
     if (os === 'windows') {
       applyTarget(
-        'https://github.com/carlosrivera/folio/releases/download/v0.3.0/Folio-Setup-0.3.0.exe',
+        'https://github.com/carlosrivera/folio/releases/download/v0.3.1/Folio-Setup-0.3.1.exe',
         'Windows',
         'Installer (.exe)',
         'For Windows 10/11',
@@ -1125,7 +1125,7 @@ $$</code></pre>
       )
     } else if (os === 'linux') {
       applyTarget(
-        'https://github.com/carlosrivera/folio/releases/download/v0.3.0/Folio-0.3.0.AppImage',
+        'https://github.com/carlosrivera/folio/releases/download/v0.3.1/Folio-0.3.1.AppImage',
         'Linux',
         'Universal (.AppImage)',
         'For Ubuntu, Debian, Fedora',
@@ -1136,7 +1136,7 @@ $$</code></pre>
       const isIntel = await macDownloadArchitecture(navigator as Navigator & MacArchitectureHints) === 'x64'
       if (isIntel) {
         applyTarget(
-          'https://github.com/carlosrivera/folio/releases/download/v0.3.0/Folio-0.3.0.dmg',
+          'https://github.com/carlosrivera/folio/releases/download/v0.3.1/Folio-0.3.1.dmg',
           'macOS',
           'Intel Mac',
           'For macOS 12+',
@@ -1145,7 +1145,7 @@ $$</code></pre>
         )
       } else {
         applyTarget(
-          'https://github.com/carlosrivera/folio/releases/download/v0.3.0/Folio-0.3.0-arm64.dmg',
+          'https://github.com/carlosrivera/folio/releases/download/v0.3.1/Folio-0.3.1-arm64.dmg',
           'macOS',
           'Apple Silicon',
           'For macOS 12+',

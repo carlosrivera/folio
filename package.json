@@ -1,7 +1,7 @@
 {
   "name": "folio-md",
   "productName": "Folio",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "license": "MIT",
   "author": "Carlos Rivera <me@carlosrivera.im>",
   "description": "A Markdown document editor with paginated preview, PDF export, and Model Context Protocol agent support.",
@@ -32,6 +32,7 @@
     "build:electron": "vite build --config vite.electron.config.ts && cp electron/preload.cjs dist-electron/preload.cjs && node scripts/patch-electron-app.cjs",
     "start": "pnpm build && electron .",
     "dist": "pnpm build && electron-builder",
+    "release:mac:local": "bash scripts/release-mac.sh",
     "dist:mac": "pnpm build && electron-builder --mac",
     "dist:win": "pnpm build && electron-builder --win",
     "dist:linux": "pnpm build && electron-builder --linux",
