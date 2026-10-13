@@ -118,18 +118,29 @@ const links = showSectionLinks ? [
 
   .nav-links {
     display: flex;
-    gap: 2rem;
+    gap: 12px;
     font-size: 0.92rem;
     font-weight: 500;
     color: var(--text-2);
   }
 
   .nav-links a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 10px;
+    border-radius: 6px;
     transition: color 0.15s ease;
   }
 
   .nav-links a:hover {
     color: var(--text);
+  }
+
+  .nav-links a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 
   .nav-actions {
