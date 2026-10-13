@@ -48,9 +48,9 @@ const themes = [
       <nav class="nav-links" aria-label="Main Navigation">
         <a href={`${base}/docs`}>Docs</a>
         <a href={`${base}/changelog`}>Changelog</a>
-        <a href="#ai-bridge">AI Workflow</a>
+        <a href="#mcp-control">MCP</a>
         <a href="#themes">Themes</a>
-        <a href="#latex">LaTeX Math</a>
+        <a href="#rendering">Rich Rendering</a>
         <a href="#pages">Real Pages</a>
         <a href="#faq">FAQ</a>
       </nav>
@@ -83,9 +83,9 @@ const themes = [
         <nav class="mobile-nav-links">
           <a href={`${base}/docs`}>Documentation</a>
           <a href={`${base}/changelog`}>Changelog</a>
-          <a href="#ai-bridge">AI Workflow</a>
+          <a href="#mcp-control">MCP</a>
           <a href="#themes">Themes</a>
-          <a href="#latex">LaTeX Math</a>
+          <a href="#rendering">Rich Rendering</a>
           <a href="#pages">Real Pages</a>
           <a href="#faq">FAQ</a>
         </nav>
@@ -605,36 +605,162 @@ const themes = [
       </div>
     </section>
 
-    <!-- LaTeX Math & Technical Section -->
-    <section class="section latex-section" id="latex">
+    <!-- Rich Markdown Rendering Section -->
+    <section class="section latex-section" id="rendering">
       <div class="container">
         <div class="section-head">
-          <p class="eyebrow">Formulas & Diagrams</p>
-          <h2 class="section-title">Mermaid, LaTeX, tables, and code render directly.</h2>
+          <p class="eyebrow">One source, finished output</p>
+          <h2 class="section-title">Code, diagrams, and math belong in the document.</h2>
           <p class="section-desc">
-            Write standard math formulas and technical diagrams directly in plain text Markdown. Folio compiles equations and charts into scalable vector paths in the final PDF — razor-sharp at any zoom level, never pixelated raster images.
+            Keep technical content in plain Markdown. Folio highlights fenced code, draws Mermaid diagrams, and typesets LaTeX equations in the preview and final PDF.
           </p>
         </div>
 
         <div class="latex-showcase-box">
-          <div class="latex-pane-code">
+          <div class="render-tabs" role="tablist" aria-label="Rendering examples">
+            <button type="button" class="render-tab is-active" role="tab" aria-selected="true" aria-controls="render-code" data-render-tab="code">Code</button>
+            <button type="button" class="render-tab" role="tab" aria-selected="false" aria-controls="render-mermaid" data-render-tab="mermaid">Mermaid</button>
+            <button type="button" class="render-tab" role="tab" aria-selected="false" aria-controls="render-latex" data-render-tab="latex">LaTeX</button>
+          </div>
+
+          <div class="render-example is-active" id="render-code" role="tabpanel" data-render-panel="code">
+            <div class="latex-pane-code">
+              <div class="pane-tag">Markdown source</div>
+              <pre><code>```ts
+type Report = &#123;
+  title: string
+  status: "draft" | "ready"
+&#125;
+
+const publish = (report: Report) =&gt;
+  report.status === "ready"
+```</code></pre>
+            </div>
+            <div class="latex-pane-render">
+              <div class="pane-tag">Theme-aware output</div>
+              <div class="rendered-code" aria-label="Syntax highlighted TypeScript example">
+                <div><span class="tok-keyword">type</span> <span class="tok-type">Report</span> <span class="tok-operator">=</span> <span class="tok-punc">&#123;</span></div>
+                <div>&nbsp;&nbsp;title<span class="tok-punc">:</span> <span class="tok-type">string</span></div>
+                <div>&nbsp;&nbsp;status<span class="tok-punc">:</span> <span class="tok-string">"draft"</span> <span class="tok-operator">|</span> <span class="tok-string">"ready"</span></div>
+                <div><span class="tok-punc">&#125;</span></div>
+                <br />
+                <div><span class="tok-keyword">const</span> <span class="tok-function">publish</span> <span class="tok-operator">=</span> <span class="tok-punc">(</span>report<span class="tok-punc">:</span> <span class="tok-type">Report</span><span class="tok-punc">)</span> <span class="tok-operator">=&gt;</span></div>
+                <div>&nbsp;&nbsp;report.status <span class="tok-operator">===</span> <span class="tok-string">"ready"</span></div>
+              </div>
+              <div class="latex-render-meta">
+                <span>✓ Language detection</span>
+                <span>✓ Theme-aware colors</span>
+                <span>✓ Safe line wrapping</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="render-example" id="render-mermaid" role="tabpanel" data-render-panel="mermaid" hidden>
+            <div class="latex-pane-code">
+              <div class="pane-tag">Markdown source</div>
+              <pre><code>```mermaid
+flowchart LR
+  Draft --&gt; Review
+  Review --&gt; PDF
+```</code></pre>
+            </div>
+            <div class="latex-pane-render">
+              <div class="pane-tag">Responsive diagram</div>
+              <div class="mermaid-preview" aria-label="Rendered Mermaid flowchart">
+                <div class="diagram-node">Draft</div>
+                <div class="diagram-arrow"><span></span></div>
+                <div class="diagram-node">Review</div>
+                <div class="diagram-arrow"><span></span></div>
+                <div class="diagram-node diagram-node-accent">PDF</div>
+              </div>
+              <div class="latex-render-meta">
+                <span>✓ Fits page margins</span>
+                <span>✓ Scales for print</span>
+                <span>✓ Updates as you type</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="render-example" id="render-latex" role="tabpanel" data-render-panel="latex" hidden>
+            <div class="latex-pane-code">
             <div class="pane-tag">Plain Markdown Syntax</div>
             <pre><code>$$
 \mathcal&#123;L&#125;_&#123;\text&#123;total&#125;&#125;(\theta) = \mathbb&#123;E&#125;_&#123;x \sim p_&#123;\text&#123;data&#125;&#125;&#125;\left[ -\log p_\theta(x) \right] + \beta \cdot D_&#123;\text&#123;KL&#125;&#125;\left( q_\phi(z|x) \,\parallel\, p(z) \right)
 $$</code></pre>
-          </div>
-          <div class="latex-pane-render">
-            <div class="pane-tag">Vector Typeset PDF Output</div>
-            <div class="latex-rendered-math">
-              <div class="math-content" set:html={eqShowcase} />
-              <span class="eq-badge">(3.2)</span>
             </div>
-            <div class="latex-render-meta">
-              <span>✓ Scalable vector glyphs</span>
-              <span>✓ MathML accessible</span>
-              <span>✓ Millimeter print alignment</span>
+            <div class="latex-pane-render">
+              <div class="pane-tag">Vector typeset output</div>
+              <div class="latex-rendered-math">
+                <div class="math-content" set:html={eqShowcase} />
+                <span class="eq-badge">(3.2)</span>
+              </div>
+              <div class="latex-render-meta">
+                <span>✓ Scalable vector glyphs</span>
+                <span>✓ MathML accessible</span>
+                <span>✓ Print-sharp equations</span>
+              </div>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MCP Control Section -->
+    <section class="section mcp-control-section" id="mcp-control">
+      <div class="container">
+        <div class="mcp-heading">
+          <div>
+            <p class="eyebrow">Agent-native publishing</p>
+            <h2 class="section-title">Your agent can write the file—and control how it looks.</h2>
+          </div>
+          <p class="section-desc">
+            Folio’s MCP server gives agents the same document workflow you use: create content, set metadata and layouts, build reusable styles, lint the result, and export the PDF.
+          </p>
+        </div>
+
+        <div class="mcp-workflow">
+          <div class="mcp-prompt-pane">
+            <div class="mcp-window-bar">
+              <span></span><span></span><span></span>
+              <strong>Agent</strong>
+            </div>
+            <div class="mcp-conversation">
+              <div class="mcp-message mcp-message-user">
+                Create the quarterly engineering report. Use a landscape layout, our “Board Review” style, add a delivery diagram, and export it as a PDF.
+              </div>
+              <div class="mcp-message mcp-message-agent">
+                I’ll create the document, apply the saved style, check the Markdown and layout, then export the finished PDF.
+              </div>
+            </div>
+          </div>
+
+          <div class="mcp-actions-pane">
+            <div class="mcp-action">
+              <span class="mcp-step">01</span>
+              <div><code>folio_create_document</code><p>Writes the Markdown, frontmatter, and sections.</p></div>
+              <span class="mcp-check">✓</span>
+            </div>
+            <div class="mcp-action">
+              <span class="mcp-step">02</span>
+              <div><code>folio_apply_style</code><p>Applies the document’s portable fonts and colors.</p></div>
+              <span class="mcp-check">✓</span>
+            </div>
+            <div class="mcp-action">
+              <span class="mcp-step">03</span>
+              <div><code>folio_lint_document</code><p>Checks math, diagrams, links, and layout settings.</p></div>
+              <span class="mcp-check">✓</span>
+            </div>
+            <div class="mcp-action is-running">
+              <span class="mcp-step">04</span>
+              <div><code>folio_export_pdf</code><p>Renders the same paginated output as the app.</p></div>
+              <span class="mcp-pulse" aria-label="In progress"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mcp-footer-row">
+          <p><strong>12 focused tools.</strong> Local files. Portable styles. No cloud account required.</p>
+          <a href={`${base}/docs#mcp`} class="mcp-docs-link">Explore the MCP tools <span aria-hidden="true">→</span></a>
         </div>
       </div>
     </section>
@@ -863,7 +989,7 @@ $$</code></pre>
         <a href={githubRepo} target="_blank" rel="noopener noreferrer">GitHub</a>
         <a href="https://github.com/carlosrivera/folio/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
         <a href="#themes">Themes</a>
-        <a href="#latex">LaTeX</a>
+        <a href="#rendering">Rich Rendering</a>
       </div>
     </div>
   </footer>
@@ -871,6 +997,25 @@ $$</code></pre>
 
 <script>
   import { macDownloadArchitecture, type MacArchitectureHints } from '../lib/mac-architecture'
+  const renderTabs = document.querySelectorAll<HTMLButtonElement>('[data-render-tab]')
+  const renderPanels = document.querySelectorAll<HTMLElement>('[data-render-panel]')
+
+  renderTabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const selected = tab.dataset.renderTab
+      renderTabs.forEach((item) => {
+        const isSelected = item === tab
+        item.classList.toggle('is-active', isSelected)
+        item.setAttribute('aria-selected', String(isSelected))
+      })
+      renderPanels.forEach((panel) => {
+        const isSelected = panel.dataset.renderPanel === selected
+        panel.classList.toggle('is-active', isSelected)
+        panel.hidden = !isSelected
+      })
+    })
+  })
+
   // Interactive Theme Switching Logic
   const themeCards = document.querySelectorAll<HTMLButtonElement>('.theme-card')
   const cmThemeCode = document.getElementById('cm-theme-code')
@@ -2699,6 +2844,7 @@ $$</code></pre>
      ========================================================================== */
   .section {
     padding: 5rem 0;
+    scroll-margin-top: 72px;
   }
 
   .section-head {
@@ -2937,10 +3083,8 @@ $$</code></pre>
     line-height: 1.45;
   }
 
-  /* LaTeX Math Showcase Box */
+  /* Code, Mermaid, and LaTeX rendering showcase */
   .latex-showcase-box {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -2948,10 +3092,42 @@ $$</code></pre>
     box-shadow: 0 4px 20px rgba(0,0,0,0.03);
   }
 
+  .render-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 8px;
+    background: #0e0f12;
+    border-bottom: 1px solid #292b32;
+  }
+
+  .render-tab {
+    border: 0;
+    border-radius: 7px;
+    padding: 8px 14px;
+    background: transparent;
+    color: #a1a1aa;
+    font: 650 0.82rem/1 "Inter", sans-serif;
+    cursor: pointer;
+    transition: background 0.16s ease, color 0.16s ease;
+  }
+
+  .render-tab:hover { color: #f4f4f5; }
+
+  .render-tab.is-active {
+    background: #292b32;
+    color: #ffffff;
+  }
+
+  .render-example {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 330px;
+  }
+
+  .render-example[hidden] { display: none; }
+
   @media (max-width: 768px) {
-    .latex-showcase-box {
-      grid-template-columns: 1fr;
-    }
+    .render-example { grid-template-columns: 1fr; }
   }
 
   .latex-pane-code {
@@ -2961,6 +3137,7 @@ $$</code></pre>
     border-right: 1px solid #22242a;
     display: flex;
     flex-direction: column;
+    justify-content: flex-start;
   }
 
   .pane-tag {
@@ -2975,7 +3152,7 @@ $$</code></pre>
   .latex-pane-code pre {
     margin: 0;
     white-space: pre-wrap;
-    word-break: break-all;
+    word-break: break-word;
     font-size: 0.88rem;
     line-height: 1.5;
     color: #a3e635;
@@ -2990,6 +3167,73 @@ $$</code></pre>
     flex-direction: column;
     justify-content: space-between;
     transition: background-color 0.3s ease;
+  }
+
+  .rendered-code {
+    flex: 1;
+    margin-bottom: 20px;
+    border: 1px solid #2d3038;
+    border-left: 4px solid #d25c3a;
+    border-radius: 7px;
+    padding: 20px;
+    background: #191a1f;
+    color: #d4d4d8;
+    font: 500 0.87rem/1.65 "JetBrains Mono", monospace;
+    overflow-x: auto;
+  }
+
+  .tok-keyword { color: #c084fc; }
+  .tok-type { color: #67e8f9; }
+  .tok-operator { color: #f472b6; }
+  .tok-string { color: #a3e635; }
+  .tok-function { color: #fbbf24; }
+  .tok-punc { color: #a1a1aa; }
+
+  .mermaid-preview {
+    display: grid;
+    grid-template-columns: minmax(72px, 1fr) 38px minmax(72px, 1fr) 38px minmax(72px, 1fr);
+    align-items: center;
+    flex: 1;
+    margin-bottom: 20px;
+    padding: 28px 16px;
+    border: 1px solid #e7e5e4;
+    border-radius: 7px;
+    background: #fafaf9;
+  }
+
+  .diagram-node {
+    border: 1.5px solid #a8a29e;
+    border-radius: 7px;
+    padding: 12px 8px;
+    color: #292524;
+    background: #ffffff;
+    font: 700 0.82rem/1 "Inter", sans-serif;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+
+  .diagram-node-accent {
+    border-color: #d25c3a;
+    background: #f7ede8;
+    color: #9f3f27;
+  }
+
+  .diagram-arrow {
+    position: relative;
+    height: 1px;
+    background: #a8a29e;
+  }
+
+  .diagram-arrow::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    right: 0;
+    width: 6px;
+    height: 6px;
+    border-top: 1.5px solid #78716c;
+    border-right: 1.5px solid #78716c;
+    transform: rotate(45deg);
   }
 
   .latex-pane-render .pane-tag {
@@ -3102,6 +3346,182 @@ $$</code></pre>
 
   .latex-render-meta span {
     color: #374151 !important;
+  }
+
+  /* MCP agent workflow */
+  .mcp-control-section {
+    border-block: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface), transparent 20%);
+  }
+
+  .mcp-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+    align-items: end;
+    gap: clamp(32px, 7vw, 88px);
+    margin-bottom: 2.75rem;
+  }
+
+  .mcp-heading .section-title {
+    max-width: 640px;
+    font-size: clamp(2rem, 4vw, 3.4rem);
+  }
+
+  .mcp-heading .section-desc { padding-bottom: 0.35rem; }
+
+  .mcp-workflow {
+    display: grid;
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--card-bg);
+    box-shadow: 0 18px 50px rgba(20, 16, 12, 0.08);
+  }
+
+  .mcp-prompt-pane {
+    min-height: 390px;
+    background: #111217;
+    color: #f4f4f5;
+  }
+
+  .mcp-window-bar {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 48px;
+    padding: 0 18px;
+    border-bottom: 1px solid #292b32;
+  }
+
+  .mcp-window-bar > span {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #3f3f46;
+  }
+
+  .mcp-window-bar > span:first-child { background: #d25c3a; }
+
+  .mcp-window-bar strong {
+    margin-left: auto;
+    color: #a1a1aa;
+    font: 600 0.72rem/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .mcp-conversation {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    padding: 34px;
+  }
+
+  .mcp-message {
+    max-width: 92%;
+    border-radius: 13px;
+    padding: 16px 18px;
+    font-size: 0.93rem;
+    line-height: 1.6;
+  }
+
+  .mcp-message-user {
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+    background: #292b32;
+    color: #f4f4f5;
+  }
+
+  .mcp-message-agent {
+    align-self: flex-start;
+    border: 1px solid #384112;
+    border-bottom-left-radius: 4px;
+    background: #1b2012;
+    color: #dff5a0;
+  }
+
+  .mcp-actions-pane {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 24px clamp(20px, 4vw, 42px);
+  }
+
+  .mcp-action {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) 20px;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .mcp-action:last-child { border-bottom: 0; }
+
+  .mcp-step {
+    color: var(--text-faint);
+    font: 600 0.7rem/1 "JetBrains Mono", monospace;
+  }
+
+  .mcp-action code {
+    color: var(--text);
+    font-size: 0.84rem;
+    font-weight: 700;
+  }
+
+  .mcp-action p {
+    margin: 4px 0 0;
+    color: var(--text-2);
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .mcp-check {
+    color: var(--healthy);
+    font-weight: 800;
+  }
+
+  .mcp-pulse {
+    width: 9px;
+    height: 9px;
+    justify-self: center;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 5px var(--accent-light);
+    animation: mcp-pulse 1.7s ease-in-out infinite;
+  }
+
+  @keyframes mcp-pulse {
+    50% { box-shadow: 0 0 0 9px transparent; }
+  }
+
+  .mcp-footer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding-top: 22px;
+    color: var(--text-2);
+    font-size: 0.9rem;
+  }
+
+  .mcp-footer-row strong { color: var(--text); }
+
+  .mcp-docs-link {
+    flex-shrink: 0;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .mcp-docs-link:hover { text-decoration: underline; }
+
+  @media (max-width: 780px) {
+    .mcp-heading,
+    .mcp-workflow { grid-template-columns: 1fr; }
+    .mcp-prompt-pane { min-height: auto; }
+    .mcp-conversation { padding: 24px 20px; }
+    .mcp-footer-row { align-items: flex-start; flex-direction: column; }
   }
 
   /* Engine Grid */
