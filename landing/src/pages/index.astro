@@ -1,6 +1,22 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import katex from 'katex'
+import hljs from 'highlight.js/lib/core'
+import typescript from 'highlight.js/lib/languages/typescript'
+
+hljs.registerLanguage('typescript', typescript)
+const codeExample = `type Report = {
+  title: string
+  status: "draft" | "ready"
+}
+
+const publish = (report: Report) =>
+  report.status === "ready"`
+const highlightedCode = hljs.highlight(codeExample, { language: 'typescript' }).value
+const mermaidExample = `flowchart LR
+  A[Markdown draft] --> B{Ready to publish?}
+  B -->|Revise| A
+  B -->|Yes| C[Finished PDF]`
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '')
 const githubRepo = 'https://github.com/carlosrivera/folio'
@@ -626,27 +642,11 @@ const themes = [
           <div class="render-example is-active" id="render-code" role="tabpanel" data-render-panel="code">
             <div class="latex-pane-code">
               <div class="pane-tag">Markdown source</div>
-              <pre><code>```ts
-type Report = &#123;
-  title: string
-  status: "draft" | "ready"
-&#125;
-
-const publish = (report: Report) =&gt;
-  report.status === "ready"
-```</code></pre>
+              <pre><code>{'```ts\n' + codeExample + '\n```'}</code></pre>
             </div>
             <div class="latex-pane-render">
-              <div class="pane-tag">Theme-aware output</div>
-              <div class="rendered-code" aria-label="Syntax highlighted TypeScript example">
-                <div><span class="tok-keyword">type</span> <span class="tok-type">Report</span> <span class="tok-operator">=</span> <span class="tok-punc">&#123;</span></div>
-                <div>&nbsp;&nbsp;title<span class="tok-punc">:</span> <span class="tok-type">string</span></div>
-                <div>&nbsp;&nbsp;status<span class="tok-punc">:</span> <span class="tok-string">"draft"</span> <span class="tok-operator">|</span> <span class="tok-string">"ready"</span></div>
-                <div><span class="tok-punc">&#125;</span></div>
-                <br />
-                <div><span class="tok-keyword">const</span> <span class="tok-function">publish</span> <span class="tok-operator">=</span> <span class="tok-punc">(</span>report<span class="tok-punc">:</span> <span class="tok-type">Report</span><span class="tok-punc">)</span> <span class="tok-operator">=&gt;</span></div>
-                <div>&nbsp;&nbsp;report.status <span class="tok-operator">===</span> <span class="tok-string">"ready"</span></div>
-              </div>
+              <div class="pane-tag">Rendered with highlight.js</div>
+              <pre class="rendered-code" aria-label="Syntax highlighted TypeScript example"><code set:html={highlightedCode} /></pre>
               <div class="latex-render-meta">
                 <span>✓ Language detection</span>
                 <span>✓ Theme-aware colors</span>
@@ -658,21 +658,11 @@ const publish = (report: Report) =&gt;
           <div class="render-example" id="render-mermaid" role="tabpanel" data-render-panel="mermaid" hidden>
             <div class="latex-pane-code">
               <div class="pane-tag">Markdown source</div>
-              <pre><code>```mermaid
-flowchart LR
-  Draft --&gt; Review
-  Review --&gt; PDF
-```</code></pre>
+              <pre><code>{'```mermaid\n' + mermaidExample + '\n```'}</code></pre>
             </div>
             <div class="latex-pane-render">
-              <div class="pane-tag">Responsive diagram</div>
-              <div class="mermaid-preview" aria-label="Rendered Mermaid flowchart">
-                <div class="diagram-node">Draft</div>
-                <div class="diagram-arrow"><span></span></div>
-                <div class="diagram-node">Review</div>
-                <div class="diagram-arrow"><span></span></div>
-                <div class="diagram-node diagram-node-accent">PDF</div>
-              </div>
+              <div class="pane-tag">Rendered with Mermaid</div>
+              <div class="mermaid-preview" data-mermaid-source={mermaidExample} aria-label="Rendered Mermaid flowchart"></div>
               <div class="latex-render-meta">
                 <span>✓ Fits page margins</span>
                 <span>✓ Scales for print</span>
@@ -689,7 +679,7 @@ flowchart LR
 $$</code></pre>
             </div>
             <div class="latex-pane-render">
-              <div class="pane-tag">Vector typeset output</div>
+              <div class="pane-tag">Typeset with KaTeX</div>
               <div class="latex-rendered-math">
                 <div class="math-content" set:html={eqShowcase} />
                 <span class="eq-badge">(3.2)</span>
@@ -997,6 +987,20 @@ $$</code></pre>
 
 <script>
   import { macDownloadArchitecture, type MacArchitectureHints } from '../lib/mac-architecture'
+  let diagramRendered = false
+  async function renderDiagram() {
+    const target = document.querySelector<HTMLElement>('[data-mermaid-source]')
+    if (!target || diagramRendered) return
+    try {
+      const { default: mermaid } = await import('mermaid')
+      mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'neutral', flowchart: { useMaxWidth: true }, themeVariables: { fontFamily: 'Inter, sans-serif' } })
+      const { svg } = await mermaid.render('landing-mermaid-example', target.dataset.mermaidSource || '')
+      target.innerHTML = svg
+      diagramRendered = true
+    } catch {
+      target.textContent = 'Diagram preview could not load. Try refreshing the page.'
+    }
+  }
   const renderTabs = document.querySelectorAll<HTMLButtonElement>('[data-render-tab]')
   const renderPanels = document.querySelectorAll<HTMLElement>('[data-render-panel]')
 
@@ -1013,6 +1017,7 @@ $$</code></pre>
         panel.classList.toggle('is-active', isSelected)
         panel.hidden = !isSelected
       })
+      if (selected === 'mermaid') void renderDiagram()
     })
   })
 
@@ -3182,16 +3187,16 @@ $$</code></pre>
     overflow-x: auto;
   }
 
-  .tok-keyword { color: #c084fc; }
-  .tok-type { color: #67e8f9; }
-  .tok-operator { color: #f472b6; }
-  .tok-string { color: #a3e635; }
-  .tok-function { color: #fbbf24; }
-  .tok-punc { color: #a1a1aa; }
+  .rendered-code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .rendered-code :global(.hljs-keyword) { color: #c084fc; }
+  .rendered-code :global(.hljs-built_in),
+  .rendered-code :global(.hljs-title.class_) { color: #67e8f9; }
+  .rendered-code :global(.hljs-string) { color: #a3e635; }
+  .rendered-code :global(.hljs-title.function_) { color: #fbbf24; }
 
   .mermaid-preview {
-    display: grid;
-    grid-template-columns: minmax(72px, 1fr) 38px minmax(72px, 1fr) 38px minmax(72px, 1fr);
+    display: flex;
+    justify-content: center;
     align-items: center;
     flex: 1;
     margin-bottom: 20px;
@@ -3200,6 +3205,7 @@ $$</code></pre>
     border-radius: 7px;
     background: #fafaf9;
   }
+  .mermaid-preview :global(svg) { width: 100%; height: auto; max-height: 250px; }
 
   .diagram-node {
     border: 1.5px solid #a8a29e;

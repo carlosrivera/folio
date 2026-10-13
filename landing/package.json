@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "astro": "latest",
-    "katex": "^0.16.47"
+    "highlight.js": "^11.12.0",
+    "katex": "^0.16.47",
+    "mermaid": "^12.0.0"
   }
 }
