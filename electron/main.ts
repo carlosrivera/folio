@@ -45,10 +45,10 @@ function getWindowState(target?: Electron.WebContents | BrowserWindow | null): D
     const focused = BrowserWindow.getFocusedWindow()
     return focused ? documentWindows.get(focused.id) : documentWindows.values().next().value
   }
-  if ('id' in target && typeof (target as BrowserWindow).id === 'number') {
-    return documentWindows.get((target as BrowserWindow).id)
+  if (target instanceof BrowserWindow) {
+    return documentWindows.get(target.id)
   }
-  const win = BrowserWindow.fromWebContents(target as Electron.WebContents)
+  const win = BrowserWindow.fromWebContents(target)
   return win ? documentWindows.get(win.id) : undefined
 }
 
@@ -456,11 +456,14 @@ app.on('open-file', (event, file) => {
 ipcMain.handle('file:open', async (event) => {
   const callerWin = BrowserWindow.fromWebContents(event.sender) ?? getFocusedDocumentWindow()
   const state = callerWin ? documentWindows.get(callerWin.id) : null
-  const selection = await dialog.showOpenDialog(callerWin ?? undefined, {
+  const openOptions: Electron.OpenDialogOptions = {
     title: 'Open Document',
     properties: ['openFile'],
     filters: [{ name: 'Folio and Markdown', extensions: ['folio', 'md', 'markdown', 'mdown', 'txt'] }],
-  })
+  }
+  const selection = callerWin
+    ? await dialog.showOpenDialog(callerWin, openOptions)
+    : await dialog.showOpenDialog(openOptions)
   if (selection.canceled || !selection.filePaths[0]) return { canceled: true }
   const filePath = selection.filePaths[0]
 
@@ -507,7 +510,14 @@ ipcMain.handle('file:get-startup-document', async (event) => {
 
   if (state.isNew) {
     state.isNew = false
-    return { canceled: true }
+    state.currentPath = null
+    state.window.setTitle('Untitled — Folio')
+    if (process.platform === 'darwin') state.window.setRepresentedFilename('')
+    return {
+      canceled: false,
+      path: '',
+      content: '# Untitled\n\nStart writing in plain Markdown...\n',
+    }
   }
 
   if (pendingOpenPath) {
@@ -579,11 +589,14 @@ ipcMain.handle('file:close-after-confirmation', (event) => {
 
 ipcMain.handle('file:read-comparison', async (event) => {
   const callerWin = BrowserWindow.fromWebContents(event.sender) ?? getFocusedDocumentWindow()
-  const selection = await dialog.showOpenDialog(callerWin ?? undefined, {
+  const openOptions: Electron.OpenDialogOptions = {
     title: 'Compare With Revision',
     properties: ['openFile'],
     filters: [{ name: 'Folio and Markdown', extensions: ['folio', 'md', 'markdown', 'mdown', 'txt'] }],
-  })
+  }
+  const selection = callerWin
+    ? await dialog.showOpenDialog(callerWin, openOptions)
+    : await dialog.showOpenDialog(openOptions)
   if (selection.canceled || !selection.filePaths[0]) return { canceled: true }
   const filePath = selection.filePaths[0]
   return readMarkdownDocument(filePath)
