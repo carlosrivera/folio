@@ -157,7 +157,11 @@ export function usePreviewViewport(
       const target = Math.min(Math.max(page, 1), pages.length)
       if (target >= 1 && target <= pages.length) {
         setCurrentPage(target)
-        scrollTo(pages[target - 1], SCROLL_MARGIN_PX)
+        if (target === 1 && scrollRef.current) {
+          scrollRef.current.scrollTop = 0
+        } else {
+          scrollTo(pages[target - 1], SCROLL_MARGIN_PX)
+        }
       }
     },
     [pagesOf, scrollTo],
@@ -200,15 +204,14 @@ export function usePreviewViewport(
     zoomIn: useCallback(() => step(1), [step]),
     zoomOut: useCallback(() => step(-1), [step]),
     toggleFitToWidth: useCallback(() => {
-      setFitToWidth((on) => {
-        if (!on) {
-          applyFitToWidth()
-          return true
-        }
+      if (fitToWidth) {
+        setFitToWidth(false)
         setZoom(1)
-        return false
-      })
-    }, [applyFitToWidth]),
+      } else {
+        setFitToWidth(true)
+        applyFitToWidth()
+      }
+    }, [fitToWidth, applyFitToWidth]),
     recomputeFitToWidth: applyFitToWidth,
     goToPage,
     revealAnchor,

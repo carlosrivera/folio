@@ -579,9 +579,10 @@ export default function App() {
   const onCaretLineChange = useCallback((line: number) => setCaretLine(line), [])
   useEffect(() => { if (syncScroll && viewModeRef.current === 'split') preview.revealPosition(cursor.from) }, [cursor.from, syncScroll, preview.revealPosition])
   const onPreviewReady = useCallback(() => {
-    if (preview.fitToWidth) preview.recomputeFitToWidth()
-    if (syncScroll && viewModeRef.current === 'split') preview.revealPosition(editorViewRef.current?.state.selection.main.head ?? 0)
-  }, [syncScroll, preview.revealPosition, preview.fitToWidth, preview.recomputeFitToWidth])
+    if (syncScroll && viewModeRef.current === 'split') {
+      preview.revealPosition(editorViewRef.current?.state.selection.main.head ?? 0)
+    }
+  }, [syncScroll, preview.revealPosition])
   const active = useMemo(() => activeFormats(markdown, cursor.from, cursor.to), [markdown, cursor.from, cursor.to])
   const inTable = useMemo(() => !!tableAt(markdown, cursor.from), [markdown, cursor.from])
   const editableKind = useMemo(() => editableInlineAt(markdown, cursor.from)?.kind ?? null, [markdown, cursor.from])

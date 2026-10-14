@@ -616,6 +616,10 @@ export function PaginatedDocument({
   const stagingPreviewerRef = useRef<Previewer | null>(null)
   const hasEverRenderedRef = useRef(false)
   const indicatorTimerRef = useRef<number | null>(null)
+  const onReadyRef = useRef(onReady)
+  const onPageCountRef = useRef(onPageCount)
+  onReadyRef.current = onReady
+  onPageCountRef.current = onPageCount
 
   const [layingOut, setLayingOut] = useState(true)
   const [showIndicator, setShowIndicator] = useState(false)
@@ -761,8 +765,8 @@ export function PaginatedDocument({
 
           const count = flow.total || generatedPages.length
           if (scrollContainer) scrollContainer.scrollTop = previousScroll
-          onPageCount?.(count)
-          onReady?.(count)
+          onPageCountRef.current?.(count)
+          onReadyRef.current?.(count)
         } catch (error) {
           if (run === runRef.current) console.error('Unable to paginate document', error)
           if (previewer) {
@@ -799,7 +803,7 @@ export function PaginatedDocument({
         indicatorTimerRef.current = null
       }
     }
-  }, [document, documentPath, styles, activeTheme, activeLang, retryNonce, onPageCount, onReady])
+  }, [document, documentPath, styles, activeTheme, activeLang, retryNonce])
 
   useEffect(() => () => {
     runRef.current++
