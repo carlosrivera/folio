@@ -24,6 +24,7 @@ type ExportReport = {
 interface Window {
   folio?: {
     openSettings?(): Promise<void>
+    newWindow?(): Promise<void>
     openMarkdown(): Promise<OpenFileResult>
     confirmOpen(path: string): Promise<void>
     getStartupDocument(): Promise<OpenFileResult>

@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('folio', {
   openSettings: () => ipcRenderer.invoke('settings:open'),
+  newWindow: () => ipcRenderer.invoke('window:new'),
   openMarkdown: () => ipcRenderer.invoke('file:open'),
   confirmOpen: (path) => ipcRenderer.invoke('file:confirm-open', path),
   getStartupDocument: () => ipcRenderer.invoke('file:get-startup-document'),

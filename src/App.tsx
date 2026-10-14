@@ -44,6 +44,8 @@ const DRAFT_KEY = 'folio:recovery-draft'
 
 function readDraft(): Draft | null {
   try {
+    const search = new URLSearchParams(window.location.search)
+    if (search.get('isNew') === '1' || search.has('target')) return null
     const value = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null')
     return value && typeof value.markdown === 'string' && typeof value.savedMarkdown === 'string' &&
       (value.path === null || typeof value.path === 'string') && (value.markdown !== value.savedMarkdown || JSON.stringify(value.styles ?? null) !== JSON.stringify(value.savedStyles ?? null)) ? value : null

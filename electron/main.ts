@@ -22,16 +22,51 @@ const devServerUrl = process.env.VITE_DEV_SERVER_URL
 // still distinguishes pnpm dev/start from installed release builds.
 const isDevelopment = !app.isPackaged || process.defaultApp === true
 const RECENT_DOCUMENT_LIMIT = 10
-let mainWindow: BrowserWindow | null = null
+interface DocumentWindowState {
+  window: BrowserWindow
+  currentPath: string | null
+  documentEdited: boolean
+  allowClose: boolean
+  watchedPath: string | null
+  watchedContent: string | null
+  watchedStyles: string | null
+  pendingPath?: string | null
+  isNew?: boolean
+}
+
+const documentWindows = new Map<number, DocumentWindowState>()
 let settingsWindow: BrowserWindow | null = null
 let recentDocumentPaths: string[] = []
-let documentEdited = false
-let allowClose = false
-let watchedPath: string | null = null
-let watchedContent: string | null = null
-let watchedStyles: string | null = null
 let pendingOpenPath: string | null = process.argv.slice(1).find(argument => path.isAbsolute(argument) && /\.(folio|md|markdown)$/i.test(argument)) ?? null
 const savingPaths = new Set<string>()
+
+function getWindowState(target?: Electron.WebContents | BrowserWindow | null): DocumentWindowState | undefined {
+  if (!target) {
+    const focused = BrowserWindow.getFocusedWindow()
+    return focused ? documentWindows.get(focused.id) : documentWindows.values().next().value
+  }
+  if ('id' in target && typeof (target as BrowserWindow).id === 'number') {
+    return documentWindows.get((target as BrowserWindow).id)
+  }
+  const win = BrowserWindow.fromWebContents(target as Electron.WebContents)
+  return win ? documentWindows.get(win.id) : undefined
+}
+
+function getFocusedDocumentWindow(): BrowserWindow | null {
+  const focused = BrowserWindow.getFocusedWindow()
+  if (focused && documentWindows.has(focused.id)) return focused
+  return documentWindows.values().next().value?.window ?? null
+}
+
+function findWindowForPath(filePath: string): DocumentWindowState | undefined {
+  const resolved = path.resolve(filePath)
+  for (const state of documentWindows.values()) {
+    if (state.currentPath && path.resolve(state.currentPath) === resolved) {
+      return state
+    }
+  }
+  return undefined
+}
 
 function getIconPath() {
   const candidates = [
@@ -65,7 +100,11 @@ async function loadRecentDocuments() {
 }
 
 function notifyRecentDocuments() {
-  mainWindow?.webContents.send('documents:recent-updated', recentDocumentPaths)
+  for (const state of documentWindows.values()) {
+    if (!state.window.isDestroyed()) {
+      state.window.webContents.send('documents:recent-updated', recentDocumentPaths)
+    }
+  }
 }
 
 async function rememberDocument(filePath: string) {
@@ -97,32 +136,64 @@ async function readMarkdownDocument(filePath: string) {
 }
 
 function openRecentDocument(filePath: string) {
-  mainWindow?.webContents.send('document:open-recent-request', filePath)
+  const existing = findWindowForPath(filePath)
+  if (existing) {
+    existing.window.show()
+    existing.window.focus()
+    return
+  }
+
+  const focused = BrowserWindow.getFocusedWindow()
+  const state = focused ? documentWindows.get(focused.id) : null
+  if (state && !state.currentPath && !state.documentEdited) {
+    state.currentPath = filePath
+    state.window.webContents.send('document:open-recent-request', filePath)
+    return
+  }
+
+  createWindow({ filePath })
 }
 
-function rendererUrl(mode?: 'print' | 'settings') {
-  const suffix = mode ? `?mode=${mode}` : ''
+function rendererUrl(mode?: 'print' | 'settings', params?: Record<string, string>) {
+  const searchParams = new URLSearchParams()
+  if (mode) searchParams.set('mode', mode)
+  if (params) {
+    for (const [k, v] of Object.entries(params)) {
+      searchParams.set(k, v)
+    }
+  }
+  const suffix = searchParams.toString() ? `?${searchParams.toString()}` : ''
   return devServerUrl ? `${devServerUrl}/${suffix}` : `file://${path.join(moduleDir, '../dist/index.html')}${suffix}`
 }
 
-function createWindow() {
-  documentEdited = false
-  allowClose = false
-  // The shell has its own light/dark palette; let the OS drive the frame.
+function getNewWindowPosition() {
+  const focused = BrowserWindow.getFocusedWindow()
+  if (focused && !focused.isDestroyed()) {
+    const [x, y] = focused.getPosition()
+    return { x: x + 28, y: y + 28 }
+  }
+  return {}
+}
+
+function createWindow(options?: { filePath?: string | null; isNew?: boolean }): BrowserWindow {
   nativeTheme.themeSource = 'system'
   const iconPath = getIconPath()
   const isMac = process.platform === 'darwin'
-  mainWindow = new BrowserWindow({
+  const position = documentWindows.size > 0 ? getNewWindowPosition() : {}
+
+  const win = new BrowserWindow({
     title: 'Folio',
     ...(iconPath ? { icon: iconPath } : {}),
     width: 1440,
     height: 920,
     minWidth: 1040,
     minHeight: 680,
+    ...position,
     ...(isMac
       ? {
           titleBarStyle: 'hiddenInset' as const,
           trafficLightPosition: { x: 18, y: 18 },
+          tabbingIdentifier: 'folio-document',
         }
       : {
           autoHideMenuBar: false,
@@ -137,7 +208,20 @@ function createWindow() {
     },
   })
 
-  mainWindow.webContents.on('console-message', (_event, level, message, line, sourceId) => {
+  const state: DocumentWindowState = {
+    window: win,
+    currentPath: options?.filePath ?? null,
+    documentEdited: false,
+    allowClose: false,
+    watchedPath: null,
+    watchedContent: null,
+    watchedStyles: null,
+    pendingPath: options?.filePath ?? null,
+    isNew: options?.isNew ?? false,
+  }
+  documentWindows.set(win.id, state)
+
+  win.webContents.on('console-message', (_event, level, message, line, sourceId) => {
     if (level >= 2) {
       console.error(`[RENDERER ERROR] ${message} (${sourceId}:${line})`)
     }
@@ -149,12 +233,12 @@ function createWindow() {
       void shell.openExternal(url).catch((error) => console.warn('Could not open link:', error))
     }
   }
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+  win.webContents.setWindowOpenHandler(({ url }) => {
     openExternalLink(url)
     return { action: 'deny' }
   })
-  mainWindow.webContents.on('will-navigate', (event, url) => {
-    const current = new URL(mainWindow!.webContents.getURL())
+  win.webContents.on('will-navigate', (event, url) => {
+    const current = new URL(win.webContents.getURL())
     const destination = new URL(url)
     // In-document anchors stay inside the preview.
     current.hash = ''
@@ -164,39 +248,52 @@ function createWindow() {
     openExternalLink(url)
   })
 
-  mainWindow.webContents.on('context-menu', (_event, params) => {
-    if (!params.isEditable || !mainWindow) return
+  win.webContents.on('context-menu', (_event, params) => {
+    if (!params.isEditable || win.isDestroyed()) return
     const items: Electron.MenuItemConstructorOptions[] = []
     if (params.misspelledWord) {
-      items.push(...params.dictionarySuggestions.map(suggestion => ({ label: suggestion, click: () => mainWindow?.webContents.replaceMisspelling(suggestion) })))
-      items.push({ label: 'Add to Dictionary', click: () => mainWindow?.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord) }, { type: 'separator' })
+      items.push(...params.dictionarySuggestions.map(suggestion => ({ label: suggestion, click: () => win.webContents.replaceMisspelling(suggestion) })))
+      items.push({ label: 'Add to Dictionary', click: () => win.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord) }, { type: 'separator' })
     }
     items.push({ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' })
-    Menu.buildFromTemplate(items).popup({ window: mainWindow })
+    Menu.buildFromTemplate(items).popup({ window: win })
   })
 
-  mainWindow.loadURL(rendererUrl())
-  mainWindow.once('ready-to-show', () => {
-    mainWindow?.show()
-    if (mainWindow) {
-      try {
-        initAutoUpdater(mainWindow, () => { allowClose = true }, () => { allowClose = false })
-      } catch (err) {
-        console.warn('Auto-updater init bypassed:', err)
-      }
+  const urlParams: Record<string, string> = {}
+  if (options?.isNew) urlParams.isNew = '1'
+  if (options?.filePath) urlParams.target = options.filePath
+  win.loadURL(rendererUrl(undefined, Object.keys(urlParams).length > 0 ? urlParams : undefined))
+
+  win.once('ready-to-show', () => {
+    win.show()
+    try {
+      initAutoUpdater(
+        win,
+        () => {
+          for (const s of documentWindows.values()) s.allowClose = true
+        },
+        () => {
+          for (const s of documentWindows.values()) s.allowClose = false
+        }
+      )
+    } catch (err) {
+      console.warn('Auto-updater init bypassed:', err)
     }
   })
-  mainWindow.on('close', (event) => {
-    if (documentEdited && !allowClose) {
+  win.on('close', (event) => {
+    const winState = documentWindows.get(win.id)
+    if (winState?.documentEdited && !winState.allowClose) {
       event.preventDefault()
-      mainWindow?.webContents.send('document:close-request')
+      win.webContents.send('document:close-request')
     }
   })
-  mainWindow.on('closed', () => {
-    if (watchedPath) unwatchFile(watchedPath)
-    watchedPath = null
-    mainWindow = null
+  win.on('closed', () => {
+    const winState = documentWindows.get(win.id)
+    if (winState?.watchedPath) unwatchFile(winState.watchedPath)
+    documentWindows.delete(win.id)
   })
+
+  return win
 }
 
 function openSettings() {
@@ -205,9 +302,10 @@ function openSettings() {
     settingsWindow.focus()
     return
   }
+  const parent = getFocusedDocumentWindow() ?? undefined
   settingsWindow = new BrowserWindow({
     title: 'Folio Settings', width: 560, height: 620, minWidth: 480, minHeight: 560,
-    parent: mainWindow ?? undefined, show: false, autoHideMenuBar: true,
+    parent, show: false, autoHideMenuBar: true,
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#141416' : '#ebeae6',
     webPreferences: { preload: path.join(moduleDir, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true },
   })
@@ -219,7 +317,9 @@ function openSettings() {
 ipcMain.handle('settings:open', openSettings)
 
 function sendMenuCommand(command: string) {
-  mainWindow?.webContents.send('menu:command', command)
+  const focused = BrowserWindow.getFocusedWindow()
+  const target = (focused && documentWindows.has(focused.id)) ? focused : getFocusedDocumentWindow()
+  target?.webContents.send('menu:command', command)
 }
 
 function installMenu() {
@@ -259,21 +359,53 @@ function installMenu() {
     {
       label: 'File',
       submenu: [
-        { label: 'New', accelerator: 'CmdOrCtrl+N', click: () => sendMenuCommand('new') },
+        {
+          label: 'New',
+          accelerator: 'CmdOrCtrl+N',
+          click: () => {
+            const focused = BrowserWindow.getFocusedWindow()
+            const state = focused ? documentWindows.get(focused.id) : null
+            if (state && !state.currentPath && !state.documentEdited && state.isNew) {
+              focused.webContents.send('menu:command', 'new')
+              focused.focus()
+              return
+            }
+            createWindow({ isNew: true })
+          },
+        },
         { label: 'Open…', accelerator: 'CmdOrCtrl+O', click: () => sendMenuCommand('open') },
         { label: 'Open Recent', submenu: recentItems },
+        { type: 'separator' },
+        { role: 'close' as const, label: 'Close Window', accelerator: 'CmdOrCtrl+W' },
         { label: 'Save', accelerator: 'CmdOrCtrl+S', click: () => sendMenuCommand('save') },
         { label: 'Save As…', accelerator: 'CmdOrCtrl+Shift+S', click: () => sendMenuCommand('save-as') },
         ...(!isMac ? [{ label: 'Settings…', accelerator: 'CmdOrCtrl+,', click: openSettings }] : []),
         { type: 'separator' },
         { label: 'Export PDF…', accelerator: 'CmdOrCtrl+Shift+E', click: () => sendMenuCommand('export') },
-        { type: 'separator' },
-        isMac ? { role: 'close' } : { role: 'quit', label: 'Exit' },
+        ...(!isMac ? [{ type: 'separator' as const }, { role: 'quit' as const, label: 'Exit' }] : []),
       ],
     },
     { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }, { type: 'separator' }, { label: 'Find and Replace…', accelerator: 'CmdOrCtrl+F', click: () => sendMenuCommand('find') }] },
     { label: 'View', submenu: [{ role: 'reload' }, { role: 'toggleDevTools' }, { type: 'separator' }, { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' }, { type: 'separator' }, { role: 'togglefullscreen' }] },
-    { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'zoom' }, { type: 'separator' }, { role: 'front' }] },
+    {
+      label: 'Window',
+      role: 'window',
+      submenu: [
+        { role: 'minimize' as const },
+        { role: 'zoom' as const },
+        ...(isMac
+          ? [
+              { type: 'separator' as const },
+              { role: 'front' as const },
+              { type: 'separator' as const },
+              { role: 'mergeAllWindows' as const },
+              { role: 'moveTabToNewWindow' as const },
+              { role: 'selectNextTab' as const },
+              { role: 'selectPreviousTab' as const },
+            ]
+          : []),
+      ],
+    },
     ...(!isMac
       ? [
           {
@@ -293,43 +425,114 @@ async function assetDocumentPath(file: string | null) {
   return file && isFolio(file) ? folioAssetPath(file, path.join(app.getPath('userData'), 'folio-cache')) : file
 }
 function validateBundleRequest(event: Electron.IpcMainInvokeEvent, file: string) {
-  if (event.sender !== mainWindow?.webContents || typeof file !== 'string' || !path.isAbsolute(file) || !isFolio(file)) throw new Error('Folio document is unavailable.')
+  const win = BrowserWindow.fromWebContents(event.sender)
+  if (!win || !documentWindows.has(win.id) || typeof file !== 'string' || !path.isAbsolute(file) || !isFolio(file)) throw new Error('Folio document is unavailable.')
 }
 ipcMain.handle('file:history', async (event, file: string) => { validateBundleRequest(event, file); return (await openFolio(file)).history })
 ipcMain.handle('file:revision', async (event, file: string, id: string) => { validateBundleRequest(event, file); return readFolioRevision(file, id) })
 app.on('open-file', (event, file) => {
   event.preventDefault()
-  if (!mainWindow || mainWindow.webContents.isLoading()) { pendingOpenPath = file; return }
-  void rememberDocument(file).then(() => openRecentDocument(file)).catch(error => mainWindow?.webContents.send('document:open-error', String(error)))
+  const existing = findWindowForPath(file)
+  if (existing) {
+    existing.window.show()
+    existing.window.focus()
+    return
+  }
+
+  if (documentWindows.size === 0) {
+    pendingOpenPath = file
+    createWindow({ filePath: file })
+    return
+  }
+
+  const focused = BrowserWindow.getFocusedWindow()
+  const state = focused ? documentWindows.get(focused.id) : null
+  if (state && !state.currentPath && !state.documentEdited && !state.window.webContents.isLoading()) {
+    void rememberDocument(file).then(() => {
+      state.currentPath = file
+      state.window.webContents.send('document:open-recent-request', file)
+    }).catch(error => state.window.webContents.send('document:open-error', String(error)))
+    return
+  }
+
+  createWindow({ filePath: file })
 })
 
-ipcMain.handle('file:open', async () => {
-  const selection = await dialog.showOpenDialog(mainWindow!, {
+ipcMain.handle('file:open', async (event) => {
+  const callerWin = BrowserWindow.fromWebContents(event.sender) ?? getFocusedDocumentWindow()
+  const state = callerWin ? documentWindows.get(callerWin.id) : null
+  const selection = await dialog.showOpenDialog(callerWin ?? undefined, {
     title: 'Open Document',
     properties: ['openFile'],
     filters: [{ name: 'Folio and Markdown', extensions: ['folio', 'md', 'markdown', 'mdown', 'txt'] }],
   })
   if (selection.canceled || !selection.filePaths[0]) return { canceled: true }
   const filePath = selection.filePaths[0]
+
+  const existing = findWindowForPath(filePath)
+  if (existing) {
+    existing.window.show()
+    existing.window.focus()
+    return { canceled: true }
+  }
+
+  if (state) {
+    state.currentPath = filePath
+    state.window.setTitle(`${path.basename(filePath)} — Folio`)
+    if (process.platform === 'darwin') state.window.setRepresentedFilename(filePath)
+  }
   return readMarkdownDocument(filePath)
 })
 
-ipcMain.handle('file:confirm-open', async (_event, filePath: unknown) => {
+ipcMain.handle('file:confirm-open', async (event, filePath: unknown) => {
   if (typeof filePath !== 'string' || !path.isAbsolute(filePath)) throw new Error('Document path is invalid.')
+  const state = getWindowState(event.sender)
+  if (state) {
+    state.currentPath = filePath
+    state.window.setTitle(`${path.basename(filePath)} — Folio`)
+    if (process.platform === 'darwin') state.window.setRepresentedFilename(filePath)
+  }
   await rememberDocument(filePath)
 })
 
-ipcMain.handle('file:get-startup-document', async () => {
-  if (pendingOpenPath) {
-    const file = pendingOpenPath
-    pendingOpenPath = null
+ipcMain.handle('file:get-startup-document', async (event) => {
+  const state = getWindowState(event.sender)
+  if (!state) return { canceled: true }
+
+  if (state.pendingPath) {
+    const file = state.pendingPath
+    state.pendingPath = null
+    state.currentPath = file
+    state.window.setTitle(`${path.basename(file)} — Folio`)
+    if (process.platform === 'darwin') state.window.setRepresentedFilename(file)
     const document = await readMarkdownDocument(file)
     await rememberDocument(file)
     return document
   }
+
+  if (state.isNew) {
+    state.isNew = false
+    return { canceled: true }
+  }
+
+  if (pendingOpenPath) {
+    const file = pendingOpenPath
+    pendingOpenPath = null
+    state.currentPath = file
+    state.window.setTitle(`${path.basename(file)} — Folio`)
+    if (process.platform === 'darwin') state.window.setRepresentedFilename(file)
+    const document = await readMarkdownDocument(file)
+    await rememberDocument(file)
+    return document
+  }
+
   for (const filePath of [...recentDocumentPaths]) {
+    if (findWindowForPath(filePath)) continue
     try {
       const document = await readMarkdownDocument(filePath)
+      state.currentPath = filePath
+      state.window.setTitle(`${path.basename(filePath)} — Folio`)
+      if (process.platform === 'darwin') state.window.setRepresentedFilename(filePath)
       await rememberDocument(filePath)
       return document
     } catch (error) {
@@ -343,10 +546,22 @@ ipcMain.handle('file:get-startup-document', async () => {
   return { canceled: true }
 })
 
-ipcMain.handle('file:open-recent', async (_event, filePath: unknown) => {
+ipcMain.handle('file:open-recent', async (event, filePath: unknown) => {
   if (typeof filePath !== 'string' || !recentDocumentPaths.includes(filePath)) throw new Error('Recent document is unavailable.')
+  const existing = findWindowForPath(filePath)
+  if (existing) {
+    existing.window.show()
+    existing.window.focus()
+    return { canceled: true }
+  }
   try {
     const document = await readMarkdownDocument(filePath)
+    const state = getWindowState(event.sender)
+    if (state) {
+      state.currentPath = filePath
+      state.window.setTitle(`${path.basename(filePath)} — Folio`)
+      if (process.platform === 'darwin') state.window.setRepresentedFilename(filePath)
+    }
     await rememberDocument(filePath)
     return document
   } catch (error) {
@@ -359,13 +574,17 @@ ipcMain.handle('file:get-recent-documents', () => {
   return recentDocumentPaths
 })
 
-ipcMain.handle('file:close-after-confirmation', () => {
-  allowClose = true
-  mainWindow?.close()
+ipcMain.handle('file:close-after-confirmation', (event) => {
+  const state = getWindowState(event.sender)
+  if (state) {
+    state.allowClose = true
+    state.window.close()
+  }
 })
 
-ipcMain.handle('file:read-comparison', async () => {
-  const selection = await dialog.showOpenDialog(mainWindow!, {
+ipcMain.handle('file:read-comparison', async (event) => {
+  const callerWin = BrowserWindow.fromWebContents(event.sender) ?? getFocusedDocumentWindow()
+  const selection = await dialog.showOpenDialog(callerWin ?? undefined, {
     title: 'Compare With Revision',
     properties: ['openFile'],
     filters: [{ name: 'Folio and Markdown', extensions: ['folio', 'md', 'markdown', 'mdown', 'txt'] }],
@@ -383,10 +602,12 @@ ipcMain.handle('file:launch', async (_event, filePath: unknown) => {
   return error ? { opened: false, error } : { opened: true }
 })
 
-ipcMain.handle('file:save', async (_event, payload: { path: string | null; content: string; saveAs?: boolean; expectedContent?: string; overwrite?: boolean; styles?: FolioStyles; expectedStyles?: FolioStyles | null; includeHistory?: boolean; format?: 'folio' }) => {
+ipcMain.handle('file:save', async (event, payload: { path: string | null; content: string; saveAs?: boolean; expectedContent?: string; overwrite?: boolean; styles?: FolioStyles; expectedStyles?: FolioStyles | null; includeHistory?: boolean; format?: 'folio' }) => {
+  const state = getWindowState(event.sender)
+  const targetWin = state?.window ?? getFocusedDocumentWindow()
   let filePath = payload.path
   if (!filePath || payload.saveAs) {
-    const selection = await dialog.showSaveDialog(mainWindow!, {
+    const selection = await dialog.showSaveDialog(targetWin!, {
       title: 'Save Document',
       defaultPath: payload.format === 'folio' ? `${filePath ? filePath.slice(0, -path.extname(filePath).length) : 'Untitled'}.folio` : filePath ?? 'Untitled.folio',
       filters: payload.format === 'folio' ? [{ name: 'Folio document', extensions: ['folio'] }] : [{ name: 'Folio document', extensions: ['folio'] }, { name: 'Markdown', extensions: ['md'] }],
@@ -406,7 +627,12 @@ ipcMain.handle('file:save', async (_event, payload: { path: string | null; conte
       const result = await saveFolio(filePath, content, payload.styles, sourcePath, draftDirectory, isFolio(payload.path) ? payload.path : null,
         !payload.saveAs && payload.path ? payload.expectedContent : undefined, payload.overwrite, payload.includeHistory !== false, payload.expectedStyles)
       if (!result.saved) return { canceled: true, conflict: { ...result.conflict, ...(await openFolio(filePath).catch(() => ({}))) } }
-      if (watchedPath === filePath) { watchedContent = result.content; watchedStyles = JSON.stringify(result.styles) }
+      if (state && state.watchedPath === filePath) { state.watchedContent = result.content; state.watchedStyles = JSON.stringify(result.styles) }
+      if (state) {
+        state.currentPath = filePath
+        state.window.setTitle(`${path.basename(filePath)} — Folio`)
+        if (process.platform === 'darwin') state.window.setRepresentedFilename(filePath)
+      }
       await rememberDocument(filePath)
       return { canceled: false, path: filePath, content: result.content, styles: result.styles, history: result.history }
     }
@@ -416,31 +642,46 @@ ipcMain.handle('file:save', async (_event, payload: { path: string | null; conte
     content = await externalizeDocumentImages(filePath, content)
     const result = await saveDocumentFile(filePath, content, !payload.saveAs && payload.path ? payload.expectedContent : undefined, payload.overwrite)
     if (!result.saved) return { canceled: true, conflict: result.conflict }
-    if (watchedPath === filePath) watchedContent = content
+    if (state && state.watchedPath === filePath) state.watchedContent = content
+    if (state) {
+      state.currentPath = filePath
+      state.window.setTitle(`${path.basename(filePath)} — Folio`)
+      if (process.platform === 'darwin') state.window.setRepresentedFilename(filePath)
+    }
   } finally { savingPaths.delete(filePath) }
   await rememberDocument(filePath)
   return { canceled: false, path: filePath, content }
 })
 
 ipcMain.handle('file:watch', async (event, payload: { path: string | null; content: string }) => {
-  if (event.sender !== mainWindow?.webContents) return
-  if (watchedPath) unwatchFile(watchedPath)
-  watchedPath = payload.path
-  watchedContent = payload.content
-  if (!watchedPath) return
-  const filePath = watchedPath
-  watchedStyles = isFolio(filePath) ? JSON.stringify((await openFolio(filePath).catch(() => ({ styles: null }))).styles) : null
-  if (watchedPath !== filePath) return
+  const state = getWindowState(event.sender)
+  if (!state) return
+  if (state.watchedPath) unwatchFile(state.watchedPath)
+  state.watchedPath = payload.path
+  state.watchedContent = payload.content
+  state.currentPath = payload.path
+  if (payload.path) {
+    state.window.setTitle(`${path.basename(payload.path)} — Folio`)
+    if (process.platform === 'darwin') state.window.setRepresentedFilename(payload.path)
+  } else {
+    state.window.setTitle('Folio')
+    if (process.platform === 'darwin') state.window.setRepresentedFilename('')
+  }
+  if (!state.watchedPath) return
+  const filePath = state.watchedPath
+  const win = state.window
+  state.watchedStyles = isFolio(filePath) ? JSON.stringify((await openFolio(filePath).catch(() => ({ styles: null }))).styles) : null
+  if (state.watchedPath !== filePath) return
   watchFile(filePath, { interval: 750, persistent: false }, async () => {
     if (savingPaths.has(filePath)) return
     try {
       const content = await (isFolio(filePath) ? readFolioText(filePath) : readDiskDocument(filePath))
       const bundle = isFolio(filePath) && content !== null ? await openFolio(filePath) : null
       const nextStyles = bundle ? JSON.stringify(bundle.styles) : null
-      if (watchedPath !== filePath || content === watchedContent && nextStyles === watchedStyles || savingPaths.has(filePath)) return
-      watchedContent = content
-      watchedStyles = nextStyles
-      mainWindow?.webContents.send('document:disk-changed', { path: filePath, ...bundle, content })
+      if (win.isDestroyed() || state.watchedPath !== filePath || (content === state.watchedContent && nextStyles === state.watchedStyles) || savingPaths.has(filePath)) return
+      state.watchedContent = content
+      state.watchedStyles = nextStyles
+      win.webContents.send('document:disk-changed', { path: filePath, ...bundle, content })
     } catch (error) { console.warn('Could not check document changes:', error) }
   })
 })
@@ -453,8 +694,9 @@ ipcMain.handle('file:resolve-images', async (_event, payload: { documentPath: st
 })
 
 ipcMain.handle('document:export-package', async (event, payload: { markdown: string; documentPath: string | null; name: string }) => {
-  if (event.sender !== mainWindow?.webContents) throw new Error('Document export is only available from the editor.')
-  const selection = await dialog.showSaveDialog(mainWindow!, {
+  const callerWin = BrowserWindow.fromWebContents(event.sender) ?? getFocusedDocumentWindow()
+  if (!callerWin || !documentWindows.has(callerWin.id)) throw new Error('Document export is only available from the editor.')
+  const selection = await dialog.showSaveDialog(callerWin, {
     title: 'Export Markdown Package', defaultPath: `${path.basename(payload.name, path.extname(payload.name))}.zip`,
     filters: [{ name: 'Markdown and assets', extensions: ['zip'] }],
   })
@@ -465,7 +707,8 @@ ipcMain.handle('document:export-package', async (event, payload: { markdown: str
 })
 
 ipcMain.on('document:set-edited', (event, edited: boolean) => {
-  documentEdited = edited
+  const state = getWindowState(event.sender)
+  if (state) state.documentEdited = edited
   BrowserWindow.fromWebContents(event.sender)?.setDocumentEdited(edited)
 })
 
@@ -562,14 +805,15 @@ function attachOutline(pdf: PDFDoc, nodes: OutlineNode[]) {
   pdf.catalog.set(PDFName.of('PageMode'), PDFName.of('UseOutlines'))
 }
 
-ipcMain.handle('document:export-pdf', async (_event, payload: { markdown: string; suggestedName: string; theme?: string; lang?: string; documentPath?: string; styles?: FolioStyles }) => {
-  const selection = await dialog.showSaveDialog(mainWindow!, {
+ipcMain.handle('document:export-pdf', async (event, payload: { markdown: string; suggestedName: string; theme?: string; lang?: string; documentPath?: string; styles?: FolioStyles }) => {
+  const callerWin = BrowserWindow.fromWebContents(event.sender) ?? getFocusedDocumentWindow()
+  const selection = await dialog.showSaveDialog(callerWin!, {
     title: 'Export PDF',
     defaultPath: `${payload.suggestedName || 'document'}.pdf`,
     filters: [{ name: 'PDF Document', extensions: ['pdf'] }],
   })
   if (selection.canceled || !selection.filePath) return { canceled: true }
-  const progress = (message: string) => mainWindow?.webContents.send('export:progress', message)
+  const progress = (message: string) => callerWin?.webContents.send('export:progress', message)
   progress('Laying out pages…')
 
   const printWindow = new BrowserWindow({
@@ -717,12 +961,15 @@ if (isMcpMode) {
     await loadRecentDocuments()
     installMenu()
     createWindow()
+    ipcMain.handle('window:new', () => {
+      createWindow({ isNew: true })
+    })
     app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0) createWindow()
+      if (documentWindows.size === 0) createWindow()
     })
   })
 
   app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit()
+    app.quit()
   })
 }
