@@ -2,6 +2,8 @@
 
 Folio is a macOS-first Markdown document editor built with Electron, React, CodeMirror, and Paged.js. Markdown stays the source of truth while a separate branded template controls presentation.
 
+![Folio](assets/folio.webp)
+
 Folio includes:
 
 - Open, edit, save, and Save As local `.md` files, with optional autosave and external-change detection.
