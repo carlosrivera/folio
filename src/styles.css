@@ -348,11 +348,28 @@ input[type="email"], input[type="number"], textarea,
 .preview-heading {
   position: relative;
   z-index: 10;
-  -webkit-app-region: no-drag;
+  -webkit-app-region: no-drag !important;
   background: var(--ui-heading-bg-alt);
   border-color: var(--ui-heading-border-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
-.preview-heading > span:first-child { flex: none; }
+.preview-heading > span:first-child {
+  position: absolute;
+  left: 16px;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+.preview-heading .pane-caption {
+  position: absolute;
+  right: 14px;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
 
 /* Appearance toggle */
 .app-theme-toggle {
@@ -587,14 +604,15 @@ input[type="email"], input[type="number"], textarea,
 
 /* Preview controls */
 .preview-controls {
-  -webkit-app-region: no-drag;
+  -webkit-app-region: no-drag !important;
   display: flex;
-  flex: 1;
+  flex: none;
   align-items: center;
   justify-content: center;
   gap: 8px;
 }
 .preview-control-group {
+  -webkit-app-region: no-drag !important;
   display: flex;
   align-items: center;
   gap: 2px;
@@ -604,6 +622,7 @@ input[type="email"], input[type="number"], textarea,
   background: var(--ui-surface);
 }
 .preview-controls button {
+  -webkit-app-region: no-drag !important;
   display: grid;
   width: 24px;
   height: 22px;
@@ -623,6 +642,8 @@ input[type="email"], input[type="number"], textarea,
 .preview-controls button.is-active { color: var(--ui-active-text); background: var(--ui-active); }
 .preview-page-readout,
 .preview-zoom-readout {
+  pointer-events: none;
+  user-select: none;
   min-width: 46px;
   padding: 0 2px;
   color: var(--ui-heading-text);
@@ -632,15 +653,29 @@ input[type="email"], input[type="number"], textarea,
   text-align: center;
 }
 .preview-sync-toggle {
-  -webkit-app-region: no-drag;
+  -webkit-app-region: no-drag !important;
   border: 1px solid var(--ui-surface-border) !important;
   border-radius: 6px !important;
   width: 24px !important;
   height: 24px !important;
   background: var(--ui-surface) !important;
+  color: var(--ui-heading-text) !important;
 }
 .preview-sync-toggle svg {
   pointer-events: none;
+}
+.preview-sync-toggle:hover:not(:disabled) {
+  color: var(--ui-text) !important;
+  background: var(--ui-surface-hover) !important;
+}
+.preview-sync-toggle.is-active {
+  color: var(--ui-active-text) !important;
+  background: var(--ui-active) !important;
+  border-color: var(--ui-active) !important;
+}
+.preview-sync-toggle.is-active:hover {
+  color: var(--ui-active-text) !important;
+  background: var(--ui-active) !important;
 }
 .preview-scroll { min-height: 0; overflow: auto; overscroll-behavior: contain; }
 /* Document inspector: lint findings and revision diff */
@@ -3121,8 +3156,16 @@ a.cv-contact-item:hover {
 .view-switcher button[aria-pressed="true"] { background: var(--ui-active); color: var(--ui-active-text); }
 .view-switcher button:focus-visible { outline: 2px solid var(--ui-accent); outline-offset: 1px; }
 .preview-pane { container-type: inline-size; }
-@container (max-width: 520px) { .preview-heading .pane-caption { display: none; } }
-@container (max-width: 360px) { .preview-heading > span:first-child { display: none; } .preview-heading { padding: 0 6px; } .preview-controls { gap: 4px; } }
+@container (max-width: 720px) { .preview-heading .pane-caption { display: none; } }
+@container (max-width: 460px) { .preview-heading > span:first-child { display: none; } }
+@container (max-width: 340px) {
+  .preview-heading { padding: 0 4px; }
+  .preview-controls { gap: 4px; }
+  .preview-controls button { width: 20px; height: 20px; }
+  .preview-sync-toggle { width: 20px !important; height: 20px !important; }
+  .preview-page-readout,
+  .preview-zoom-readout { min-width: 34px; font-size: 9px; padding: 0 1px; }
+}
 .workspace[data-mode="preview"] .editor-pane, .workspace:not([data-mode="split"]) .pane-divider { display: none; }
 /* Paged.js needs measurable page geometry while edits happen in editor-only mode. */
 .workspace[data-mode="editor"] .preview-pane { position: fixed; left: -10000px; top: 0; width: 900px; height: 900px; visibility: hidden; pointer-events: none; }

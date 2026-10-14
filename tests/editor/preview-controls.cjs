@@ -118,12 +118,41 @@ app.whenReady().then(async () => {
     // 4. Sync scroll toggle
     const syncInitial = await js(win, `document.querySelector('.preview-sync-toggle')?.getAttribute('aria-pressed')`)
     assert.equal(syncInitial, 'true')
+    const syncActiveBg = await js(win, `getComputedStyle(document.querySelector('.preview-sync-toggle')).backgroundColor`)
     await js(win, `document.querySelector('.preview-sync-toggle').click()`)
     await delay(100)
     assert.equal(await js(win, `document.querySelector('.preview-sync-toggle')?.getAttribute('aria-pressed')`), 'false')
+    const syncInactiveBg = await js(win, `getComputedStyle(document.querySelector('.preview-sync-toggle')).backgroundColor`)
+    assert.notEqual(syncActiveBg, syncInactiveBg, 'Active sync button must have distinct background from inactive state')
     await js(win, `document.querySelector('.preview-sync-toggle').click()`)
     await delay(100)
     assert.equal(await js(win, `document.querySelector('.preview-sync-toggle')?.getAttribute('aria-pressed')`), 'true')
+
+    // 5. Verify hit-testing across multiple panel widths
+    for (const previewWidth of [280, 360, 480, 550, 700, 900]) {
+      const results = await js(win, `
+        (() => {
+          const workspace = document.querySelector('.workspace')
+          const previewPane = document.querySelector('.preview-pane')
+          workspace.style.gridTemplateColumns = '1fr 6px ' + ${previewWidth} + 'px'
+          void previewPane.offsetWidth
+          return Array.from(document.querySelectorAll('.preview-controls button')).map(button => {
+            const r = button.getBoundingClientRect()
+            const el = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)
+            return {
+              title: button.getAttribute('title') || button.getAttribute('aria-label'),
+              targetIsButton: el === button || button.contains(el),
+              hitTagName: el?.tagName,
+              hitClass: el?.className
+            }
+          })
+        })()
+      `)
+      for (const res of results) {
+        assert.ok(res.targetIsButton, `At preview width ${previewWidth}px, button "${res.title}" must be clickable, got ${res.hitTagName}.${res.hitClass}`)
+      }
+    }
+    await js(win, `document.querySelector('.workspace').style.gridTemplateColumns = ''`)
 
     console.log('Preview controls test passed successfully!')
   } catch (error) {
