@@ -360,16 +360,16 @@ function installMenu() {
       label: 'File',
       submenu: [
         {
-          label: 'New',
+          label: 'New File',
           accelerator: 'CmdOrCtrl+N',
           click: () => {
-            const focused = BrowserWindow.getFocusedWindow()
-            const state = focused ? documentWindows.get(focused.id) : null
-            if (state && !state.currentPath && !state.documentEdited && state.isNew) {
-              focused.webContents.send('menu:command', 'new')
-              focused.focus()
-              return
-            }
+            createWindow({ isNew: true })
+          },
+        },
+        {
+          label: 'New Window',
+          accelerator: 'CmdOrCtrl+Shift+N',
+          click: () => {
             createWindow({ isNew: true })
           },
         },
@@ -397,11 +397,6 @@ function installMenu() {
           ? [
               { type: 'separator' as const },
               { role: 'front' as const },
-              { type: 'separator' as const },
-              { role: 'mergeAllWindows' as const },
-              { role: 'moveTabToNewWindow' as const },
-              { role: 'selectNextTab' as const },
-              { role: 'selectPreviousTab' as const },
             ]
           : []),
       ],
