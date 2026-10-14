@@ -761,7 +761,24 @@ export default function App() {
               onZoomIn={preview.zoomIn}
               onZoomOut={preview.zoomOut}
               onFitToWidth={preview.toggleFitToWidth}
-              onGoToPage={preview.goToPage}
+              onGoToPage={(target) => {
+                preview.goToPage(target)
+                if (syncScroll && viewMode === 'split') {
+                  const view = editorViewRef.current
+                  if (!view) return
+                  if (target === 1) {
+                    view.dispatch({ selection: { anchor: 0 }, scrollIntoView: true })
+                    return
+                  }
+                  const pages = preview.scrollRef.current?.querySelectorAll<HTMLElement>('.pagination-output .pagedjs_page')
+                  const targetPage = pages?.[target - 1]
+                  const block = targetPage?.querySelector<HTMLElement>('[data-source-from]')
+                  if (block) {
+                    const position = Math.min(view.state.doc.length, Number(block.dataset.sourceFrom))
+                    view.dispatch({ selection: { anchor: position }, scrollIntoView: true })
+                  }
+                }
+              }}
               onToggleSync={() => setSyncScroll((on) => !on)}
             />
             <span className="pane-caption">{tr(layoutLabel(currentLayout)).toUpperCase()} · {themeLabel(currentTheme)} · {pageCount || '—'} {t.page.toLowerCase()}s</span>

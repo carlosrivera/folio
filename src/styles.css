@@ -638,7 +638,7 @@ input[type="email"], input[type="number"], textarea,
   pointer-events: none;
 }
 .preview-controls button:hover:not(:disabled) { color: var(--ui-text); background: var(--ui-surface-hover); }
-.preview-controls button:disabled { color: var(--ui-disabled); cursor: default; }
+.preview-controls button:disabled { color: var(--ui-disabled); opacity: .4; cursor: default; }
 .preview-controls button.is-active { color: var(--ui-active-text); background: var(--ui-active); }
 .preview-page-readout,
 .preview-zoom-readout {

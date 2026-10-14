@@ -117,20 +117,31 @@ export function usePreviewViewport(
       const pages = pagesOf()
       if (pages.length === 0 || !container.clientWidth || container.closest('[inert]')) return
 
+      if (container.scrollTop < 10) {
+        setCurrentPage(1)
+        return
+      }
+
       // Pin to last page if scrolled to the very bottom
-      if (container.scrollHeight - container.scrollTop - container.clientHeight < 5) {
+      if (container.scrollHeight - container.scrollTop - container.clientHeight < 10) {
         setCurrentPage(pages.length)
         return
       }
 
-      // Add 4px tolerance to prevent subpixel floating-point rounding from locking navigation
-      const top = container.getBoundingClientRect().top + SCROLL_MARGIN_PX + 4
-      let nearest = 1
+      const containerRect = container.getBoundingClientRect()
+      let maxVisible = 0
+      let activeIndex = 0
       for (let i = 0; i < pages.length; i++) {
-        if (pages[i].getBoundingClientRect().top <= top) nearest = i + 1
-        else break
+        const r = pages[i].getBoundingClientRect()
+        const visibleTop = Math.max(containerRect.top, r.top)
+        const visibleBottom = Math.min(containerRect.bottom, r.bottom)
+        const visibleHeight = Math.max(0, visibleBottom - visibleTop)
+        if (visibleHeight > maxVisible) {
+          maxVisible = visibleHeight
+          activeIndex = i
+        }
       }
-      setCurrentPage(nearest)
+      setCurrentPage(activeIndex + 1)
     }
 
     const onScroll = () => {
@@ -157,8 +168,11 @@ export function usePreviewViewport(
       const target = Math.min(Math.max(page, 1), pages.length)
       if (target >= 1 && target <= pages.length) {
         setCurrentPage(target)
-        if (target === 1 && scrollRef.current) {
-          scrollRef.current.scrollTop = 0
+        const container = scrollRef.current
+        if (!container) return
+
+        if (target === 1) {
+          container.scrollTop = 0
         } else {
           scrollTo(pages[target - 1], SCROLL_MARGIN_PX)
         }
