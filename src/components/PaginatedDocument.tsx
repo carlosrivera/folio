@@ -3,7 +3,7 @@ import { prepareDocumentImages, documentOverflowRange } from '../lib/document-im
 import { usePreviewSelection } from '../lib/use-preview-selection'
 import { Previewer } from 'pagedjs'
 import { AlertTriangle } from 'lucide-react'
-import { parseDocument, formatChromeText, type DocumentTheme } from '../lib/document'
+import { parseDocument, formatChromeText, isPageDark, type DocumentTheme } from '../lib/document'
 import { ReportTemplate } from './ReportTemplate'
 import { CvTemplate } from './CvTemplate'
 import { SimpleTemplate } from './SimpleTemplate'
@@ -327,9 +327,10 @@ function renderHeaderElement(
   leftText: string,
   centerText: string,
   rightText: string,
+  isInverted = false,
 ): HTMLElement {
   const header = document.createElement('div')
-  header.className = 'folio-page-header'
+  header.className = isInverted ? 'folio-page-header folio-page-header-inverted' : 'folio-page-header'
   header.append(Object.assign(document.createElement('span'), {
     className: 'folio-page-left',
     textContent: leftText,
@@ -351,9 +352,10 @@ function renderFooterElement(
   leftText: string,
   centerText: string,
   rightText: string,
+  isInverted = false,
 ): HTMLElement {
   const footer = document.createElement('div')
-  footer.className = 'folio-page-footer'
+  footer.className = isInverted ? 'folio-page-footer folio-page-footer-inverted' : 'folio-page-footer'
   footer.append(Object.assign(document.createElement('span'), {
     className: 'folio-page-left',
     textContent: leftText,
@@ -384,6 +386,15 @@ function addPageChrome(
     pages.forEach(page => page.classList.add('pagedjs_landscape_page'))
   }
 
+  const isPageMarkedDark = (page: HTMLElement, index: number) => {
+    const pageNum = index + 1
+    return (
+      isPageDark(pageNum, pages.length, doc.metadata.darkPages) ||
+      page.classList.contains('pagedjs_dark_page') ||
+      page.querySelector('.folio-dark-page') !== null
+    )
+  }
+
   if (layout === 'cv') {
     const cvHeader = transformCvHtml(doc.html).header
     const candidateName = cvHeader?.name || doc.metadata.name || doc.metadata.title
@@ -399,6 +410,8 @@ function addPageChrome(
 
     pages.forEach((page, index) => {
       page.classList.add('folio-cv-sheet', `theme-${theme}`)
+      const isDark = isPageMarkedDark(page, index)
+      if (isDark) page.classList.add('folio-dark-sheet')
       const box = page.querySelector<HTMLElement>('.pagedjs_pagebox') ?? page
 
       if (index === 0) {
@@ -409,7 +422,7 @@ function addPageChrome(
           const left = doc.metadata.footerLeft ? formatChromeText(doc.metadata.footerLeft, doc, index, pages.length, lang) : defaultLeft
           const center = doc.metadata.footerCenter ? formatChromeText(doc.metadata.footerCenter, doc, index, pages.length, lang) : ''
           const right = doc.metadata.footerRight ? formatChromeText(doc.metadata.footerRight, doc, index, pages.length, lang) : defaultRight
-          const footer = renderFooterElement(left, center, right)
+          const footer = renderFooterElement(left, center, right, isDark)
           footer.classList.add('folio-cv-footer')
           box.append(footer)
         }
@@ -423,7 +436,7 @@ function addPageChrome(
         const left = doc.metadata.headerLeft ? formatChromeText(doc.metadata.headerLeft, doc, index, pages.length, lang) : defaultLeft
         const center = doc.metadata.headerCenter ? formatChromeText(doc.metadata.headerCenter, doc, index, pages.length, lang) : ''
         const right = doc.metadata.headerRight ? formatChromeText(doc.metadata.headerRight, doc, index, pages.length, lang) : defaultRight
-        const header = renderHeaderElement(left, center, right)
+        const header = renderHeaderElement(left, center, right, isDark)
         header.classList.add('folio-cv-header')
         box.append(header)
       }
@@ -434,7 +447,7 @@ function addPageChrome(
         const left = doc.metadata.footerLeft ? formatChromeText(doc.metadata.footerLeft, doc, index, pages.length, lang) : defaultLeft
         const center = doc.metadata.footerCenter ? formatChromeText(doc.metadata.footerCenter, doc, index, pages.length, lang) : ''
         const right = doc.metadata.footerRight ? formatChromeText(doc.metadata.footerRight, doc, index, pages.length, lang) : defaultRight
-        const footer = renderFooterElement(left, center, right)
+        const footer = renderFooterElement(left, center, right, isDark)
         footer.classList.add('folio-cv-footer')
         box.append(footer)
       }
@@ -449,6 +462,8 @@ function addPageChrome(
       if (page.querySelector('.folio-toc-page') !== null) {
         page.classList.add('folio-toc-sheet')
       }
+      const isDark = isPageMarkedDark(page, index)
+      if (isDark) page.classList.add('folio-dark-sheet')
       const box = page.querySelector<HTMLElement>('.pagedjs_pagebox') ?? page
 
       if (doc.metadata.header) {
@@ -457,7 +472,7 @@ function addPageChrome(
         const left = doc.metadata.headerLeft ? formatChromeText(doc.metadata.headerLeft, doc, index, pages.length, lang) : defaultLeft
         const center = doc.metadata.headerCenter ? formatChromeText(doc.metadata.headerCenter, doc, index, pages.length, lang) : ''
         const right = doc.metadata.headerRight ? formatChromeText(doc.metadata.headerRight, doc, index, pages.length, lang) : defaultRight
-        box.append(renderHeaderElement(left, center, right))
+        box.append(renderHeaderElement(left, center, right, isDark))
       }
 
       if (doc.metadata.footer) {
@@ -466,7 +481,7 @@ function addPageChrome(
         const left = doc.metadata.footerLeft ? formatChromeText(doc.metadata.footerLeft, doc, index, pages.length, lang) : defaultLeft
         const center = doc.metadata.footerCenter ? formatChromeText(doc.metadata.footerCenter, doc, index, pages.length, lang) : ''
         const right = doc.metadata.footerRight ? formatChromeText(doc.metadata.footerRight, doc, index, pages.length, lang) : defaultRight
-        box.append(renderFooterElement(left, center, right))
+        box.append(renderFooterElement(left, center, right, isDark))
       }
     })
     return
@@ -476,6 +491,8 @@ function addPageChrome(
     const invoiceId = doc.metadata.invoiceNumber || doc.metadata.documentId
     pages.forEach((page, index) => {
       page.classList.add('folio-invoice-sheet', `theme-${theme}`)
+      const isDark = isPageMarkedDark(page, index)
+      if (isDark) page.classList.add('folio-dark-sheet')
       const box = page.querySelector<HTMLElement>('.pagedjs_pagebox') ?? page
 
       if (index === 0) {
@@ -484,7 +501,7 @@ function addPageChrome(
           const left = doc.metadata.headerLeft ? formatChromeText(doc.metadata.headerLeft, doc, index, pages.length, lang) : ''
           const center = doc.metadata.headerCenter ? formatChromeText(doc.metadata.headerCenter, doc, index, pages.length, lang) : ''
           const right = doc.metadata.headerRight ? formatChromeText(doc.metadata.headerRight, doc, index, pages.length, lang) : ''
-          box.append(renderHeaderElement(left, center, right))
+          box.append(renderHeaderElement(left, center, right, isDark))
         }
 
         if (doc.metadata.footer) {
@@ -495,7 +512,7 @@ function addPageChrome(
           const left = doc.metadata.footerLeft ? formatChromeText(doc.metadata.footerLeft, doc, index, pages.length, lang) : defaultLeft
           const center = doc.metadata.footerCenter ? formatChromeText(doc.metadata.footerCenter, doc, index, pages.length, lang) : ''
           const right = doc.metadata.footerRight ? formatChromeText(doc.metadata.footerRight, doc, index, pages.length, lang) : defaultRight
-          box.append(renderFooterElement(left, center, right))
+          box.append(renderFooterElement(left, center, right, isDark))
         }
         return
       }
@@ -507,7 +524,7 @@ function addPageChrome(
         const left = doc.metadata.headerLeft ? formatChromeText(doc.metadata.headerLeft, doc, index, pages.length, lang) : defaultLeft
         const center = doc.metadata.headerCenter ? formatChromeText(doc.metadata.headerCenter, doc, index, pages.length, lang) : ''
         const right = doc.metadata.headerRight ? formatChromeText(doc.metadata.headerRight, doc, index, pages.length, lang) : defaultRight
-        box.append(renderHeaderElement(left, center, right))
+        box.append(renderHeaderElement(left, center, right, isDark))
       }
 
       if (doc.metadata.footer) {
@@ -516,7 +533,7 @@ function addPageChrome(
         const left = doc.metadata.footerLeft ? formatChromeText(doc.metadata.footerLeft, doc, index, pages.length, lang) : defaultLeft
         const center = doc.metadata.footerCenter ? formatChromeText(doc.metadata.footerCenter, doc, index, pages.length, lang) : ''
         const right = doc.metadata.footerRight ? formatChromeText(doc.metadata.footerRight, doc, index, pages.length, lang) : defaultRight
-        box.append(renderFooterElement(left, center, right))
+        box.append(renderFooterElement(left, center, right, isDark))
       }
     })
     return
@@ -533,6 +550,8 @@ function addPageChrome(
       page.classList.add('folio-toc-sheet')
     }
 
+    const isDark = isPageMarkedDark(page, index)
+    if (isDark) page.classList.add('folio-dark-sheet')
     const box = page.querySelector<HTMLElement>('.pagedjs_pagebox') ?? page
 
     if (doc.metadata.header) {
@@ -543,7 +562,7 @@ function addPageChrome(
       const left = doc.metadata.headerLeft ? formatChromeText(doc.metadata.headerLeft, doc, index, pages.length, lang) : defaultLeft
       const center = doc.metadata.headerCenter ? formatChromeText(doc.metadata.headerCenter, doc, index, pages.length, lang) : ''
       const right = doc.metadata.headerRight ? formatChromeText(doc.metadata.headerRight, doc, index, pages.length, lang) : defaultRight
-      box.append(renderHeaderElement(left, center, right))
+      box.append(renderHeaderElement(left, center, right, isDark))
     }
 
     if (doc.metadata.footer) {
@@ -552,7 +571,7 @@ function addPageChrome(
       const left = doc.metadata.footerLeft ? formatChromeText(doc.metadata.footerLeft, doc, index, pages.length, lang) : defaultLeft
       const center = doc.metadata.footerCenter ? formatChromeText(doc.metadata.footerCenter, doc, index, pages.length, lang) : ''
       const right = doc.metadata.footerRight ? formatChromeText(doc.metadata.footerRight, doc, index, pages.length, lang) : defaultRight
-      box.append(renderFooterElement(left, center, right))
+      box.append(renderFooterElement(left, center, right, isDark))
     }
   })
 }

@@ -61,9 +61,13 @@ function collectExportReport(markdown: string) {
         ? ([metadata.title].filter(Boolean) as string[])
         : ([metadata.documentId, metadata.client].filter(Boolean) as string[])
 
+  const darkPages = pages
+    .map((page, index) => (page.classList.contains('folio-dark-sheet') || page.classList.contains('folio-cover-sheet') ? index + 1 : 0))
+    .filter((index) => index > 0)
+
   // The effective cover colour, read off the rendered sheet so a document that
   // overrides `--cover-bg` gets that colour in the PDF's cover bands too.
-  const coverBox = document.querySelector('.pagination-output .folio-cover-sheet .pagedjs_pagebox')
+  const coverBox = document.querySelector('.pagination-output .folio-cover-sheet .pagedjs_pagebox, .pagination-output .folio-dark-sheet .pagedjs_pagebox')
   const coverColor = coverBox ? getComputedStyle(coverBox).backgroundColor : null
 
   return {
@@ -71,6 +75,7 @@ function collectExportReport(markdown: string) {
     coverColor,
     outline,
     landscapePages,
+    darkPages,
     metadata: {
       title,
       author,

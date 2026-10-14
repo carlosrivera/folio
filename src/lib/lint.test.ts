@@ -66,9 +66,14 @@ Un <span>tramo</span> de texto.
     expect(rules('## Alcance\n\nVer [esto](#no-existe).\n')).toContain('anchor-missing')
   })
 
-  it('flags an unclosed fence and an unbalanced landscape block', () => {
+  it('flags an unclosed fence and an unbalanced landscape or dark block', () => {
     expect(lint('## Alcance\n\n```ts\nconst a = 1\n').find((finding) => finding.rule === 'fence-unclosed')?.line).toBe(2)
     expect(lint('<!-- landscape -->\n\n## Alcance\n').find((finding) => finding.rule === 'landscape-unbalanced')?.line).toBe(0)
+    expect(lint('<!-- dark -->\n\n## Alcance\n').find((finding) => finding.rule === 'dark-unbalanced')?.line).toBe(0)
+  })
+
+  it('allows dark-pages in frontmatter without flagging unknown key', () => {
+    expect(rules('---\ntitle: T\nclient: C\nprepared-by: S\ndocument-id: D\ndark-pages: [2, 4]\n---\n\n## A\n')).not.toContain('frontmatter-unknown-key')
   })
 
   it('flags a ragged table row', () => {

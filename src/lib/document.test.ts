@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { SUPPORTED_THEMES, SUPPORTED_LAYOUTS, parseDocument, formatChromeText, upsertLayout, upsertTheme, upsertThemeOverrides, suggestedFileName } from './document'
+import { SUPPORTED_THEMES, SUPPORTED_LAYOUTS, parseDocument, formatChromeText, isPageDark, upsertLayout, upsertTheme, upsertThemeOverrides, suggestedFileName } from './document'
 
 describe('legacy document language', () => {
   it('ignores language frontmatter without changing document content', () => {
@@ -577,5 +577,39 @@ describe('preview source positions', () => {
     expect(html).toContain(`data-source-from="${source.indexOf('Final text.')}"`)
     expect(html).toContain('<div class="folio-landscape">')
     expect(html).not.toContain('FOLIO_LANDSCAPE')
+  })
+
+  it('parses frontmatter dark-pages configuration in various formats', () => {
+    expect(parseDocument('---\ndark-pages: [2, 4]\n---\n# Doc').metadata.darkPages).toEqual([2, 4])
+    expect(parseDocument('---\ndark-pages: "2, last"\n---\n# Doc').metadata.darkPages).toEqual([2, 'last'])
+    expect(parseDocument('---\ndark-pages: 3\n---\n# Doc').metadata.darkPages).toEqual([3])
+    expect(parseDocument('---\ndark-pages: all\n---\n# Doc').metadata.darkPages).toBe('all')
+    expect(parseDocument('---\ndark-pages: true\n---\n# Doc').metadata.darkPages).toBe('all')
+    expect(parseDocument('---\ndarkPages: [1, 3]\n---\n# Doc').metadata.darkPages).toEqual([1, 3])
+  })
+
+  it('evaluates isPageDark correctly for specific pages, last, and all', () => {
+    expect(isPageDark(1, 4, [2, 'last'])).toBe(false)
+    expect(isPageDark(2, 4, [2, 'last'])).toBe(true)
+    expect(isPageDark(3, 4, [2, 'last'])).toBe(false)
+    expect(isPageDark(4, 4, [2, 'last'])).toBe(true)
+    expect(isPageDark(3, 4, 'all')).toBe(true)
+    expect(isPageDark(1, 4, undefined)).toBe(false)
+  })
+
+  it('transforms inline dark markers into folio-dark-page divs and cleans redundant breaks', () => {
+    const source = '# Top\n\n<!-- dark -->\n\n## Dark Section\nDark content\n\n<!-- /dark -->\n\n# Back to normal'
+    const html = parseDocument(source).html
+    expect(html).toContain('<div class="folio-dark-page">')
+    expect(html).toContain('<h2 id="dark-section">Dark Section</h2>')
+    expect(html).toContain('<h1 id="back-to-normal">Back to normal</h1>')
+    expect(html).not.toContain('FOLIO_DARK_PAGE')
+  })
+
+  it('supports <!-- dark-page --> alias and auto-closes unclosed dark blocks', () => {
+    const source = '# Top\n\n<!-- dark-page -->\n\nDark content without closer'
+    const html = parseDocument(source).html
+    expect(html).toContain('<div class="folio-dark-page">')
+    expect(html.endsWith('</div>')).toBe(true)
   })
 })

@@ -1172,6 +1172,17 @@ input[type="email"], input[type="number"], textarea,
   --pagedjs-height-left: 210mm;
 }
 
+/* Opt-in dark page run, driven by `<!-- dark -->` or `<!-- dark-page -->` in the source. */
+@page dark {
+  size: A4;
+  margin: 22mm 19mm 20mm;
+}
+.folio-dark-page {
+  page: dark;
+  break-before: page;
+  break-after: page;
+}
+
 /* Base SOW styles */
 .sow-document { color: #262620; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; font-size: 9.3pt; line-height: 1.58; }
 /* `@page cover` has no margins so the artwork can bleed, so the cover carries
@@ -2616,7 +2627,130 @@ a.cv-contact-item:hover {
 
 .folio-cover-sheet .pagedjs_sheet,
 .folio-cover-sheet .pagedjs_pagebox,
-.folio-cover-sheet { background: var(--cover-bg) !important; }
+.folio-cover-sheet,
+.folio-dark-sheet .pagedjs_sheet,
+.folio-dark-sheet .pagedjs_pagebox,
+.folio-dark-sheet { background: var(--cover-bg) !important; }
+
+/* Dark page chrome: Inverted running headers and footers */
+.folio-dark-sheet .folio-page-header,
+.folio-dark-sheet .folio-page-footer,
+.folio-dark-sheet .folio-cv-header,
+.folio-dark-sheet .folio-cv-footer,
+.folio-page-header.folio-page-header-inverted,
+.folio-page-footer.folio-page-footer-inverted {
+  color: var(--cover-dt, rgba(255, 255, 255, 0.72)) !important;
+}
+
+.folio-dark-sheet .folio-page-header span,
+.folio-dark-sheet .folio-page-footer span,
+.folio-dark-sheet .folio-cv-header span,
+.folio-dark-sheet .folio-cv-footer span,
+.folio-page-header.folio-page-header-inverted span,
+.folio-page-footer.folio-page-footer-inverted span {
+  color: var(--cover-dt, rgba(255, 255, 255, 0.72));
+}
+
+.folio-dark-sheet .folio-page-header .folio-page-right,
+.folio-dark-sheet .folio-page-footer .folio-page-right,
+.folio-page-header.folio-page-header-inverted .folio-page-right,
+.folio-page-footer.folio-page-footer-inverted .folio-page-right {
+  color: var(--cover-dd, rgba(255, 255, 255, 0.9));
+}
+
+/* Dark page content styling */
+.folio-dark-sheet .document-body,
+.folio-dark-sheet .document-body p,
+.folio-dark-sheet .document-body li,
+.folio-dark-sheet .document-body dl,
+.folio-dark-sheet .document-body dd {
+  color: var(--cover-fg, rgba(255, 255, 255, 0.92));
+}
+
+.folio-dark-sheet .document-body h1,
+.folio-dark-sheet .document-body h2,
+.folio-dark-sheet .document-body h3,
+.folio-dark-sheet .document-body h4,
+.folio-dark-sheet .document-body h5,
+.folio-dark-sheet .document-body h6,
+.folio-dark-sheet .document-body > h1:first-child {
+  color: var(--cover-title, #ffffff);
+}
+
+.folio-dark-sheet .document-body h3 {
+  color: var(--cover-accent, var(--cover-kicker, #ffffff));
+}
+
+.folio-dark-sheet .document-body strong,
+.folio-dark-sheet .document-body b {
+  color: var(--cover-title, #ffffff);
+}
+
+.folio-dark-sheet .document-body li::marker {
+  color: var(--cover-accent, rgba(255, 255, 255, 0.8));
+}
+
+.folio-dark-sheet .document-body a {
+  color: var(--cover-accent, #60a5fa);
+  text-decoration-color: var(--cover-accent, #60a5fa);
+}
+
+.folio-dark-sheet .document-body blockquote {
+  border-left-color: var(--cover-accent, #60a5fa);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--cover-fg, rgba(255, 255, 255, 0.95));
+}
+
+.folio-dark-sheet .document-body code:not(pre code) {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--cover-title, #ffffff);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.folio-dark-sheet .document-body pre {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.folio-dark-sheet .document-body pre code {
+  color: var(--cover-fg, #f8fafc);
+}
+
+.folio-dark-sheet .document-body table {
+  color: var(--cover-fg, rgba(255, 255, 255, 0.9));
+}
+
+.folio-dark-sheet .document-body th {
+  border-bottom-color: rgba(255, 255, 255, 0.35);
+  color: var(--cover-title, #ffffff);
+}
+
+.folio-dark-sheet .document-body td {
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.15);
+}
+
+.folio-dark-sheet .document-body hr {
+  border-color: var(--cover-rule, rgba(255, 255, 255, 0.2));
+}
+
+.folio-dark-sheet .mermaid-figure {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Scientific theme dark fallback (since scientific has white cover-bg) */
+.theme-scientific.folio-dark-sheet,
+.theme-scientific .folio-dark-sheet,
+.folio-dark-sheet.theme-scientific {
+  --cover-bg: #0f172a;
+  --cover-fg: #f8fafc;
+  --cover-title: #ffffff;
+  --cover-accent: #38bdf8;
+  --cover-kicker: #38bdf8;
+  --cover-dt: #94a3b8;
+  --cover-dd: #f1f5f9;
+  --cover-rule: rgba(255, 255, 255, 0.2);
+}
 
 .cover-page { color: var(--cover-fg); background: transparent; font-family: var(--font-body); }
 .cover-kicker { color: var(--cover-kicker); font-family: var(--font-mono); letter-spacing: var(--cover-kicker-tracking); }
@@ -2844,6 +2978,14 @@ a.cv-contact-item:hover {
     height: 210mm !important;
     transform-origin: top left;
     transform: translateX(210mm) rotate(90deg);
+  }
+
+  .folio-dark-sheet,
+  .folio-dark-sheet .pagedjs_sheet,
+  .folio-dark-sheet .pagedjs_pagebox {
+    background: var(--cover-bg) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
 

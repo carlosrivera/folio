@@ -49,6 +49,12 @@ const KNOWN_FRONTMATTER_KEYS = new Set([
   'theme',
   'theme-overrides',
   'themeOverrides',
+  'dark-pages',
+  'darkPages',
+  'dark_pages',
+  'dark-page',
+  'darkPage',
+  'dark_page',
   'toc',
   'table-of-contents',
   'header',
@@ -270,6 +276,18 @@ export function lintDocument(source: string, parsed: ParsedDocument, now = new D
       rule: 'landscape-unbalanced',
       severity: 'error',
       message: `${landscapeOpens} landscape opener(s) but ${landscapeCloses} closer(s); the rest of the document stays landscape.`,
+      line: markerLine >= 0 ? markerLine : undefined,
+    })
+  }
+
+  const darkOpens = (source.match(/<!--\s*dark(?:-page)?\s*-->/gi) || []).length
+  const darkCloses = (source.match(/<!--\s*\/\s*dark(?:-page)?\s*-->/gi) || []).length
+  if (darkOpens !== darkCloses) {
+    const markerLine = lines.findIndex((line) => /<!--\s*\/?\s*dark(?:-page)?\s*-->/.test(line))
+    add({
+      rule: 'dark-unbalanced',
+      severity: 'error',
+      message: `${darkOpens} dark page opener(s) but ${darkCloses} closer(s); the rest of the document stays dark.`,
       line: markerLine >= 0 ? markerLine : undefined,
     })
   }

@@ -132,9 +132,13 @@ export type DocumentMetadata = {
   paymentTerms?: string
   paymentDetails?: string
   notes?: string
+  /** Pages configured to render with dark background (cover-style). */
+  darkPages?: (number | 'last')[] | 'all'
   /** Token overrides the document carries for its template. */
   themeOverrides: Record<string, string>
 }
+
+export type DarkPageSpec = number | 'last'
 
 export type TocItem = {
   id: string
@@ -393,6 +397,8 @@ export function headingAnchors(source: string): HeadingAnchor[] {
 const PAGE_BREAK_MARKER = ':::FOLIO_PAGE_BREAK:::'
 const LANDSCAPE_OPEN_MARKER = ':::FOLIO_LANDSCAPE_OPEN:::'
 const LANDSCAPE_CLOSE_MARKER = ':::FOLIO_LANDSCAPE_CLOSE:::'
+const DARK_PAGE_OPEN_MARKER = ':::FOLIO_DARK_PAGE_OPEN:::'
+const DARK_PAGE_CLOSE_MARKER = ':::FOLIO_DARK_PAGE_CLOSE:::'
 
 /**
  * Preprocesses markdown source to replace explicit page break markers with a clean marker token.
@@ -406,6 +412,8 @@ const markdownReplacements: [RegExp, string][] = [
   [/(?:^|\n)[ \t]*(?:<!--\s*page-?break\s*-->|\\\\pagebreak|\\pagebreak|\{\.pagebreak\})[ \t]*(?:\r?\n|$)/gi, `\n\n${PAGE_BREAK_MARKER}\n\n`],
   [/(?:^|\n)[ \t]*<!--\s*\/\s*landscape\s*-->[ \t]*(?:\r?\n|$)/gi, `\n\n${LANDSCAPE_CLOSE_MARKER}\n\n`],
   [/(?:^|\n)[ \t]*<!--\s*landscape\s*-->[ \t]*(?:\r?\n|$)/gi, `\n\n${LANDSCAPE_OPEN_MARKER}\n\n`],
+  [/(?:^|\n)[ \t]*<!--\s*\/\s*dark(?:-page)?\s*-->[ \t]*(?:\r?\n|$)/gi, `\n\n${DARK_PAGE_CLOSE_MARKER}\n\n`],
+  [/(?:^|\n)[ \t]*<!--\s*dark(?:-page)?\s*-->[ \t]*(?:\r?\n|$)/gi, `\n\n${DARK_PAGE_OPEN_MARKER}\n\n`],
 ]
 
 export function preprocessMarkdown(content: string): string {
@@ -476,6 +484,52 @@ export function formatChromeText(
     .replace(/\{(?:client|customer)\}/gi, meta.client || '')
     .replace(/\{(?:author|preparedBy|prepared-by|from)\}/gi, meta.authors || meta.preparedBy || meta.from || meta.name || '')
     .replace(/\{(?:documentId|document-id|invoiceNumber|invoice-number|id)\}/gi, meta.invoiceNumber || meta.documentId || '')
+}
+
+export function parseDarkPages(input: unknown): DarkPageSpec[] | 'all' | undefined {
+  if (input === true || input === 'all') return 'all'
+  if (input === false || input === null || input === undefined) return undefined
+
+  const items = Array.isArray(input)
+    ? input
+    : typeof input === 'string'
+      ? input.split(/[,;\s]+/)
+      : typeof input === 'number'
+        ? [input]
+        : []
+
+  const parsed: DarkPageSpec[] = []
+  for (const item of items) {
+    if (typeof item === 'number' && Number.isInteger(item) && item > 0) {
+      parsed.push(item)
+    } else if (typeof item === 'string') {
+      const trimmed = item.trim().toLowerCase()
+      if (trimmed === 'last') {
+        parsed.push('last')
+      } else if (trimmed === 'all') {
+        return 'all'
+      } else if (/^\d+$/.test(trimmed)) {
+        const num = parseInt(trimmed, 10)
+        if (num > 0) parsed.push(num)
+      }
+    }
+  }
+
+  return parsed.length > 0 ? parsed : undefined
+}
+
+export function isPageDark(
+  pageNumber: number,
+  totalPages: number,
+  darkPagesSpec?: DarkPageSpec[] | 'all',
+): boolean {
+  if (!darkPagesSpec) return false
+  if (darkPagesSpec === 'all') return true
+  for (const spec of darkPagesSpec) {
+    if (spec === 'last' && pageNumber === totalPages) return true
+    if (spec === pageNumber) return true
+  }
+  return false
 }
 
 export function parseDocument(source: string, sourcePositions = false): ParsedDocument {
@@ -707,6 +761,14 @@ export function parseDocument(source: string, sourcePositions = false): ParsedDo
     paymentTerms: paymentTerms || undefined,
     paymentDetails: paymentDetails || undefined,
     notes: notes || undefined,
+    darkPages: parseDarkPages(
+      raw['dark-pages'] ??
+      raw.darkPages ??
+      raw['dark_pages'] ??
+      raw['dark-page'] ??
+      raw.darkPage ??
+      raw['dark_page']
+    ),
     themeOverrides,
   }
 
@@ -735,6 +797,18 @@ export function parseDocument(source: string, sourcePositions = false): ParsedDo
     new RegExp(`<p[^>]*>\\s*${LANDSCAPE_CLOSE_MARKER}\\s*<\\/p>|${LANDSCAPE_CLOSE_MARKER}`, 'g'),
     '</div>',
   )
+  html = html.replace(
+    new RegExp(`<p[^>]*>\\s*${DARK_PAGE_OPEN_MARKER}\\s*<\\/p>|${DARK_PAGE_OPEN_MARKER}`, 'g'),
+    '<div class="folio-dark-page">',
+  )
+  html = html.replace(
+    new RegExp(`<p[^>]*>\\s*${DARK_PAGE_CLOSE_MARKER}\\s*<\\/p>|${DARK_PAGE_CLOSE_MARKER}`, 'g'),
+    '</div>',
+  )
+  // Clean redundant page breaks adjacent to dark page boundaries
+  html = html.replace(/<div class="folio-page-break"><\/div>\s*(<div class="folio-dark-page">)/g, '$1')
+  html = html.replace(/(<\/div>\s*)<div class="folio-page-break"><\/div>/g, '$1')
+
   // A break that would land where a page already starts just makes a blank
   // page: the cover and the index both break after themselves, so a marker at
   // the very top of the body is redundant, as is a run of adjacent markers.
@@ -745,6 +819,10 @@ export function parseDocument(source: string, sourcePositions = false): ParsedDo
   const openCount = (html.match(/<div class="folio-landscape">/g) || []).length
   const closeCount = (processedBody.match(new RegExp(LANDSCAPE_CLOSE_MARKER, 'g')) || []).length
   if (openCount > closeCount) html += '</div>'.repeat(openCount - closeCount)
+
+  const darkOpenCount = (html.match(/<div class="folio-dark-page">/g) || []).length
+  const darkCloseCount = (processedBody.match(new RegExp(DARK_PAGE_CLOSE_MARKER, 'g')) || []).length
+  if (darkOpenCount > darkCloseCount) html += '</div>'.repeat(darkOpenCount - darkCloseCount)
 
   return { metadata, body, html, toc }
 }
