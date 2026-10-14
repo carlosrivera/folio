@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-/** A4 width in CSS pixels; the preview always lays out at the `@page` size. */
-const PAGE_WIDTH_PX = (210 * 96) / 25.4
+/** A4 dimensions in CSS pixels; the preview always lays out at the `@page` size. */
+const PAGE_PORTRAIT_WIDTH_PX = (210 * 96) / 25.4
+const PAGE_LANDSCAPE_WIDTH_PX = (297 * 96) / 25.4
 /** Matches the horizontal padding of `.pagination-stage`. */
 const STAGE_PADDING_PX = 24
 const ZOOM_MIN = 0.25
@@ -20,9 +21,15 @@ export type PreviewViewport = {
   zoomIn: () => void
   zoomOut: () => void
   toggleFitToWidth: () => void
+  recomputeFitToWidth: () => void
   goToPage: (page: number) => void
   revealAnchor: (id: string) => void
   revealPosition: (position: number) => void
+}
+
+export type PreviewViewportOptions = {
+  layout?: string
+  orientation?: 'portrait' | 'landscape'
 }
 
 /**
@@ -30,7 +37,10 @@ export type PreviewViewport = {
  * the CSS `zoom` property rather than a transform so the scroll container keeps
  * a correct scrollable height at every level.
  */
-export function usePreviewViewport(pageCount: number): PreviewViewport {
+export function usePreviewViewport(
+  pageCount: number,
+  options?: PreviewViewportOptions,
+): PreviewViewport {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const [zoom, setZoom] = useState(1)
   const [fitToWidth, setFitToWidth] = useState(true)
@@ -41,21 +51,60 @@ export function usePreviewViewport(pageCount: number): PreviewViewport {
     [],
   )
 
-  // Fit-to-width has to be recomputed whenever the pane changes size.
+  const getExpectedPageWidth = useCallback(() => {
+    if (options?.orientation === 'landscape') {
+      return PAGE_LANDSCAPE_WIDTH_PX
+    }
+    if (options?.orientation === 'portrait') {
+      return PAGE_PORTRAIT_WIDTH_PX
+    }
+    const firstPage = scrollRef.current?.querySelector<HTMLElement>('.pagination-output .pagedjs_page')
+    if (firstPage && firstPage.offsetWidth > 0) {
+      return firstPage.offsetWidth
+    }
+    return PAGE_PORTRAIT_WIDTH_PX
+  }, [options?.orientation])
+
+  const applyFitToWidth = useCallback(() => {
+    const container = scrollRef.current
+    if (!container) return
+    const available = container.clientWidth - STAGE_PADDING_PX * 2
+    const pageWidth = getExpectedPageWidth()
+    if (available > 0 && pageWidth > 0) {
+      setZoom(round(clampZoom(available / pageWidth)))
+    }
+  }, [getExpectedPageWidth])
+
+  // Reset zoom to fit page width on layout or orientation changes
+  const prevLayoutKey = useRef(`${options?.layout}:${options?.orientation}`)
+  useEffect(() => {
+    const key = `${options?.layout}:${options?.orientation}`
+    if (prevLayoutKey.current !== key) {
+      prevLayoutKey.current = key
+      setFitToWidth(true)
+      const container = scrollRef.current
+      if (container) {
+        container.scrollTop = 0
+        const available = container.clientWidth - STAGE_PADDING_PX * 2
+        const pageWidth = options?.orientation === 'landscape' ? PAGE_LANDSCAPE_WIDTH_PX : PAGE_PORTRAIT_WIDTH_PX
+        if (available > 0) {
+          setZoom(round(clampZoom(available / pageWidth)))
+        }
+      }
+    }
+  }, [options?.layout, options?.orientation])
+
+  // Fit-to-width has to be recomputed whenever the pane changes size or pages update.
   useEffect(() => {
     const container = scrollRef.current
     if (!container || !fitToWidth) return
 
-    const apply = () => {
-      const available = container.clientWidth - STAGE_PADDING_PX * 2
-      if (available > 0) setZoom(round(clampZoom(available / PAGE_WIDTH_PX)))
-    }
-    apply()
+    applyFitToWidth()
 
-    const observer = new ResizeObserver(apply)
+    const observer = new ResizeObserver(applyFitToWidth)
     observer.observe(container)
     return () => observer.disconnect()
-  }, [fitToWidth])
+  }, [fitToWidth, applyFitToWidth, pageCount])
 
   // Which page is currently under the top of the viewport.
   useEffect(() => {
@@ -67,7 +116,15 @@ export function usePreviewViewport(pageCount: number): PreviewViewport {
       queued = false
       const pages = pagesOf()
       if (pages.length === 0 || !container.clientWidth || container.closest('[inert]')) return
-      const top = container.getBoundingClientRect().top + SCROLL_MARGIN_PX
+
+      // Pin to last page if scrolled to the very bottom
+      if (container.scrollHeight - container.scrollTop - container.clientHeight < 5) {
+        setCurrentPage(pages.length)
+        return
+      }
+
+      // Add 4px tolerance to prevent subpixel floating-point rounding from locking navigation
+      const top = container.getBoundingClientRect().top + SCROLL_MARGIN_PX + 4
       let nearest = 1
       for (let i = 0; i < pages.length; i++) {
         if (pages[i].getBoundingClientRect().top <= top) nearest = i + 1
@@ -98,7 +155,10 @@ export function usePreviewViewport(pageCount: number): PreviewViewport {
     (page: number) => {
       const pages = pagesOf()
       const target = Math.min(Math.max(page, 1), pages.length)
-      scrollTo(pages[target - 1], SCROLL_MARGIN_PX)
+      if (target >= 1 && target <= pages.length) {
+        setCurrentPage(target)
+        scrollTo(pages[target - 1], SCROLL_MARGIN_PX)
+      }
     },
     [pagesOf, scrollTo],
   )
@@ -141,10 +201,15 @@ export function usePreviewViewport(pageCount: number): PreviewViewport {
     zoomOut: useCallback(() => step(-1), [step]),
     toggleFitToWidth: useCallback(() => {
       setFitToWidth((on) => {
-        if (on) setZoom(1)
-        return !on
+        if (!on) {
+          applyFitToWidth()
+          return true
+        }
+        setZoom(1)
+        return false
       })
-    }, []),
+    }, [applyFitToWidth]),
+    recomputeFitToWidth: applyFitToWidth,
     goToPage,
     revealAnchor,
     revealPosition,

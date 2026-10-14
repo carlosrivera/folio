@@ -19,7 +19,7 @@ import { PreviewControls } from './components/PreviewControls'
 import { ThemePicker, themeLabel } from './components/ThemePicker'
 import { layoutLabel } from './components/LayoutPicker'
 import { NewDocumentDialog } from './components/NewDocumentDialog'
-import { headingAnchors, parseDocument, suggestedFileName, upsertLayout, upsertTheme, upsertThemeOverrides, type DocumentLayout, type DocumentTheme } from './lib/document'
+import { headingAnchors, parseDocument, suggestedFileName, upsertLayout, upsertTheme, upsertThemeOverrides, type DocumentLayout, type DocumentOrientation, type DocumentTheme } from './lib/document'
 import { diffDocuments } from './lib/diff'
 import { lintDocument } from './lib/lint'
 import { Workspace, type ViewMode } from './components/Workspace'
@@ -144,6 +144,7 @@ export default function App() {
   const currentTheme: DocumentTheme = parsed.metadata.theme || 'editorial'
   const currentStyles = useMemo(() => captureFolioStyles(appStyles, currentTheme, styles), [currentTheme, styles])
   const currentLayout: DocumentLayout = parsed.metadata.layout || 'report'
+  const currentOrientation: DocumentOrientation = parsed.metadata.orientation || 'portrait'
   const t = useMemo(() => getTranslations(uiLanguage), [uiLanguage])
 
   const dismissToast = useCallback(() => {
@@ -568,15 +569,19 @@ export default function App() {
     }
   }, [showToast])
 
-  const preview = usePreviewViewport(pageCount)
+  const preview = usePreviewViewport(pageCount, {
+    layout: currentLayout,
+    orientation: currentOrientation,
+  })
   const [syncScroll, setSyncScroll] = useState(true)
   const anchors = useMemo(() => headingAnchors(markdown), [markdown])
 
   const onCaretLineChange = useCallback((line: number) => setCaretLine(line), [])
   useEffect(() => { if (syncScroll && viewModeRef.current === 'split') preview.revealPosition(cursor.from) }, [cursor.from, syncScroll, preview.revealPosition])
   const onPreviewReady = useCallback(() => {
+    if (preview.fitToWidth) preview.recomputeFitToWidth()
     if (syncScroll && viewModeRef.current === 'split') preview.revealPosition(editorViewRef.current?.state.selection.main.head ?? 0)
-  }, [syncScroll, preview.revealPosition])
+  }, [syncScroll, preview.revealPosition, preview.fitToWidth, preview.recomputeFitToWidth])
   const active = useMemo(() => activeFormats(markdown, cursor.from, cursor.to), [markdown, cursor.from, cursor.to])
   const inTable = useMemo(() => !!tableAt(markdown, cursor.from), [markdown, cursor.from])
   const editableKind = useMemo(() => editableInlineAt(markdown, cursor.from)?.kind ?? null, [markdown, cursor.from])

@@ -623,6 +623,8 @@ export function PaginatedDocument({
   const [retryNonce, setRetryNonce] = useState(0)
 
   const document = useMemo(() => parseDocument(markdown, true), [markdown])
+  const prevOrientationRef = useRef(document.metadata.orientation)
+  const prevLayoutRef = useRef(document.metadata.layout)
 
   usePreviewSelection(pagesRef, markdown, layingOut ? null : selection)
 
@@ -667,7 +669,11 @@ export function PaginatedDocument({
         }
 
         const scrollContainer = pagesRef.current.closest('.preview-scroll')
-        const previousScroll = scrollContainer ? scrollContainer.scrollTop : 0
+        const orientationChanged = prevOrientationRef.current !== document.metadata.orientation
+        const layoutChanged = prevLayoutRef.current !== document.metadata.layout
+        prevOrientationRef.current = document.metadata.orientation
+        prevLayoutRef.current = document.metadata.layout
+        const previousScroll = scrollContainer && !orientationChanged && !layoutChanged ? scrollContainer.scrollTop : 0
 
         // Clean up any stale staging previewer from a previously cancelled run
         if (stagingPreviewerRef.current) {
