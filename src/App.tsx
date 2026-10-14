@@ -4,6 +4,7 @@ import { DocumentHistory } from './components/DocumentHistory'
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { BookOpen, Columns2, Download, FileText, FolderOpen, History, PanelLeft, Plus, Settings, SquarePen } from 'lucide-react'
 import { SaveButton, SplitButton } from './components/SaveButton'
+import { OpenButton } from './components/OpenButton'
 import { DocumentProperties } from './components/DocumentProperties'
 import { updateDocumentProperties } from './lib/document-properties'
 import { editableInlineAt } from './lib/markdown-editing'
@@ -107,6 +108,32 @@ export default function App() {
   const saveInFlight = useRef(false)
   const [saveError, setSaveError] = useState(false)
   const [caretLine, setCaretLine] = useState(0)
+  const [recentPaths, setRecentPaths] = useState<string[]>([])
+
+  useEffect(() => {
+    let mounted = true
+    const loadRecents = async () => {
+      try {
+        if (window.folio?.getRecentDocuments) {
+          const list = await window.folio.getRecentDocuments()
+          if (mounted && Array.isArray(list)) {
+            setRecentPaths(list)
+            return
+          }
+        }
+        const stored = JSON.parse(localStorage.getItem('folio:recent-documents') || '[]')
+        if (mounted && Array.isArray(stored)) {
+          setRecentPaths(stored.filter((p): p is string => typeof p === 'string'))
+        }
+      } catch {
+        if (mounted) setRecentPaths([])
+      }
+    }
+    void loadRecents()
+    return window.folio?.onRecentDocumentsUpdated?.((list) => {
+      if (mounted && Array.isArray(list)) setRecentPaths(list)
+    })
+  }, [])
 
   const dirty = markdown !== savedMarkdown || JSON.stringify(styles) !== JSON.stringify(savedStyles)
   const previewMarkdown = useDeferredValue(markdown)
@@ -605,9 +632,13 @@ export default function App() {
           <button onClick={requestNewDocument} disabled={action !== null} title="New document">
             <Plus size={15} />{tr('New')}
           </button>
-          <button onClick={openDocument} disabled={action !== null}>
-            <FolderOpen size={15} />{t.open}
-          </button>
+          <OpenButton
+            label={t.open}
+            disabled={action !== null}
+            recentPaths={recentPaths}
+            onOpen={() => void openDocument()}
+            onOpenRecent={(recentPath) => void openRecentDocument(recentPath)}
+          />
           {path?.toLowerCase().endsWith('.folio') && <button aria-label={tr('Document history')} title={tr('Document history')} disabled={action !== null} onClick={async () => { try { setHistory(await window.folio?.getHistory?.(path) ?? []); setHistoryOpen(true) } catch (error) { showToast(String(error)) } }}><History size={15} /></button>}
           <SaveButton label={action === 'saving' ? t.saving : t.save} saveAsLabel={t.saveAs}
             disabled={action !== null} onSave={(saveAs) => void saveDocument(saveAs)} onSaveFolio={() => void saveDocument(true, false, false, 'folio')} />
