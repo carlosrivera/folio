@@ -217,10 +217,14 @@ function sizeDiagramToPage(svgEl: SVGElement, figure: HTMLElement | null) {
 
   const budget = figure?.closest('.folio-landscape, .folio-document-landscape') ? PAGE_BUDGETS.landscape : PAGE_BUDGETS.portrait
   const requested = figure?.getAttribute('data-diagram-width')
+  // `scale=0.7` shrinks (or grows) the diagram after the width choice; the
+  // page-height cap below still applies, so a scaled-up diagram cannot overflow.
+  const scaleValue = Number.parseFloat(figure?.getAttribute('data-diagram-scale') ?? '')
+  const scale = Number.isFinite(scaleValue) ? Math.min(2, Math.max(0.25, scaleValue)) : 1
   // `full` fills the measure even when the drawing is small; `half` keeps a
   // narrow diagram narrow so it can sit beside surrounding prose comfortably.
-  const maxWidth = requested === 'half' ? budget.width / 2 : budget.width
-  const naturalMm = naturalWidth * PX_TO_MM
+  const maxWidth = (requested === 'half' ? budget.width / 2 : budget.width) * scale
+  const naturalMm = naturalWidth * PX_TO_MM * scale
   const ratio = naturalHeight / naturalWidth
 
   let width = requested === 'full' ? maxWidth : Math.min(naturalMm, maxWidth)

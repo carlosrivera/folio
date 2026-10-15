@@ -6,7 +6,7 @@ title: Folio — Series B
 kicker: Series B · Confidential
 date: October 2026
 dark-pages: "1, last"
-font-scale: 1.1
+font-scale: 1.3
 footer: true
 footer-left: Folio · Series B · Confidential
 footer-right: "{page} / {pages}"
@@ -46,7 +46,7 @@ Carlos Rivera · Founder & CEO · carlos@folio.example
 - A live paginated engine typesets it: real pages, themes, running headers, footers, page numbers.
 - What you preview is what ships — one command exports a pixel-identical PDF.
 
-```mermaid width=full
+```mermaid width=full scale=0.7
 flowchart LR
   M[Markdown source] --> F[Folio layout engine]
   F --> P[PDF deliverable]

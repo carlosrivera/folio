@@ -97,6 +97,15 @@ flowchart LR
 ```
 ````
 
+Fence options control the diagram's size: `width=full` fills the text measure, `width=half` keeps a narrow diagram beside prose, and `scale=0.7` shrinks or grows the diagram after the width choice (from `0.25` to `2`). A diagram never exceeds the page, whatever its scale.
+
+````markdown
+```mermaid width=full scale=0.7
+flowchart LR
+  A[Discover] --> B[Define]
+```
+````
+
 ## LaTeX equations
 
 Use `$...$` or `\(...\)` for inline math. Put `$$...$$` or `\[...\]` on their own lines for display equations. A fenced `math` block also works. The editor's **Insert** menu offers inline and display equations with editable examples. Equations render in the preview and PDF using bundled KaTeX fonts.

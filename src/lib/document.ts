@@ -252,16 +252,19 @@ export type DiagramWidth = 'natural' | 'half' | 'full'
 
 const DIAGRAM_WIDTHS: DiagramWidth[] = ['natural', 'half', 'full']
 
-/** Reads `width=full` style options from a fence info string. */
-export function parseFenceOptions(info: string): { width: DiagramWidth } {
-  const width = info
+/** Reads `width=full` / `scale=0.7` style options from a fence info string. */
+export function parseFenceOptions(info: string): { width: DiagramWidth; scale: number } {
+  const options = info
     .trim()
     .split(/\s+/)
     .slice(1)
     .map((token) => token.split('=').map((part) => part.trim().toLowerCase()))
-    .find(([key]) => key === 'width')?.[1]
+  const width = options.find(([key]) => key === 'width')?.[1]
+  const scaleValue = Number.parseFloat(options.find(([key]) => key === 'scale')?.[1] ?? '')
+  // Bounded so a typo cannot shrink a diagram to a speck or blow past the page.
+  const scale = Number.isFinite(scaleValue) ? Math.min(2, Math.max(0.25, scaleValue)) : 1
 
-  return { width: DIAGRAM_WIDTHS.find((candidate) => candidate === width) ?? 'natural' }
+  return { width: DIAGRAM_WIDTHS.find((candidate) => candidate === width) ?? 'natural', scale }
 }
 
 markdown.renderer.rules.fence = (tokens, index, options, environment, renderer) => {
@@ -270,8 +273,8 @@ markdown.renderer.rules.fence = (tokens, index, options, environment, renderer) 
   if (language === 'mermaid') {
     const rawSource = tokens[index].content.trim()
     const encodedSource = safeBase64Encode(rawSource)
-    const { width } = parseFenceOptions(info)
-    return `<figure class="mermaid-figure" data-diagram-width="${width}"><div class="mermaid-diagram" data-mermaid-source="${encodedSource}"></div></figure>`
+    const { width, scale } = parseFenceOptions(info)
+    return `<figure class="mermaid-figure" data-diagram-width="${width}" data-diagram-scale="${scale}"><div class="mermaid-diagram" data-mermaid-source="${encodedSource}"></div></figure>`
   }
   return defaultFence?.(tokens, index, options, environment, renderer) ?? renderer.renderToken(tokens, index, options)
 }
