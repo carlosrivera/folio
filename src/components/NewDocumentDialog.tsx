@@ -1,7 +1,7 @@
 import { useUi } from './UiLanguage'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowRight, Briefcase, Clock, FileCode, FileText, FolderOpen, Orbit, ReceiptText, Sparkles, UserRound, X } from 'lucide-react'
-import { sampleCvDocument, sampleDocument, sampleInvoiceDocument, sampleOrbitalPerturbationsDocument, sampleSimpleDocument, samplePetstoreDocument, scientificStarterDocument } from '../lib/sample'
+import { ArrowRight, Briefcase, Clock, FileCode, FileText, FolderOpen, Orbit, Presentation, ReceiptText, Sparkles, UserRound, X } from 'lucide-react'
+import { sampleCvDocument, sampleDocument, sampleInvoiceDocument, sampleOrbitalPerturbationsDocument, samplePitchDeckDocument, sampleSimpleDocument, samplePetstoreDocument, scientificStarterDocument } from '../lib/sample'
 import type { DocumentLayout, DocumentTheme } from '../lib/document'
 
 export type TemplateCategory = 'all' | 'starters' | 'samples'
@@ -308,6 +308,17 @@ Description of role and impact across projects.
     icon: Orbit,
     layout: 'scientific',
     getContent: () => sampleOrbitalPerturbationsDocument,
+  },
+  {
+    id: 'sample-pitch-deck',
+    title: 'Series B Pitch Deck',
+    subtitle: 'Sixteen-slide landscape deck with dark section pages, metrics tables, and a Mermaid pipeline.',
+    category: 'samples',
+    badge: 'Sample',
+    badgeVariant: 'muted',
+    icon: Presentation,
+    layout: 'simple',
+    getContent: () => samplePitchDeckDocument,
   },
 ]
 

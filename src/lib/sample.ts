@@ -1,3 +1,4 @@
+import folioSeriesBPitchDeck from '../../samples/folio-series-b.md?raw'
 import orbitalPerturbationsPaper from '../../samples/orbital-perturbations.md?raw'
 
 export const sampleDocument = `---
@@ -591,3 +592,4 @@ The Petstore definition lists operation-specific responses. For example, \`GET /
 // Single-sourced from the repo's samples directory so the file, the export
 // pipeline, and the New Document dialog stay identical.
 export const sampleOrbitalPerturbationsDocument: string = orbitalPerturbationsPaper
+export const samplePitchDeckDocument: string = folioSeriesBPitchDeck

@@ -931,6 +931,10 @@ input[type="email"], input[type="number"], textarea,
   background: rgba(177, 115, 15, .14);
   color: var(--ui-warning);
 }
+.folio-template-icon-box.is-sample-pitch-deck {
+  background: rgba(201, 85, 53, .12);
+  color: var(--ui-accent);
+}
 .folio-template-badge {
   font-size: 10px;
   font-weight: 600;
