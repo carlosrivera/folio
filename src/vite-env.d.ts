@@ -18,6 +18,7 @@ type ExportReport = {
   coverColor: string | null
   outline: ExportOutlineEntry[]
   landscapePages: number[]
+  paperOrientation?: 'portrait' | 'landscape'
   darkPages?: number[]
   metadata: { title: string; author: string; subject: string; keywords: string[] }
 }

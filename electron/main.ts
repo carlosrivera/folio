@@ -728,6 +728,7 @@ type ExportReport = {
   coverColor: string | null
   outline: ExportOutlineEntry[]
   landscapePages: number[]
+  paperOrientation?: 'portrait' | 'landscape'
   darkPages?: number[]
   metadata: { title: string; author: string; subject: string; keywords: string[] }
 }
@@ -874,20 +875,25 @@ ipcMain.handle('document:export-pdf', async (event, payload: { markdown: string;
     // Never guess it here — a second copy of the palette silently goes stale
     // whenever a template is added or renamed.
     const coverHex = parseCssColor(report?.coverColor)?.hex
+    const paperLandscape = report?.paperOrientation === 'landscape'
     progress('Creating PDF…')
 
     await printWindow.webContents.insertCSS(
       // Paged.js consumes the document's own @page rules while laying out, so
-      // the printed paper size has to be restated here.
+      // the printed paper size has to be restated here. A document that is
+      // landscape as a whole prints on landscape paper directly; only mixed
+      // documents rotate their landscape runs onto portrait paper.
       `@media print {
-         @page { size: A4 !important; margin: 0 !important; }
+         @page { size: ${paperLandscape ? 'A4 landscape' : 'A4'} !important; margin: 0 !important; }
          ${coverHex ? `@page :first { background: ${coverHex} !important; }` : ''}
        }`,
       { cssOrigin: 'user' },
     )
     const pdf = await printWindow.webContents.printToPDF({
       printBackground: true,
-      // Trust the CSS page size so the sheet and the paper match exactly.
+      // Trust the CSS page size so the sheet and the paper match exactly;
+      // the print window restates the size so landscape files print on
+      // landscape paper directly.
       preferCSSPageSize: true,
       margins: { marginType: 'custom', top: 0, bottom: 0, left: 0, right: 0 },
     })
@@ -903,9 +909,10 @@ ipcMain.handle('document:export-pdf', async (event, payload: { markdown: string;
       const [embeddedPage] = await finished.embedPages([sourcePage])
       page.drawPage(embeddedPage, { x: 0, y: 0, width, height })
       // Chrome prints one paper size for the whole document, so a landscape
-      // page is laid out rotated onto portrait paper. Rotating the PDF page
-      // back makes it open as a true landscape sheet.
-      if (landscapePages.has(index + 1)) page.setRotation(degrees(270))
+      // page in a mixed document is laid out rotated onto portrait paper.
+      // Rotating the PDF page back makes it open as a true landscape sheet;
+      // whole-document landscape files already print on landscape paper.
+      if (!paperLandscape && landscapePages.has(index + 1)) page.setRotation(degrees(270))
     }
 
     if (report?.metadata) {

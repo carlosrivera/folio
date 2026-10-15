@@ -100,7 +100,14 @@ app.whenReady().then(async () => {
         await js(win, `window.folio.exportPdf(${JSON.stringify(content)}, 'landscape-cover', 'scientific')`)
         const reportPdf = await PDFDocument.load(fs.readFileSync(pdf))
         assert.equal(reportPdf.getPageCount(), metrics.length)
-        for (const page of reportPdf.getPages()) assert.equal(page.getRotation().angle % 180, 90)
+        // Whole-document landscape files print on native landscape paper
+        // rather than rotated portrait pages.
+        for (const page of reportPdf.getPages()) {
+          const rotated = page.getRotation().angle % 180 !== 0
+          const width = rotated ? page.getHeight() : page.getWidth()
+          const height = rotated ? page.getWidth() : page.getHeight()
+          assert.ok(width > height, 'PDF must display as landscape')
+        }
       }
     }
     await choose(win, 'portrait')

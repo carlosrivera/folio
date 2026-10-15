@@ -76,6 +76,9 @@ function collectExportReport(markdown: string) {
     outline,
     landscapePages,
     darkPages,
+    // Whole-document orientation: the print window uses it to pick the paper
+    // size, so landscape files print unrotated instead of page-by-page.
+    paperOrientation: metadata.orientation === 'landscape' ? ('landscape' as const) : ('portrait' as const),
     metadata: {
       title,
       author,
@@ -91,6 +94,19 @@ export function ExportApp() {
   const [styles, setStyles] = useState<FolioStyles>()
   const [theme, setTheme] = useState<DocumentTheme | undefined>()
   const [lang, setLang] = useState<SupportedLanguage | undefined>()
+
+  // The bundled stylesheet's base `@page` is portrait A4, and Chrome lets it
+  // decide the printed paper. A document that is landscape as a whole must
+  // override it from the renderer: a late author-origin rule wins the cascade
+  // and every page then prints unrotated on landscape paper.
+  useEffect(() => {
+    if (!markdown) return
+    if (parseDocument(markdown).metadata.orientation !== 'landscape') return
+    const style = window.document.createElement('style')
+    style.textContent = '@page { size: A4 landscape !important; margin: 0 !important; }'
+    window.document.head.append(style)
+    return () => { style.remove() }
+  }, [markdown])
 
   useEffect(() => {
     return window.folio?.onExportPayload((payload) => {

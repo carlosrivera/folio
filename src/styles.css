@@ -3117,6 +3117,24 @@ a.cv-contact-item:hover {
     transform: translateX(210mm) rotate(90deg);
   }
 
+  /* A document that is landscape as a whole is printed on landscape paper
+     (the export path picks the size), so its pages must stay unrotated:
+     rotated page boxes slice across print fragments and smear dark sheets.
+     Rotation above remains only for landscape runs inside a portrait file. */
+  .pagedjs_page.folio-document-wide {
+    --pagedjs-width: 297mm;
+    --pagedjs-height: 210mm;
+    --pagedjs-width-right: 297mm;
+    --pagedjs-height-right: 210mm;
+    --pagedjs-width-left: 297mm;
+    --pagedjs-height-left: 210mm;
+  }
+  .pagedjs_page.folio-document-wide .pagedjs_pagebox {
+    width: 297mm !important;
+    height: 210mm !important;
+    transform: none !important;
+  }
+
   .folio-dark-sheet,
   .folio-dark-sheet .pagedjs_sheet,
   .folio-dark-sheet .pagedjs_pagebox {

@@ -383,7 +383,13 @@ function addPageChrome(
   const t = getTranslations(lang)
   const layout = doc.metadata.layout
   if (doc.metadata.orientation === 'landscape') {
-    pages.forEach(page => page.classList.add('pagedjs_landscape_page'))
+    pages.forEach(page => {
+      page.classList.add('pagedjs_landscape_page')
+      // Marks a document that is landscape as a whole, unlike
+      // `pagedjs_landscape_page`, which Paged.js also adds to landscape
+      // runs inside a portrait document.
+      page.classList.add('folio-document-wide')
+    })
   }
 
   const isPageMarkedDark = (page: HTMLElement, index: number) => {
@@ -391,7 +397,8 @@ function addPageChrome(
     return (
       isPageDark(pageNum, pages.length, doc.metadata.darkPages) ||
       page.classList.contains('pagedjs_dark_page') ||
-      page.querySelector('.folio-dark-page') !== null
+      page.querySelector('.folio-dark-page') !== null ||
+      page.querySelector('.folio-dark-run') !== null
     )
   }
 
@@ -698,6 +705,28 @@ export function PaginatedDocument({
           if (document.metadata.orientation === 'landscape') {
             const wideDocument = window.document.createElement('div')
             wideDocument.className = 'folio-document-landscape'
+            // A dark run is a named page (`page: dark`, portrait A4) inside a
+            // portrait document. In a landscape file that name has to go: it
+            // re-flows the run onto portrait geometry and desyncs it from the
+            // landscape sheet. Explicit page breaks keep the run on its own
+            // page, and the marker class keeps dark-sheet detection working.
+            template.querySelectorAll('.folio-dark-page').forEach(run => {
+              run.classList.remove('folio-dark-page')
+              run.classList.add('folio-dark-run')
+              // The run's own break rules are gone with the class, so the
+              // page boundaries become explicit; skip them at the document
+              // edges, where a break would emit an empty page.
+              if (run.previousElementSibling) {
+                const breakBefore = window.document.createElement('div')
+                breakBefore.className = 'folio-page-break'
+                run.before(breakBefore)
+              }
+              if (run.nextElementSibling) {
+                const breakAfter = window.document.createElement('div')
+                breakAfter.className = 'folio-page-break'
+                run.after(breakAfter)
+              }
+            })
             // Remove hidden artwork so it cannot create an empty cover fragment.
             if (activeTheme === 'scientific') template.querySelector('.cover-accent')?.remove()
             wideDocument.append(...Array.from(template.childNodes))
