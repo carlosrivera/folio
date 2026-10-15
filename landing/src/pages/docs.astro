@@ -43,7 +43,7 @@ const contents = [
           <p class="sidebar-title">Files & Sharing</p>
           <a href="#folio-documents" class="sidebar-link">Portable Folio Documents</a>
           <a href="#document-history" class="sidebar-link">Saved Versions</a>
-          <a href="#export-sharing" class="sidebar-link">PDF & Markdown Export</a>
+          <a href="#export-sharing" class="sidebar-link">PDF, PNG & Markdown Export</a>
         </div>
 
         <div class="sidebar-group">
@@ -135,7 +135,7 @@ const contents = [
 
         <h3 id="editor-tour" class="sub-heading">Editor Interface & Shortcuts</h3>
         <p>Write Markdown on the left and preview paginated A4 pages on the right. Three toolbar controls select editor-only, split, or preview-only view. Drag the divider to resize the panes, use its arrow keys when focused, or double-click it to reset the width. In split view, the preview follows your current paragraph; clicking a preview paragraph moves the editor caret to its source.</p>
-        <p>Choose <strong>New</strong> for starters such as Scientific Article and Landscape Presentation, or explore the Petstore API Documentation sample with endpoints, authentication, code, and a Mermaid integration diagram.</p>
+        <p>Choose <strong>New</strong> for starters such as Scientific Article and Landscape Presentation, or explore the ready-made samples: the Petstore API Documentation with endpoints, authentication, code, and a Mermaid integration diagram; the Series B pitch deck, a sixteen-slide landscape presentation with dark section pages; and the Orbital Perturbations paper, a two-column scientific article with equations, spanning tables and figures, and references.</p>
         <p>These shortcuts use Command on macOS. Use Ctrl in place of Command on Windows and Linux.</p>
 
         <div class="table-wrap">
@@ -213,9 +213,9 @@ const contents = [
         <p>The history button opens saved versions, including their text, assets, and styles. Restoring a version creates an unsaved draft; save it to record a new version. Unchanged saves do not create duplicate versions, and Folio retains the latest 100.</p>
         <p>Choose <strong>Save a copy without history…</strong> in the history dialog to share only the current document and assets.</p>
 
-        <h3 id="export-sharing" class="sub-heading">PDF & Markdown Export</h3>
-        <p><strong>Export PDF</strong> uses the paginated layout shown in the preview, including orientation, headers, footers, tables, math, and diagrams. The arrow beside it offers <strong>Markdown + assets (.zip)</strong>, which packages the current draft and local attachments with portable paths. Extract the ZIP before opening its Markdown file.</p>
-        <p>PDF and Markdown ZIP export work with both Markdown and Folio documents. ZIP export contains the current document and assets without revision history. Missing local files are reported before a package is produced.</p>
+        <h3 id="export-sharing" class="sub-heading">PDF, PNG & Markdown Export</h3>
+        <p><strong>Export PDF</strong> uses the paginated layout shown in the preview, including orientation, headers, footers, tables, math, and diagrams. The arrow beside it offers <strong>Markdown + assets (.zip)</strong>, which packages the current draft and local attachments with portable paths. Extract the ZIP before opening its Markdown file. It also offers <strong>PNG images…</strong>: numbered page files at 1×, 2×, or 3× resolution, or a single stitched long image that joins every page top to bottom. The images are rasterized from the finished PDF, so they match it exactly, including mixed-orientation pages.</p>
+        <p>PDF, PNG, and Markdown ZIP export work with both Markdown and Folio documents. ZIP export contains the current document and assets without revision history. Missing local files are reported before a package is produced.</p>
       </section>
 
       <!-- FRONT MATTER -->
@@ -308,7 +308,7 @@ This specification details the conflict-free replicated data types...</code></pr
         </div>
 
         <h3 id="layout-scientific" class="sub-heading">Scientific Articles (<code>layout: scientific</code>)</h3>
-        <p>Choose New → Scientific Article for a manuscript starter, or select Scientific Article in Document properties. The article starts on the first page with a title, authors, affiliations, abstract, and keywords, followed by compact research sections. It supports ordinary Markdown equations, figures, footnotes, tables, and references.</p>
+        <p>Choose New → Scientific Article for a manuscript starter, or select Scientific Article in Document properties. The article starts on the first page with a title, authors, affiliations, abstract, and keywords, followed by the main text flowing in two journal-style columns, with figures, tables, and diagrams wrapping inside a column. It supports ordinary Markdown equations, figures, footnotes, tables, and references.</p>
         <div class="code-block"><div class="code-header"><span>article.md</span></div><pre><code>---
 layout: scientific
 theme: scientific

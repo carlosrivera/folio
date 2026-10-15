@@ -14,7 +14,7 @@ Folio includes:
 - Theme-aware Mermaid diagrams in preview and PDF output.
 - PDF export through the same paginated component and stylesheet used by the preview, plus PNG page images and a stitched long image rasterized from the finished PDF.
 - Native macOS window chrome, menus, keyboard shortcuts, and edited-document indicator.
-- A welcome screen, recent documents, save/discard prompts, and recovery of unsaved drafts.
+- A welcome screen with starter templates and bundled samples (API documentation, pitch deck, and a two-column scientific paper), recent documents, save/discard prompts, and recovery of unsaved drafts.
 - A document inspector for issues and revision comparison.
 
 ## Run locally
