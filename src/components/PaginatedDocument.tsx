@@ -216,6 +216,18 @@ function sizeDiagramToPage(svgEl: SVGElement, figure: HTMLElement | null) {
   if (!naturalWidth || !naturalHeight) return
 
   const budget = figure?.closest('.folio-landscape, .folio-document-landscape') ? PAGE_BUDGETS.landscape : PAGE_BUDGETS.portrait
+  // A multicol body (the scientific layout) flows the figure through one
+  // column, so the diagram's measure is that column, not the whole page.
+  let measure = budget.width
+  const body = figure?.closest('.document-body')
+  if (body) {
+    const style = getComputedStyle(body)
+    const columns = Number.parseFloat(style.columnCount)
+    if (Number.isFinite(columns) && columns >= 2) {
+      const gapMm = (Number.parseFloat(style.columnGap) || 0) * PX_TO_MM
+      measure = (budget.width - gapMm) / columns
+    }
+  }
   const requested = figure?.getAttribute('data-diagram-width')
   // `scale=0.7` shrinks (or grows) the diagram after the width choice; the
   // page-height cap below still applies, so a scaled-up diagram cannot overflow.
@@ -223,7 +235,7 @@ function sizeDiagramToPage(svgEl: SVGElement, figure: HTMLElement | null) {
   const scale = Number.isFinite(scaleValue) ? Math.min(2, Math.max(0.25, scaleValue)) : 1
   // `full` fills the measure even when the drawing is small; `half` keeps a
   // narrow diagram narrow so it can sit beside surrounding prose comfortably.
-  const maxWidth = (requested === 'half' ? budget.width / 2 : budget.width) * scale
+  const maxWidth = (requested === 'half' ? measure / 2 : measure) * scale
   const naturalMm = naturalWidth * PX_TO_MM * scale
   const ratio = naturalHeight / naturalWidth
 

@@ -9,8 +9,17 @@ const root = path.join(__dirname, '../..')
 const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'folio-mermaid-'))
 const file = path.join(folder, 'petstore.md')
 // Evaluate the trusted template literal so the regression stays tied to the shipped sample.
-const literal = fs.readFileSync(path.join(root, 'src/lib/sample.ts'), 'utf8').match(/export const samplePetstoreDocument = (`[\s\S]*?`)\s*$/)[1]
-const sample = new Function(`return ${literal}`)()
+// Sliced by position: the sample contains fenced code blocks, so no backtick
+// regex can find the literal's true end — only the next export declaration can.
+const source = fs.readFileSync(path.join(root, 'src/lib/sample.ts'), 'utf8')
+const marker = 'export const samplePetstoreDocument = `'
+const literalStart = source.indexOf(marker)
+if (literalStart === -1) throw new Error('sample.ts is missing samplePetstoreDocument')
+const from = literalStart + marker.length
+const nextExport = source.indexOf('\nexport const ', from)
+const literalEnd = source.lastIndexOf('`', nextExport === -1 ? source.length : nextExport)
+if (literalEnd <= from) throw new Error('sample.ts no longer holds a samplePetstoreDocument template literal')
+const sample = new Function('return `' + source.slice(from, literalEnd) + '`')()
 fs.writeFileSync(file, sample)
 fs.writeFileSync(path.join(folder, 'recent-documents.json'), JSON.stringify([file]))
 app.setPath('userData', folder)

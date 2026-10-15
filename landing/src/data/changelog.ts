@@ -10,13 +10,19 @@ const releasesUrl = 'https://github.com/carlosrivera/folio/releases/tag'
 
 export const changelog: ChangelogEntry[] = [
   {
-    version: 'Next release',
-    summary: 'Reusable document styles are becoming easier to create, carry, and automate.',
+    version: '0.4.0',
+    date: 'October 15, 2026',
+    summary: 'Image export, journal-style scientific articles, and ready-made samples.',
     changes: [
       'Simplified the style editor with visual font choices, style duplication, and a clearer path for creating a new style.',
       'Stored named custom styles inside portable .folio documents so a document keeps its complete visual identity when shared.',
       'Added MCP tools for listing, creating, duplicating, updating, and applying document styles.',
+      'Added PNG export: numbered page images at 1×, 2×, or 3× resolution, or a single stitched long image, rasterized from the finished PDF so the images match it exactly.',
+      'Flowed the scientific article body in two journal-style columns after the abstract, with figures and tables wrapping inside a column.',
+      'Added the Orbital Perturbations paper and the Series B pitch deck as ready-made samples in the New Document dialog.',
+      'Stopped flagging font-scale and issue-date frontmatter as unknown keys and aligned the lint gutter marker with the line.',
     ],
+    releaseUrl: `${releasesUrl}/v0.4.0`,
   },
   {
     version: '0.3.1',

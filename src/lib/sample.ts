@@ -1,3 +1,6 @@
+import folioSeriesBPitchDeck from '../../samples/folio-series-b.md?raw'
+import orbitalPerturbationsPaper from '../../samples/orbital-perturbations.md?raw'
+
 export const sampleDocument = `---
 title: Northstar Brand Platform
 client: Northstar Labs
@@ -585,3 +588,8 @@ The Petstore definition lists operation-specific responses. For example, \`GET /
 
 *Source: [Swagger Petstore OpenAPI definition](https://petstore3.swagger.io/api/v3/openapi.json). This is an editable documentation sample, not a complete generated endpoint reference.*
 `
+
+// Single-sourced from the repo's samples directory so the file, the export
+// pipeline, and the New Document dialog stay identical.
+export const sampleOrbitalPerturbationsDocument: string = orbitalPerturbationsPaper
+export const samplePitchDeckDocument: string = folioSeriesBPitchDeck

@@ -37,7 +37,19 @@ async function inspect(win) {
         const r = item.rect;
         if (r.left < area.left - 1 || r.right > area.right + 1 || r.top < area.top - 1 || r.bottom > area.bottom + 1) problems.push('Outside page: ' + item.text);
       }
-      for (let i = 1; i < rects.length; i++) if (rects[i].rect.top < rects[i-1].rect.bottom - 1) problems.push('Overlapping text: ' + rects[i].text);
+      // The body flows in two columns, so DOM order says nothing about
+      // vertical order. Compare per-line boxes of DIFFERENT blocks instead:
+      // a genuine overlap intersects on both axes no matter the column.
+      const lines = [];
+      blocks.forEach((block, index) => { const range = document.createRange(); range.selectNodeContents(block); for (const r of range.getClientRects()) if (r.width > 1 && r.height > 1) lines.push({ index, text: block.textContent, left: r.left, top: r.top, right: r.right, bottom: r.bottom }); });
+      lines.sort((a, b) => a.top - b.top || a.left - b.left);
+      for (let i = 1; i < lines.length; i++) for (let j = i - 1; j >= 0 && lines[j].bottom > lines[i].top - 40; j--) {
+        if (lines[i].index === lines[j].index) continue;
+        if (Math.max(lines[i].left, lines[j].left) < Math.min(lines[i].right, lines[j].right) - 1 && Math.max(lines[i].top, lines[j].top) < Math.min(lines[i].bottom, lines[j].bottom) - 1) {
+          problems.push('Overlapping text: ' + lines[i].text);
+          j = -1;
+        }
+      }
     }
     const heading = output.querySelector('.scientific-title-block h1');
     return { problems, pages: output.querySelectorAll('.pagedjs_page').length, covers: output.querySelectorAll('.folio-cover-sheet').length, titles: output.querySelectorAll('.scientific-title-block h1').length, firstPage: output.querySelector('.pagedjs_page').textContent, font: getComputedStyle(heading).fontFamily };

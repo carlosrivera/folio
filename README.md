@@ -14,7 +14,7 @@ Folio includes:
 - Theme-aware Mermaid diagrams in preview and PDF output.
 - PDF export through the same paginated component and stylesheet used by the preview, plus PNG page images and a stitched long image rasterized from the finished PDF.
 - Native macOS window chrome, menus, keyboard shortcuts, and edited-document indicator.
-- A welcome screen, recent documents, save/discard prompts, and recovery of unsaved drafts.
+- A welcome screen with starter templates and bundled samples (API documentation, pitch deck, and a two-column scientific paper), recent documents, save/discard prompts, and recovery of unsaved drafts.
 - A document inspector for issues and revision comparison.
 
 ## Run locally
@@ -240,7 +240,7 @@ doi: "10.xxxx/example"
 ---
 ```
 
-The article layout defaults to the Scientific theme when no theme is specified. Dates and publication details appear only when provided; headers and a table of contents are optional. The `scientific-paper` document preset exposes the same layout to MCP clients, and PDF exports carry the title, authors, and keywords.
+The article layout defaults to the Scientific theme when no theme is specified. Dates and publication details appear only when provided; headers and a table of contents are optional. The main text after the abstract and keywords flows in two journal-style columns, with figures, tables, and diagrams wrapping inside a column. The `scientific-paper` document preset exposes the same layout to MCP clients, and PDF exports carry the title, authors, and keywords.
 
 ## Landscape pages
 

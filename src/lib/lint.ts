@@ -14,6 +14,8 @@ export type LintFinding = {
 const KNOWN_FRONTMATTER_KEYS = new Set([
   'authors', 'affiliations', 'abstract', 'keywords', 'journal', 'doi',
   'orientation',
+  'font-scale',
+  'fontScale',
   'layout',
   'title',
   'client',
@@ -78,6 +80,8 @@ const KNOWN_FRONTMATTER_KEYS = new Set([
   // Invoice keys
   'invoice-number',
   'invoiceNumber',
+  'issue-date',
+  'issueDate',
   'invoice-id',
   'invoiceId',
   'number',
