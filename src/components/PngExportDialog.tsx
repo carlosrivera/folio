@@ -19,7 +19,7 @@ export function PngExportDialog({ onSubmit, onClose }: {
   const { tr } = useUi()
   const ref = useRef<HTMLDialogElement>(null)
   const [scale, setScale] = useState(2)
-  const [stitched, setStitched] = useState(true)
+  const [stitched, setStitched] = useState(false)
   useEffect(() => { ref.current?.showModal() }, [])
   return <dialog ref={ref} className="png-export-dialog folio-dialog" aria-labelledby="png-export-title" onCancel={event => { event.preventDefault(); onClose() }}>
     <form onSubmit={event => { event.preventDefault(); onSubmit({ scale, stitched }) }}>
