@@ -43,7 +43,9 @@ if (!args.includes('--cleanup-only')) {
   // The existing release stays a draft until all platform builds are ready.
   execFileSync('gh', ['release', 'upload', tag, ...artifacts.map(name => path.join(output, name)), '--repo', repository, '--clobber'], { stdio: 'inherit' })
 }
-const release = JSON.parse(execFileSync('gh', ['api', `repos/${repository}/releases/tags/${tag}`], { encoding: 'utf8' }))
+// The releases-by-tag REST endpoint cannot see draft releases, so verify
+// through the drafts-aware `gh release view` instead.
+const release = JSON.parse(execFileSync('gh', ['release', 'view', tag, '--repo', repository, '--json', 'assets'], { encoding: 'utf8' }))
 for (const file of manifest) {
   const remote = release.assets.find(asset => asset.name === file.name)
   if (!remote || remote.size !== file.size || remote.digest !== file.digest) {
