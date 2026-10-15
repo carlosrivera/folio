@@ -68,11 +68,11 @@ magnitude in low Earth orbit, yet each accumulates secularly over a mission
 lifetime. Table 1 compares the regimes where the individual terms dominate
 and the modeling approach each regime rewards.[^orders]
 
-| Regime | Dominant perturbations | Typical order | Recommended approach |
-|:-------|:-----------------------|:--------------|:---------------------|
-| LEO, below 2,000 km | Oblateness $J_2$, atmospheric drag | 10⁻²–10⁻³ m/s² | SGP4, or numerical with drag |
-| MEO, near 20,000 km | Oblateness, then luni-solar gravity | 10⁻⁴–10⁻⁵ m/s² | Semianalytic, Brouwer-type |
-| GEO, 35,786 km | SRP, luni-solar pull, resonances | 10⁻⁶–10⁻⁷ m/s² | Numerical, full force model |
+| Regime | Dominant perturbations | Order (m/s²) | Approach |
+|:-------|:-----------------------|:-------------|:---------|
+| LEO < 2,000 km | Oblateness, drag | 10⁻²–10⁻³ | SGP4 |
+| MEO ~ 20,000 km | Oblateness, tides | 10⁻⁴–10⁻⁵ | Semianalytic |
+| GEO 35,786 km | SRP, tides | 10⁻⁶–10⁻⁷ | Numerical |
 
 *Table 1 — Perturbation regimes and the force models they reward.*
 
@@ -158,13 +158,13 @@ adaptive integrator, and the step is retried at finer resolution until the
 local error tolerance is met.
 
 ```mermaid
-flowchart LR
+flowchart TD
   S[("State r, v")] --> F{"Force model stack"}
   F --> A["Two-body attraction"]
-  F --> B["Zonal harmonics J2 to J6"]
-  F --> C["Atmospheric drag, NRLMSISE-00"]
-  F --> D["Solar radiation pressure"]
-  F --> E["Third body: Sun and Moon"]
+  F --> B["Zonal harmonics"]
+  F --> C["Atmospheric drag"]
+  F --> D["Radiation pressure"]
+  F --> E["Sun and Moon"]
   A --> N["Total acceleration"]
   B --> N
   C --> N
