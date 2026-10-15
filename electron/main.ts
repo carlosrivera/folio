@@ -8,6 +8,7 @@ import { PDFDocument, PDFName, PDFNumber, PDFString, degrees, type PDFDocument a
 import { checkForUpdates, initAutoUpdater } from './updater'
 import { isFolio, openFolio, readFolioText, folioAssetPath, saveFolio, readFolioRevision, exportFolioMarkdown } from './folio-document'
 import type { FolioStyles } from '../src/lib/folio-styles'
+import { pngSiblingNames, stitchedPngName } from '../src/lib/image-export'
 import { packageDocument } from './document-package'
 
 // Set application name early so macOS registers the application menu correctly
@@ -154,7 +155,7 @@ function openRecentDocument(filePath: string) {
   createWindow({ filePath })
 }
 
-function rendererUrl(mode?: 'print' | 'settings', params?: Record<string, string>) {
+function rendererUrl(mode?: 'print' | 'raster' | 'settings', params?: Record<string, string>) {
   const searchParams = new URLSearchParams()
   if (mode) searchParams.set('mode', mode)
   if (params) {
@@ -382,6 +383,7 @@ function installMenu() {
         ...(!isMac ? [{ label: 'Settings…', accelerator: 'CmdOrCtrl+,', click: openSettings }] : []),
         { type: 'separator' },
         { label: 'Export PDF…', accelerator: 'CmdOrCtrl+Shift+E', click: () => sendMenuCommand('export') },
+        { label: 'Export PNG Images…', click: () => sendMenuCommand('export-png') },
         ...(!isMac ? [{ type: 'separator' as const }, { role: 'quit' as const, label: 'Exit' }] : []),
       ],
     },
@@ -815,17 +817,14 @@ function attachOutline(pdf: PDFDoc, nodes: OutlineNode[]) {
   pdf.catalog.set(PDFName.of('PageMode'), PDFName.of('UseOutlines'))
 }
 
-ipcMain.handle('document:export-pdf', async (event, payload: { markdown: string; suggestedName: string; theme?: string; lang?: string; documentPath?: string; styles?: FolioStyles }) => {
-  const callerWin = BrowserWindow.fromWebContents(event.sender) ?? getFocusedDocumentWindow()
-  const selection = await dialog.showSaveDialog(callerWin!, {
-    title: 'Export PDF',
-    defaultPath: `${payload.suggestedName || 'document'}.pdf`,
-    filters: [{ name: 'PDF Document', extensions: ['pdf'] }],
-  })
-  if (selection.canceled || !selection.filePath) return { canceled: true }
-  const progress = (message: string) => callerWin?.webContents.send('export:progress', message)
-  progress('Laying out pages…')
+type DocumentExportPayload = { markdown: string; theme?: string; lang?: string; documentPath?: string; styles?: FolioStyles }
 
+/**
+ * Lays a document out in a hidden print window and resolves once the renderer
+ * reports its sheets. Both the PDF and the PNG export start here so their
+ * pages can never drift apart. The caller owns destroying the window.
+ */
+async function layoutPrintDocument(payload: DocumentExportPayload, progress: (message: string) => void): Promise<{ printWindow: BrowserWindow; report?: ExportReport }> {
   const printWindow = new BrowserWindow({
     show: false,
     webPreferences: {
@@ -835,7 +834,6 @@ ipcMain.handle('document:export-pdf', async (event, payload: { markdown: string;
       sandbox: true,
     },
   })
-
 
   try {
     await printWindow.loadURL(rendererUrl('print'))
@@ -850,7 +848,7 @@ ipcMain.handle('document:export-pdf', async (event, payload: { markdown: string;
       }
       const timeout = setTimeout(() => {
         finish()
-        reject(new Error('Timed out while laying out the PDF.'))
+        reject(new Error('Timed out while laying out the document.'))
       }, 20_000)
       const onReady = (event: Electron.IpcMainEvent, incoming?: ExportReport) => {
         if (event.sender !== printWindow.webContents) return
@@ -869,65 +867,198 @@ ipcMain.handle('document:export-pdf', async (event, payload: { markdown: string;
       pending.push(() => clearInterval(resend))
       printWindow.webContents.send('export:payload', message)
     })
+    return { printWindow, report }
+  } catch (error) {
+    printWindow.destroy()
+    throw error
+  }
+}
 
-    // The laid-out sheet is the only authority on the cover colour: it already
-    // accounts for the active template and for any per-document override.
-    // Never guess it here — a second copy of the palette silently goes stale
-    // whenever a template is added or renamed.
-    const coverHex = parseCssColor(report?.coverColor)?.hex
-    const paperLandscape = report?.paperOrientation === 'landscape'
-    progress('Creating PDF…')
+/**
+ * Prints a laid-out window to finished PDF bytes: mixed-landscape pages are
+ * rotated back onto their true orientation, and metadata plus the bookmark
+ * outline are attached. This is the single authority on page geometry — the
+ * PNG export rasterizes these exact bytes so it matches the PDF one to one.
+ */
+async function printDocumentPdf(printWindow: BrowserWindow, report: ExportReport | undefined, progress: (message: string) => void): Promise<{ bytes: Uint8Array; pageCount: number }> {
+  // The laid-out sheet is the only authority on the cover colour: it already
+  // accounts for the active template and for any per-document override.
+  // Never guess it here — a second copy of the palette silently goes stale
+  // whenever a template is added or renamed.
+  const coverHex = parseCssColor(report?.coverColor)?.hex
+  const paperLandscape = report?.paperOrientation === 'landscape'
+  progress('Creating PDF…')
 
-    await printWindow.webContents.insertCSS(
-      // Paged.js consumes the document's own @page rules while laying out, so
-      // the printed paper size has to be restated here. A document that is
-      // landscape as a whole prints on landscape paper directly; only mixed
-      // documents rotate their landscape runs onto portrait paper.
-      `@media print {
-         @page { size: ${paperLandscape ? 'A4 landscape' : 'A4'} !important; margin: 0 !important; }
-         ${coverHex ? `@page :first { background: ${coverHex} !important; }` : ''}
-       }`,
-      { cssOrigin: 'user' },
-    )
-    const pdf = await printWindow.webContents.printToPDF({
-      printBackground: true,
-      // Trust the CSS page size so the sheet and the paper match exactly;
-      // the print window restates the size so landscape files print on
-      // landscape paper directly.
-      preferCSSPageSize: true,
-      margins: { marginType: 'custom', top: 0, bottom: 0, left: 0, right: 0 },
-    })
-    const rendered = await PDFDocument.load(pdf)
-    const finished = await PDFDocument.create()
-    const sourcePages = rendered.getPages()
+  await printWindow.webContents.insertCSS(
+    // Paged.js consumes the document's own @page rules while laying out, so
+    // the printed paper size has to be restated here. A document that is
+    // landscape as a whole prints on landscape paper directly; only mixed
+    // documents rotate their landscape runs onto portrait paper.
+    `@media print {
+       @page { size: ${paperLandscape ? 'A4 landscape' : 'A4'} !important; margin: 0 !important; }
+       ${coverHex ? `@page :first { background: ${coverHex} !important; }` : ''}
+     }`,
+    { cssOrigin: 'user' },
+  )
+  const pdf = await printWindow.webContents.printToPDF({
+    printBackground: true,
+    // Trust the CSS page size so the sheet and the paper match exactly;
+    // the print window restates the size so landscape files print on
+    // landscape paper directly.
+    preferCSSPageSize: true,
+    margins: { marginType: 'custom', top: 0, bottom: 0, left: 0, right: 0 },
+  })
+  const rendered = await PDFDocument.load(pdf)
+  const finished = await PDFDocument.create()
+  const sourcePages = rendered.getPages()
 
-    const landscapePages = new Set(report?.landscapePages ?? [])
+  const landscapePages = new Set(report?.landscapePages ?? [])
 
-    for (const [index, sourcePage] of sourcePages.entries()) {
-      const { width, height } = sourcePage.getSize()
-      const page = finished.addPage([width, height])
-      const [embeddedPage] = await finished.embedPages([sourcePage])
-      page.drawPage(embeddedPage, { x: 0, y: 0, width, height })
-      // Chrome prints one paper size for the whole document, so a landscape
-      // page in a mixed document is laid out rotated onto portrait paper.
-      // Rotating the PDF page back makes it open as a true landscape sheet;
-      // whole-document landscape files already print on landscape paper.
-      if (!paperLandscape && landscapePages.has(index + 1)) page.setRotation(degrees(270))
-    }
+  for (const [index, sourcePage] of sourcePages.entries()) {
+    const { width, height } = sourcePage.getSize()
+    const page = finished.addPage([width, height])
+    const [embeddedPage] = await finished.embedPages([sourcePage])
+    page.drawPage(embeddedPage, { x: 0, y: 0, width, height })
+    // Chrome prints one paper size for the whole document, so a landscape
+    // page in a mixed document is laid out rotated onto portrait paper.
+    // Rotating the PDF page back makes it open as a true landscape sheet;
+    // whole-document landscape files already print on landscape paper.
+    if (!paperLandscape && landscapePages.has(index + 1)) page.setRotation(degrees(270))
+  }
 
-    if (report?.metadata) {
-      finished.setTitle(report.metadata.title)
-      finished.setAuthor(report.metadata.author)
-      finished.setSubject(report.metadata.subject)
-      finished.setKeywords(report.metadata.keywords)
-      finished.setCreator('Folio')
-      finished.setProducer('Folio')
-    }
-    attachOutline(finished, buildOutlineTree(report?.outline ?? []))
+  if (report?.metadata) {
+    finished.setTitle(report.metadata.title)
+    finished.setAuthor(report.metadata.author)
+    finished.setSubject(report.metadata.subject)
+    finished.setKeywords(report.metadata.keywords)
+    finished.setCreator('Folio')
+    finished.setProducer('Folio')
+  }
+  attachOutline(finished, buildOutlineTree(report?.outline ?? []))
 
+  return { bytes: await finished.save(), pageCount: sourcePages.length }
+}
+
+ipcMain.handle('document:export-pdf', async (event, payload: { markdown: string; suggestedName: string; theme?: string; lang?: string; documentPath?: string; styles?: FolioStyles }) => {
+  const callerWin = BrowserWindow.fromWebContents(event.sender) ?? getFocusedDocumentWindow()
+  const selection = await dialog.showSaveDialog(callerWin!, {
+    title: 'Export PDF',
+    defaultPath: `${payload.suggestedName || 'document'}.pdf`,
+    filters: [{ name: 'PDF Document', extensions: ['pdf'] }],
+  })
+  if (selection.canceled || !selection.filePath) return { canceled: true }
+  const progress = (message: string) => callerWin?.webContents.send('export:progress', message)
+  progress('Laying out pages…')
+
+  const { printWindow, report } = await layoutPrintDocument(payload, progress)
+  try {
+    const { bytes } = await printDocumentPdf(printWindow, report, progress)
     progress('Saving PDF…')
-    await writeFile(selection.filePath, await finished.save())
+    await writeFile(selection.filePath, bytes)
     return { canceled: false, path: selection.filePath }
+  } finally {
+    printWindow.destroy()
+  }
+})
+
+/**
+ * Rasterizes finished PDF bytes in a hidden renderer window where pdf.js can
+ * draw them, streaming one PNG per page back to this process. Rendering the
+ * exported PDF — rather than re-photographing the DOM — is what keeps the
+ * images identical to what a PDF viewer shows.
+ */
+async function rasterizePdfPages(pdfBytes: Uint8Array, scale: number, stitched: boolean, pageCount: number, progress: (message: string) => void): Promise<{ pages: Uint8Array[]; stitched?: Uint8Array; skipped?: string }> {
+  const rasterWindow = new BrowserWindow({
+    show: false,
+    webPreferences: {
+      preload: path.join(moduleDir, 'preload.cjs'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  })
+
+  try {
+    await rasterWindow.loadURL(rendererUrl('raster'))
+    return await new Promise((resolve, reject) => {
+      const pages: (Uint8Array | undefined)[] = new Array(pageCount)
+      // The payload is offered once the renderer announces itself; the
+      // announcement can only follow mounting, so no resend loop is needed.
+      let offered = false
+      const isFromRaster = (event: Electron.IpcMainEvent) => !rasterWindow.isDestroyed() && event.sender === rasterWindow.webContents
+      const cleanup = () => {
+        clearTimeout(timeout)
+        ipcMain.removeListener('raster:listening', onListening)
+        ipcMain.removeListener('raster:page', onPage)
+        ipcMain.removeListener('raster:done', onDone)
+        ipcMain.removeListener('raster:error', onError)
+      }
+      const timeout = setTimeout(() => {
+        cleanup()
+        reject(new Error('Timed out while rasterizing the pages.'))
+      }, 120_000)
+      const onListening = (event: Electron.IpcMainEvent) => {
+        if (!isFromRaster(event) || offered) return
+        offered = true
+        rasterWindow.webContents.send('raster:payload', { pdf: pdfBytes, scale, stitched })
+      }
+      const onPage = (event: Electron.IpcMainEvent, message: { index: number; bytes: Uint8Array }) => {
+        if (!isFromRaster(event)) return
+        pages[message.index] = message.bytes
+        progress(`Rasterizing page ${message.index + 1} of ${pageCount}…`)
+      }
+      const onDone = (event: Electron.IpcMainEvent, message: { stitched?: Uint8Array; skipped?: string }) => {
+        if (!isFromRaster(event)) return
+        cleanup()
+        if (pages.some((page) => page === undefined)) {
+          reject(new Error('The rasterized pages were incomplete.'))
+          return
+        }
+        resolve({ pages: pages as Uint8Array[], stitched: message.stitched, skipped: message.skipped })
+      }
+      const onError = (event: Electron.IpcMainEvent, message: { message: string }) => {
+        if (!isFromRaster(event)) return
+        cleanup()
+        reject(new Error(message.message))
+      }
+      ipcMain.on('raster:listening', onListening)
+      ipcMain.on('raster:page', onPage)
+      ipcMain.on('raster:done', onDone)
+      ipcMain.on('raster:error', onError)
+    })
+  } finally {
+    rasterWindow.destroy()
+  }
+}
+
+ipcMain.handle('document:export-png', async (event, payload: { markdown: string; suggestedName: string; theme?: string; lang?: string; documentPath?: string; styles?: FolioStyles; scale?: number; stitched?: boolean }) => {
+  const callerWin = BrowserWindow.fromWebContents(event.sender) ?? getFocusedDocumentWindow()
+  const selection = await dialog.showSaveDialog(callerWin!, {
+    title: 'Export PNG Images',
+    defaultPath: `${payload.suggestedName || 'document'}.png`,
+    filters: [{ name: 'PNG Image', extensions: ['png'] }],
+  })
+  if (selection.canceled || !selection.filePath) return { canceled: true }
+  const scale = payload.scale === 1 || payload.scale === 3 ? payload.scale : 2
+  const wantsStitched = payload.stitched === true
+  const progress = (message: string) => callerWin?.webContents.send('export:progress', message)
+  progress('Laying out pages…')
+
+  const { printWindow, report } = await layoutPrintDocument(payload, progress)
+  try {
+    const { bytes, pageCount } = await printDocumentPdf(printWindow, report, progress)
+    progress('Rasterizing pages…')
+    const raster = await rasterizePdfPages(bytes, scale, wantsStitched, pageCount, progress)
+    const paths = pngSiblingNames(selection.filePath, pageCount)
+    progress('Saving images…')
+    for (const [index, pagePath] of paths.entries()) await writeFile(pagePath, raster.pages[index])
+    // A single page is its own stitched image; writing both would be a duplicate.
+    let stitchedPath: string | undefined
+    if (wantsStitched && pageCount > 1 && raster.stitched) {
+      stitchedPath = stitchedPngName(selection.filePath)
+      await writeFile(stitchedPath, raster.stitched)
+    }
+    return { canceled: false, paths, stitchedPath, stitchedSkipped: wantsStitched ? raster.skipped : undefined }
   } finally {
     printWindow.destroy()
   }
@@ -960,7 +1091,7 @@ if (isMcpMode) {
         applicationName: 'Folio',
         applicationVersion: app.getVersion(),
         copyright: '© 2026 Folio',
-        credits: 'A Markdown document editor with paginated preview, PDF export, and Model Context Protocol agent support.',
+        credits: 'A Markdown document editor with paginated preview, PDF and PNG image export, and Model Context Protocol agent support.',
       })
       const iconPath = getIconPath()
       if (iconPath && app.dock) {

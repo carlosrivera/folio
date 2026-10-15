@@ -12,7 +12,7 @@ Folio includes:
 - Seven bundled document themes, including Scientific for equations, with per-document color and typography overrides.
 - A Scientific Article layout with a first-page title, authors, affiliations, abstract, keywords, and compact manuscript typography.
 - Theme-aware Mermaid diagrams in preview and PDF output.
-- PDF export through the same paginated component and stylesheet used by the preview.
+- PDF export through the same paginated component and stylesheet used by the preview, plus PNG page images and a stitched long image rasterized from the finished PDF.
 - Native macOS window chrome, menus, keyboard shortcuts, and edited-document indicator.
 - A welcome screen, recent documents, save/discard prompts, and recovery of unsaved drafts.
 - A document inspector for issues and revision comparison.
@@ -60,7 +60,7 @@ Place the caret inside a link or image and choose **Edit link** / **Edit image**
 
 **Document** opens layout-specific metadata and page controls. Edit the title, author, client, CV details or invoice fields, and enable or disable the table of contents, header, and footer. Header/footer text supports `{title}`, `{page}`, and `{pages}` placeholders. **Insert → Page break** inserts a break at the caret. Custom front-matter keys and YAML comments are preserved; invalid YAML must be fixed before applying properties.
 
-The arrow beside **Export PDF** offers **Markdown + assets (.zip)**. It packages the current draft with local images and linked attachments, rewrites destinations to portable asset paths, and retains captions, code examples, and remote URLs. Unsaved temporary images can be packaged without saving first. Missing local files produce an error instead of a broken package. Extract the ZIP before opening its Markdown file.
+The arrow beside **Export PDF** offers **Markdown + assets (.zip)** and **PNG images…**. The ZIP packages the current draft with local images and linked attachments, rewrites destinations to portable asset paths, and retains captions, code examples, and remote URLs. Unsaved temporary images can be packaged without saving first. Missing local files produce an error instead of a broken package. Extract the ZIP before opening its Markdown file. The PNG export (also in the File menu) rasterizes the finished PDF, so the images match the PDF exactly — including mixed-orientation pages — at a chosen 1×/2×/3× resolution, saving numbered page files beside the chosen location plus an optional stitched long image that joins every page top to bottom.
 
 Code blocks preserve indentation and wrap long lines within the printed margins. Long words and URLs also wrap. Images occupy their own line so surrounding text stays visible.
 

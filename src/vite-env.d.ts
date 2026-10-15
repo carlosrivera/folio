@@ -1,13 +1,19 @@
 /// <reference types="vite/client" />
 
+// Side-effect only: registering pdf.js' worker on the main thread.
+declare module 'pdfjs-dist/build/pdf.worker.mjs';
+
 type DiskChange = { path: string; content: string | null; styles?: import('./lib/folio-styles').FolioStyles; history?: import('./lib/folio-styles').FolioRevision[] }
 
 type OpenFileResult = { canceled: true } | { canceled: false; path: string; content: string; styles?: import('./lib/folio-styles').FolioStyles; history?: import('./lib/folio-styles').FolioRevision[] }
 type SaveFileResult = { canceled: true; conflict?: DiskChange } | { canceled: false; path: string; content?: string; styles?: import('./lib/folio-styles').FolioStyles; history?: import('./lib/folio-styles').FolioRevision[] }
 type ExportResult = { canceled: true } | { canceled: false; path: string }
+type PngExportResult = { canceled: true } | { canceled: false; paths: string[]; stitchedPath?: string; stitchedSkipped?: string }
 type LaunchFileResult = { opened: true } | { opened: false; error: string }
 
 type ExportPayload = string | { markdown: string; theme?: string; lang?: string; documentPath?: string; styles?: import('./lib/folio-styles').FolioStyles }
+
+type RasterPayload = { pdf: Uint8Array; scale: number; stitched: boolean }
 
 type ExportOutlineEntry = { title: string; level: number; page: number }
 
@@ -45,6 +51,12 @@ interface Window {
     resolveImages?(documentPath: string | null, sources: string[]): Promise<Record<string, string>>
     launchFile(path: string): Promise<LaunchFileResult>
     exportPdf(markdown: string, suggestedName: string, theme?: string, lang?: string, documentPath?: string, styles?: import('./lib/folio-styles').FolioStyles): Promise<ExportResult>
+    exportPng(markdown: string, suggestedName: string, theme?: string, lang?: string, documentPath?: string, styles?: import('./lib/folio-styles').FolioStyles, options?: { scale?: number; stitched?: boolean }): Promise<PngExportResult>
+    notifyRasterListening(): void
+    onRasterPayload(callback: (payload: RasterPayload) => void): () => void
+    sendRasterPage(index: number, bytes: Uint8Array): void
+    sendRasterDone(stitched?: Uint8Array, skipped?: string): void
+    sendRasterError(message: string): void
     setDocumentEdited(edited: boolean): void
     onMenuCommand(callback: (command: string) => void): () => void
     onRecentDocument(callback: (document: Extract<OpenFileResult, { canceled: false }>) => void): () => void
