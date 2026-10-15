@@ -45,7 +45,9 @@ const editorTheme = EditorView.theme({
   '.cm-foldGutter .folio-fold-marker': { display: 'flex', width: '12px', height: '26.88px', padding: '0', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
   '.folio-fold-marker svg': { display: 'block', width: '10px', height: '10px', fill: 'none', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round', strokeLinejoin: 'round' },
   '.cm-gutter-lint': { width: '12px', fontSize: '10px' },
-  '.cm-gutter-lint .cm-gutterElement': { padding: '0', lineHeight: '26.88px' },
+  // The marker is a 1em block that would otherwise sit at the top of the
+  // gutter element; center it like the fold chevron and line numbers.
+  '.cm-gutter-lint .cm-gutterElement': { padding: '0', lineHeight: '26.88px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   '.cm-activeLine': { backgroundColor: 'var(--ui-editor-active-line)' },
   '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': {
     backgroundColor: 'var(--ui-editor-selection) !important',
