@@ -76,6 +76,12 @@ Un <span>tramo</span> de texto.
     expect(rules('---\ntitle: T\nclient: C\nprepared-by: S\ndocument-id: D\ndark-pages: [2, 4]\n---\n\n## A\n')).not.toContain('frontmatter-unknown-key')
   })
 
+  it('allows the type-scale and invoice-issue-date keys without flagging unknown key', () => {
+    expect(rules('---\ntitle: T\nclient: C\nprepared-by: S\ndocument-id: D\nfont-scale: 1.3\n---\n\n## A\n')).not.toContain('frontmatter-unknown-key')
+    expect(rules('---\ntitle: T\nclient: C\nprepared-by: S\ndocument-id: D\nfontScale: 0.8\n---\n\n## A\n')).not.toContain('frontmatter-unknown-key')
+    expect(rules('---\ntitle: T\nclient: C\nprepared-by: S\ndocument-id: D\nissue-date: October 2026\n---\n\n## A\n')).not.toContain('frontmatter-unknown-key')
+  })
+
   it('flags a ragged table row', () => {
     const findings = lint('## Tabla\n\n| A | B | C |\n| :--- | :--- | :--- |\n| uno | dos |\n')
     const ragged = findings.filter((finding) => finding.rule === 'table-ragged-row')
