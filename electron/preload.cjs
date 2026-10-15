@@ -24,6 +24,16 @@ contextBridge.exposeInMainWorld('folio', {
   },
   launchFile: (path) => ipcRenderer.invoke('file:launch', path),
   exportPdf: (markdown, suggestedName, theme, lang, documentPath, styles) => ipcRenderer.invoke('document:export-pdf', { markdown, suggestedName, theme, lang, documentPath, styles }),
+  exportPng: (markdown, suggestedName, theme, lang, documentPath, styles, options) => ipcRenderer.invoke('document:export-png', { markdown, suggestedName, theme, lang, documentPath, styles, scale: options?.scale, stitched: options?.stitched }),
+  notifyRasterListening: () => ipcRenderer.send('raster:listening'),
+  onRasterPayload: (callback) => {
+    const listener = (_event, payload) => callback(payload)
+    ipcRenderer.on('raster:payload', listener)
+    return () => ipcRenderer.removeListener('raster:payload', listener)
+  },
+  sendRasterPage: (index, bytes) => ipcRenderer.send('raster:page', { index, bytes }),
+  sendRasterDone: (stitched, skipped) => ipcRenderer.send('raster:done', { stitched, skipped }),
+  sendRasterError: (message) => ipcRenderer.send('raster:error', { message }),
   setDocumentEdited: (edited) => ipcRenderer.send('document:set-edited', edited),
   onMenuCommand: (callback) => {
     const listener = (_event, command) => callback(command)

@@ -24,6 +24,7 @@ import { diffDocuments } from './lib/diff'
 import { lintDocument } from './lib/lint'
 import { Workspace, type ViewMode } from './components/Workspace'
 import { InsertDialog, type InsertKind, type InsertValues } from './components/InsertDialog'
+import { PngExportDialog } from './components/PngExportDialog'
 import { createMarkdownTable, editMarkdownTable, tableAt, type TableAction } from './lib/markdown-table'
 import { activeFormats, insertMarkdownLink } from './lib/editor-format'
 import { useEditorPreference, useNumberPreference } from './lib/use-editor-preference'
@@ -69,6 +70,7 @@ export default function App() {
   const [history, setHistory] = useState<FolioRevision[]>([])
   const [historyOpen, setHistoryOpen] = useState(false)
   const [propertiesOpen, setPropertiesOpen] = useState(false)
+  const [pngExportOpen, setPngExportOpen] = useState(false)
   const [markdown, setMarkdown] = useState(sampleDocument)
   const [savedMarkdown, setSavedMarkdown] = useState(sampleDocument)
   const [path, setPath] = useState<string | null>(null)
@@ -347,6 +349,39 @@ export default function App() {
     // in the toolbar exports the previous template.
   }, [markdown, path, showToast, title, currentTheme, launchFile, currentStyles])
 
+  const exportPngDocument = useCallback(async (scale: number, stitched: boolean) => {
+    if (!window.folio) return
+    setAction('exporting')
+    setExportProgress('Preparing document…')
+    try {
+      const result = await window.folio.exportPng(markdown, suggestedFileName(title), currentTheme, undefined, path ?? undefined, currentStyles, { scale, stitched })
+      if (!result.canceled) {
+        const note = result.stitchedSkipped ? ` — ${result.stitchedSkipped}` : ''
+        const stitchedPath = result.stitchedPath
+        const firstPage = result.paths[0]
+        if (stitchedPath) {
+          showToast(`Exported the stitched long image${note}`, {
+            duration: 5000,
+            actionLabel: `Open ${fileName(stitchedPath)}`,
+            action: () => launchFile(stitchedPath),
+          })
+        } else if (firstPage) {
+          const count = result.paths.length
+          showToast(`Exported ${count} page image${count === 1 ? '' : 's'}${note}`, {
+            duration: 5000,
+            actionLabel: `Open ${fileName(firstPage)}`,
+            action: () => launchFile(firstPage),
+          })
+        }
+      }
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Could not export the images')
+    } finally {
+      setAction(null)
+      setExportProgress('')
+    }
+  }, [markdown, path, showToast, title, currentTheme, launchFile, currentStyles])
+
   useEffect(() => window.folio?.onExportProgress(setExportProgress), [])
 
   useEffect(() => {
@@ -369,11 +404,12 @@ export default function App() {
     if (command === 'save') void saveDocument()
     if (command === 'save-as') void saveDocument(true)
     if (command === 'export') void exportDocument()
+    if (command === 'export-png' && action === null) setPngExportOpen(true)
     if (command === 'find') {
       const view = editorViewRef.current
       if (view) openSearchPanel(view)
     }
-  }), [exportDocument, requestNewDocument, openDocument, saveDocument])
+  }), [exportDocument, requestNewDocument, openDocument, saveDocument, action])
 
   useEffect(() => window.folio?.onInstallUpdateRequest?.(() => {
     void requestProceed('Restart Folio to install the update?').then((proceed) => {
@@ -651,6 +687,7 @@ export default function App() {
           <SplitButton label={action === 'exporting' ? t.exporting : t.exportPdf} alternativeLabel={tr('Markdown + assets (.zip)')}
             alternativeNote={tr('Images and local attachments are included. Web URLs remain links.')}
             optionsLabel="Export options" primary disabled={action !== null} icon={<Download size={15} aria-hidden="true" />}
+            extraLabel={tr('PNG images…')} onExtra={() => setPngExportOpen(true)}
             onPrimary={() => void exportDocument()} onAlternative={() => void exportPackage()} />
         </div>
       </header>
@@ -811,6 +848,9 @@ export default function App() {
         </div>
       </Workspace>
       <footer className="editor-status"><span role="status">{tr(action === 'saving' ? 'Saving…' : saveError ? 'Save failed · use Save to retry' : diskChange ? 'External changes · save paused' : dirty ? 'Unsaved changes' : path ? 'Saved' : 'Not saved to a file')}{autosave && path && !diskChange ? ` · ${tr('Autosave on')}` : ''}</span><span>{wordCount.toLocaleString()} {tr('words')}</span><span>Ln {cursor.line}, Col {cursor.column}</span></footer>
+      {pngExportOpen && <PngExportDialog
+        onSubmit={({ scale, stitched }) => { setPngExportOpen(false); void exportPngDocument(scale, stitched) }}
+        onClose={() => { setPngExportOpen(false); editorViewRef.current?.focus() }} />}
       {insertion && <InsertDialog kind={insertion.kind} initialLabel={insertion.label} initialFile={insertion.file} initialSource={insertion.source} initialCaption={insertion.caption} initialWidth={insertion.width} editing={insertion.editing} onSubmit={submitInsertion} onClose={() => { setInsertion(null); editorViewRef.current?.focus() }} />}
       {propertiesOpen && <DocumentProperties metadata={parsed.metadata} onApply={values => {
         const view = editorViewRef.current
