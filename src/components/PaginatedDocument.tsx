@@ -845,7 +845,15 @@ export function PaginatedDocument({
   // Emitted inside the stage so it reaches both the hidden measurement source
   // and the rendered sheets — and, because ExportApp renders this component,
   // the export window as well.
-  const overrideCss = folioStylesCss(styles, activeTheme) + themeOverrideCss(activeTheme, document.metadata.themeOverrides)
+  const overrideCss = folioStylesCss(styles, activeTheme)
+    + themeOverrideCss(activeTheme, document.metadata.themeOverrides)
+    // One multiplier for every size in the document body: `zoom` participates
+    // in layout, so Paged.js paginates the scaled text and pages re-flow.
+    // It must be set while the template is measured, not after pagination,
+    // which is why it rides along with the other document overrides.
+    + (document.metadata.fontScale !== 1
+      ? ` .document-body { zoom: ${document.metadata.fontScale}; }`
+      : '')
 
   return (
     <div className={`pagination-stage theme-${activeTheme}`} aria-busy={layingOut}>

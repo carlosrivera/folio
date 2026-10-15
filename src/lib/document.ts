@@ -100,6 +100,8 @@ export type DocumentMetadata = {
   github?: string
   theme?: DocumentTheme
   toc?: boolean
+  /** Multiplier applied to all document typography at once (1 = default). */
+  fontScale: number
   header?: boolean
   footer?: boolean
   headerLeft?: string
@@ -306,6 +308,7 @@ markdown.renderer.rules.heading_open = (tokens, idx, options, _env, self) => {
 const defaults: DocumentMetadata = {
   orientation: 'portrait',
   layout: 'report',
+  fontScale: 1,
   title: 'Untitled document',
   client: 'Client',
   preparedFor: '',
@@ -551,7 +554,14 @@ export function parseDocument(source: string, sourcePositions = false): ParsedDo
   const listValue = (key: string, separator: string) => Array.isArray(raw[key])
     ? (raw[key] as unknown[]).map(asText).filter(Boolean).join(separator)
     : value(key)
-  
+  const parseFontScale = (text: string) => {
+    const scale = Number.parseFloat(text)
+    if (!Number.isFinite(scale)) return 1
+    // Generous but bounded: keeps a typo from producing unreadable or
+    // page-filling output, and gives the pagination engine sane input.
+    return Math.min(2, Math.max(0.5, scale))
+  }
+
   // Detect layout from frontmatter or fall back
   const rawLayout = (value('layout') || '').toLowerCase().trim()
   const layout: DocumentLayout = LAYOUT_ALIASES[rawLayout] ?? 'report'
@@ -703,6 +713,7 @@ export function parseDocument(source: string, sourcePositions = false): ParsedDo
   const metadata: DocumentMetadata = {
     layout,
     orientation: value('orientation').toLowerCase().trim() === 'landscape' ? 'landscape' : 'portrait',
+    fontScale: parseFontScale(value('fontScale', 'font-scale')),
     title: value('title') || defaultTitle,
     client: value('client') || value('billTo', 'bill-to') || value('to') || (layout === 'report' ? defaults.client : ''),
     preparedFor: value('preparedFor', 'prepared-for') || value('billTo', 'bill-to') || value('to'),

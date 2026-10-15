@@ -19,6 +19,7 @@ export function DocumentProperties({ metadata, onApply, onClose }: {
   const [values, setValues] = useState<Record<string, string | boolean>>(() => Object.fromEntries([
     ['layout', metadata.layout],
     ['orientation', metadata.orientation],
+    ['font-scale', metadata.fontScale === 1 ? '' : String(metadata.fontScale)],
     ...fieldsForLayout(metadata.layout).map(([key]) => [canonical(key), metadata[key] ?? '']),
     ...(['toc', 'header', 'footer'] as const).map(key => [key, metadata[key] ?? false]),
     ...(['headerLeft', 'headerCenter', 'headerRight', 'footerLeft', 'footerCenter', 'footerRight'] as const).map(key => [canonical(key), metadata[key] ?? '']),
@@ -34,6 +35,7 @@ export function DocumentProperties({ metadata, onApply, onClose }: {
       <div className="properties-fields">
         <label>{tr('Document layout')}<select name="layout" value={String(values.layout)} onChange={event => setValues(current => ({ ...current, layout: event.target.value }))}>{DOCUMENT_LAYOUTS.map(layout => <option key={layout.id} value={layout.id}>{tr(layout.title)}</option>)}</select></label>
         <label>{tr('Page orientation')}<select name="orientation" value={String(values.orientation)} onChange={event => setValues(current => ({ ...current, orientation: event.target.value }))}><option value="portrait">{tr('Portrait')}</option><option value="landscape">{tr('Landscape')}</option></select></label>
+        <label>{tr('Type scale')}<select name="font-scale" value={String(values['font-scale'] ?? '')} onChange={event => setValues(current => ({ ...current, 'font-scale': event.target.value }))}>{[['', '100%'], ['0.75', '75%'], ['0.85', '85%'], ['1.15', '115%'], ['1.3', '130%'], ['1.5', '150%']].map(([scale, label]) => <option key={scale} value={scale}>{label}</option>)}</select></label>
       </div>
       <div className="properties-fields">{fields.map(([key, label]) => field(canonical(key), label))}</div>
       <details open><summary>{tr('Page layout')}</summary>

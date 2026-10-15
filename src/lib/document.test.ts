@@ -588,6 +588,15 @@ describe('preview source positions', () => {
     expect(parseDocument('---\ndarkPages: [1, 3]\n---\n# Doc').metadata.darkPages).toEqual([1, 3])
   })
 
+  it('parses font-scale with aliases and clamps out-of-range values', () => {
+    expect(parseDocument('---\nfont-scale: 1.1\n---\n# Doc').metadata.fontScale).toBeCloseTo(1.1)
+    expect(parseDocument('---\nfontScale: 0.85\n---\n# Doc').metadata.fontScale).toBeCloseTo(0.85)
+    expect(parseDocument('---\n# Doc').metadata.fontScale).toBe(1)
+    expect(parseDocument('---\nfont-scale: enormous\n---\n# Doc').metadata.fontScale).toBe(1)
+    expect(parseDocument('---\nfont-scale: 9\n---\n# Doc').metadata.fontScale).toBe(2)
+    expect(parseDocument('---\nfont-scale: 0.1\n---\n# Doc').metadata.fontScale).toBeCloseTo(0.5)
+  })
+
   it('evaluates isPageDark correctly for specific pages, last, and all', () => {
     expect(isPageDark(1, 4, [2, 'last'])).toBe(false)
     expect(isPageDark(2, 4, [2, 'last'])).toBe(true)

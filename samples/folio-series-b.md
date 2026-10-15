@@ -6,6 +6,7 @@ title: Folio — Series B
 kicker: Series B · Confidential
 date: October 2026
 dark-pages: "1, last"
+font-scale: 1.1
 footer: true
 footer-left: Folio · Series B · Confidential
 footer-right: "{page} / {pages}"
