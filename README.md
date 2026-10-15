@@ -97,6 +97,15 @@ flowchart LR
 ```
 ````
 
+Fence options control the diagram's size: `width=full` fills the text measure, `width=half` keeps a narrow diagram beside prose, and `scale=0.7` shrinks or grows the diagram after the width choice (from `0.25` to `2`). A diagram never exceeds the page, whatever its scale.
+
+````markdown
+```mermaid width=full scale=0.7
+flowchart LR
+  A[Discover] --> B[Define]
+```
+````
+
 ## LaTeX equations
 
 Use `$...$` or `\(...\)` for inline math. Put `$$...$$` or `\[...\]` on their own lines for display equations. A fenced `math` block also works. The editor's **Insert** menu offers inline and display equations with editable examples. Equations render in the preview and PDF using bundled KaTeX fonts.
@@ -238,3 +247,7 @@ The article layout defaults to the Scientific theme when no theme is specified. 
 Use **Document properties → Page orientation** to choose Portrait or Landscape. Document layout is available in the same window. The choice is saved as `orientation: landscape` in frontmatter and applies to all pages, including report covers and PDF exports. **New → Landscape Presentation** starts a wide document with page breaks between sections.
 
 For individual landscape sections in a portrait document, surround the section with `<!-- landscape -->` and `<!-- /landscape -->` on separate lines.
+
+## Type scale
+
+**Document properties → Type scale** resizes every size in the document at once — body text, headings, tables, and code — and the pages re-flow to fit. The choice is saved as `font-scale: 1.1` in frontmatter (values from `0.5` to `2`; `1` is the default and removes the key), and applies to the preview and PDF export alike.

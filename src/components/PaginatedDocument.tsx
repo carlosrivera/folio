@@ -217,10 +217,14 @@ function sizeDiagramToPage(svgEl: SVGElement, figure: HTMLElement | null) {
 
   const budget = figure?.closest('.folio-landscape, .folio-document-landscape') ? PAGE_BUDGETS.landscape : PAGE_BUDGETS.portrait
   const requested = figure?.getAttribute('data-diagram-width')
+  // `scale=0.7` shrinks (or grows) the diagram after the width choice; the
+  // page-height cap below still applies, so a scaled-up diagram cannot overflow.
+  const scaleValue = Number.parseFloat(figure?.getAttribute('data-diagram-scale') ?? '')
+  const scale = Number.isFinite(scaleValue) ? Math.min(2, Math.max(0.25, scaleValue)) : 1
   // `full` fills the measure even when the drawing is small; `half` keeps a
   // narrow diagram narrow so it can sit beside surrounding prose comfortably.
-  const maxWidth = requested === 'half' ? budget.width / 2 : budget.width
-  const naturalMm = naturalWidth * PX_TO_MM
+  const maxWidth = (requested === 'half' ? budget.width / 2 : budget.width) * scale
+  const naturalMm = naturalWidth * PX_TO_MM * scale
   const ratio = naturalHeight / naturalWidth
 
   let width = requested === 'full' ? maxWidth : Math.min(naturalMm, maxWidth)
@@ -383,7 +387,13 @@ function addPageChrome(
   const t = getTranslations(lang)
   const layout = doc.metadata.layout
   if (doc.metadata.orientation === 'landscape') {
-    pages.forEach(page => page.classList.add('pagedjs_landscape_page'))
+    pages.forEach(page => {
+      page.classList.add('pagedjs_landscape_page')
+      // Marks a document that is landscape as a whole, unlike
+      // `pagedjs_landscape_page`, which Paged.js also adds to landscape
+      // runs inside a portrait document.
+      page.classList.add('folio-document-wide')
+    })
   }
 
   const isPageMarkedDark = (page: HTMLElement, index: number) => {
@@ -391,7 +401,8 @@ function addPageChrome(
     return (
       isPageDark(pageNum, pages.length, doc.metadata.darkPages) ||
       page.classList.contains('pagedjs_dark_page') ||
-      page.querySelector('.folio-dark-page') !== null
+      page.querySelector('.folio-dark-page') !== null ||
+      page.querySelector('.folio-dark-run') !== null
     )
   }
 
@@ -698,6 +709,28 @@ export function PaginatedDocument({
           if (document.metadata.orientation === 'landscape') {
             const wideDocument = window.document.createElement('div')
             wideDocument.className = 'folio-document-landscape'
+            // A dark run is a named page (`page: dark`, portrait A4) inside a
+            // portrait document. In a landscape file that name has to go: it
+            // re-flows the run onto portrait geometry and desyncs it from the
+            // landscape sheet. Explicit page breaks keep the run on its own
+            // page, and the marker class keeps dark-sheet detection working.
+            template.querySelectorAll('.folio-dark-page').forEach(run => {
+              run.classList.remove('folio-dark-page')
+              run.classList.add('folio-dark-run')
+              // The run's own break rules are gone with the class, so the
+              // page boundaries become explicit; skip them at the document
+              // edges, where a break would emit an empty page.
+              if (run.previousElementSibling) {
+                const breakBefore = window.document.createElement('div')
+                breakBefore.className = 'folio-page-break'
+                run.before(breakBefore)
+              }
+              if (run.nextElementSibling) {
+                const breakAfter = window.document.createElement('div')
+                breakAfter.className = 'folio-page-break'
+                run.after(breakAfter)
+              }
+            })
             // Remove hidden artwork so it cannot create an empty cover fragment.
             if (activeTheme === 'scientific') template.querySelector('.cover-accent')?.remove()
             wideDocument.append(...Array.from(template.childNodes))
@@ -816,7 +849,15 @@ export function PaginatedDocument({
   // Emitted inside the stage so it reaches both the hidden measurement source
   // and the rendered sheets — and, because ExportApp renders this component,
   // the export window as well.
-  const overrideCss = folioStylesCss(styles, activeTheme) + themeOverrideCss(activeTheme, document.metadata.themeOverrides)
+  const overrideCss = folioStylesCss(styles, activeTheme)
+    + themeOverrideCss(activeTheme, document.metadata.themeOverrides)
+    // One multiplier for every size in the document body: `zoom` participates
+    // in layout, so Paged.js paginates the scaled text and pages re-flow.
+    // It must be set while the template is measured, not after pagination,
+    // which is why it rides along with the other document overrides.
+    + (document.metadata.fontScale !== 1
+      ? ` .document-body { zoom: ${document.metadata.fontScale}; }`
+      : '')
 
   return (
     <div className={`pagination-stage theme-${activeTheme}`} aria-busy={layingOut}>

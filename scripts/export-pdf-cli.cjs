@@ -177,10 +177,11 @@ app.whenReady().then(async () => {
     })
 
     const coverHex = parseCssColor(report?.coverColor)?.hex
+    const paperLandscape = report?.paperOrientation === 'landscape'
 
     await win.webContents.insertCSS(
       `@media print {
-         @page { size: A4 !important; margin: 0 !important; }
+         @page { size: ${paperLandscape ? 'A4 landscape' : 'A4'} !important; margin: 0 !important; }
          ${coverHex ? `@page :first { background: ${coverHex} !important; }` : ''}
        }`,
       { cssOrigin: 'user' },
@@ -202,7 +203,9 @@ app.whenReady().then(async () => {
       const page = finished.addPage([width, height])
       const [embeddedPage] = await finished.embedPages([sourcePage])
       page.drawPage(embeddedPage, { x: 0, y: 0, width, height })
-      if (landscapePages.has(index + 1)) page.setRotation(degrees(270))
+      // Whole-document landscape files already print on landscape paper;
+      // only mixed documents need their rotated runs turned back.
+      if (!paperLandscape && landscapePages.has(index + 1)) page.setRotation(degrees(270))
     }
 
     if (report?.metadata) {

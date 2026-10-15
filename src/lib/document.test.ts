@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { SUPPORTED_THEMES, SUPPORTED_LAYOUTS, parseDocument, formatChromeText, isPageDark, upsertLayout, upsertTheme, upsertThemeOverrides, suggestedFileName } from './document'
+import { SUPPORTED_THEMES, SUPPORTED_LAYOUTS, parseDocument, parseFenceOptions, formatChromeText, isPageDark, upsertLayout, upsertTheme, upsertThemeOverrides, suggestedFileName } from './document'
 
 describe('legacy document language', () => {
   it('ignores language frontmatter without changing document content', () => {
@@ -586,6 +586,25 @@ describe('preview source positions', () => {
     expect(parseDocument('---\ndark-pages: all\n---\n# Doc').metadata.darkPages).toBe('all')
     expect(parseDocument('---\ndark-pages: true\n---\n# Doc').metadata.darkPages).toBe('all')
     expect(parseDocument('---\ndarkPages: [1, 3]\n---\n# Doc').metadata.darkPages).toEqual([1, 3])
+  })
+
+  it('parses font-scale with aliases and clamps out-of-range values', () => {
+    expect(parseDocument('---\nfont-scale: 1.1\n---\n# Doc').metadata.fontScale).toBeCloseTo(1.1)
+    expect(parseDocument('---\nfontScale: 0.85\n---\n# Doc').metadata.fontScale).toBeCloseTo(0.85)
+    expect(parseDocument('---\n# Doc').metadata.fontScale).toBe(1)
+    expect(parseDocument('---\nfont-scale: enormous\n---\n# Doc').metadata.fontScale).toBe(1)
+    expect(parseDocument('---\nfont-scale: 9\n---\n# Doc').metadata.fontScale).toBe(2)
+    expect(parseDocument('---\nfont-scale: 0.1\n---\n# Doc').metadata.fontScale).toBeCloseTo(0.5)
+  })
+
+  it('parses mermaid fence width and scale options', () => {
+    expect(parseFenceOptions('mermaid')).toEqual({ width: 'natural', scale: 1 })
+    expect(parseFenceOptions('mermaid width=full')).toEqual({ width: 'full', scale: 1 })
+    expect(parseFenceOptions('mermaid width=half scale=0.7')).toEqual({ width: 'half', scale: 0.7 })
+    expect(parseFenceOptions('mermaid width=bogus')).toEqual({ width: 'natural', scale: 1 })
+    expect(parseFenceOptions('mermaid scale=9').scale).toBe(2)
+    expect(parseFenceOptions('mermaid scale=0.01').scale).toBe(0.25)
+    expect(parseFenceOptions('mermaid scale=broken').scale).toBe(1)
   })
 
   it('evaluates isPageDark correctly for specific pages, last, and all', () => {
