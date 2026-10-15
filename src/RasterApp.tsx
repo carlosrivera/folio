@@ -4,10 +4,11 @@ import { installMapUpsertPolyfill } from './lib/map-upsert-polyfill'
 
 /**
  * Headless companion to the print window: the main process hands over finished
- * PDF bytes and this window rasterizes them with pdf.js, streaming one PNG per
- * page back. Rasterizing the exported PDF rather than re-photographing the DOM
- * is what makes the images match the PDF exactly, including the mixed-landscape
- * page rotation applied in the main process.
+ * PDF bytes and this window rasterizes them with pdf.js — either one PNG per
+ * page, or the single stitched long image when one was requested. Rasterizing
+ * the exported PDF rather than re-photographing the DOM is what makes the
+ * images match the PDF exactly, including the mixed-landscape page rotation
+ * applied in the main process.
  *
  * The worker is loaded on the main thread on purpose: real workers cannot be
  * spawned from file:// pages in the packaged app.
@@ -37,14 +38,11 @@ async function rasterize({ pdf, scale, stitched }: RasterPayload) {
     }
 
     // The stitched copy is one tall canvas, so its budget is checked up front.
-    // When it cannot fit, the per-page images are still exported and the
-    // reason travels back so the editor can explain the missing file.
-    let stitchRejection: string | null = null
-    if (stitched) {
-      stitchRejection = stitchedRejection(pages.map(({ viewport }) => ({ width: Math.ceil(viewport.width), height: Math.ceil(viewport.height) })))
-    }
-
-    const stitchCanvas = stitchRejection ? null : stitchCanvasFor(pages)
+    // When one is requested but cannot fit, the per-page images are exported
+    // instead and the reason travels back so the editor can explain the
+    // missing file.
+    const stitchRejection = stitched ? stitchedRejection(pages.map(({ viewport }) => ({ width: Math.ceil(viewport.width), height: Math.ceil(viewport.height) }))) : null
+    const stitchCanvas = stitched && !stitchRejection ? stitchCanvasFor(pages) : null
     const stitchContext = stitchCanvas?.getContext('2d') ?? null
     if (stitchCanvas && stitchContext) {
       stitchContext.fillStyle = '#ffffff'
@@ -69,9 +67,9 @@ async function rasterize({ pdf, scale, stitched }: RasterPayload) {
         // each one on the widest page so nothing is cropped.
         stitchContext.drawImage(canvas, Math.floor((stitchWidth - canvas.width) / 2), stitchOffset)
         stitchOffset += canvas.height
+      } else {
+        window.folio?.sendRasterPage(index, await pngBytes(canvas))
       }
-
-      window.folio?.sendRasterPage(index, await pngBytes(canvas))
       page.cleanup()
     }
 

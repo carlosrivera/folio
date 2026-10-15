@@ -963,11 +963,13 @@ ipcMain.handle('document:export-pdf', async (event, payload: { markdown: string;
 
 /**
  * Rasterizes finished PDF bytes in a hidden renderer window where pdf.js can
- * draw them, streaming one PNG per page back to this process. Rendering the
- * exported PDF — rather than re-photographing the DOM — is what keeps the
- * images identical to what a PDF viewer shows.
+ * draw them. The renderer picks the output mix per the request: numbered page
+ * PNGs streamed back one by one, or — when a stitched image was requested and
+ * it fits — a single tall PNG instead of the pages. Rendering the exported
+ * PDF rather than re-photographing the DOM is what keeps the images identical
+ * to what a PDF viewer shows.
  */
-async function rasterizePdfPages(pdfBytes: Uint8Array, scale: number, stitched: boolean, pageCount: number, progress: (message: string) => void): Promise<{ pages: Uint8Array[]; stitched?: Uint8Array; skipped?: string }> {
+async function rasterizePdfPages(pdfBytes: Uint8Array, scale: number, stitched: boolean, pageCount: number, progress: (message: string) => void): Promise<{ pages: Map<number, Uint8Array>; stitched?: Uint8Array; skipped?: string }> {
   const rasterWindow = new BrowserWindow({
     show: false,
     webPreferences: {
@@ -981,7 +983,7 @@ async function rasterizePdfPages(pdfBytes: Uint8Array, scale: number, stitched: 
   try {
     await rasterWindow.loadURL(rendererUrl('raster'))
     return await new Promise((resolve, reject) => {
-      const pages: (Uint8Array | undefined)[] = new Array(pageCount)
+      const pages = new Map<number, Uint8Array>()
       // The payload is offered once the renderer announces itself; the
       // announcement can only follow mounting, so no resend loop is needed.
       let offered = false
@@ -1004,17 +1006,13 @@ async function rasterizePdfPages(pdfBytes: Uint8Array, scale: number, stitched: 
       }
       const onPage = (event: Electron.IpcMainEvent, message: { index: number; bytes: Uint8Array }) => {
         if (!isFromRaster(event)) return
-        pages[message.index] = message.bytes
+        pages.set(message.index, message.bytes)
         progress(`Rasterizing page ${message.index + 1} of ${pageCount}…`)
       }
       const onDone = (event: Electron.IpcMainEvent, message: { stitched?: Uint8Array; skipped?: string }) => {
         if (!isFromRaster(event)) return
         cleanup()
-        if (pages.some((page) => page === undefined)) {
-          reject(new Error('The rasterized pages were incomplete.'))
-          return
-        }
-        resolve({ pages: pages as Uint8Array[], stitched: message.stitched, skipped: message.skipped })
+        resolve({ pages, stitched: message.stitched, skipped: message.skipped })
       }
       const onError = (event: Electron.IpcMainEvent, message: { message: string }) => {
         if (!isFromRaster(event)) return
@@ -1049,16 +1047,21 @@ ipcMain.handle('document:export-png', async (event, payload: { markdown: string;
     const { bytes, pageCount } = await printDocumentPdf(printWindow, report, progress)
     progress('Rasterizing pages…')
     const raster = await rasterizePdfPages(bytes, scale, wantsStitched, pageCount, progress)
-    const paths = pngSiblingNames(selection.filePath, pageCount)
     progress('Saving images…')
-    for (const [index, pagePath] of paths.entries()) await writeFile(pagePath, raster.pages[index])
-    // A single page is its own stitched image; writing both would be a duplicate.
-    let stitchedPath: string | undefined
-    if (wantsStitched && pageCount > 1 && raster.stitched) {
-      stitchedPath = stitchedPngName(selection.filePath)
+    // One document out: a successful stitched export replaces the numbered
+    // page files entirely.
+    if (wantsStitched && raster.stitched && !raster.skipped) {
+      const stitchedPath = stitchedPngName(selection.filePath)
       await writeFile(stitchedPath, raster.stitched)
+      return { canceled: false, paths: [], stitchedPath }
     }
-    return { canceled: false, paths, stitchedPath, stitchedSkipped: wantsStitched ? raster.skipped : undefined }
+    const paths = pngSiblingNames(selection.filePath, pageCount)
+    const orderedPages = Array.from(raster.pages.entries()).sort(([a], [b]) => a - b).map(([, pageBytes]) => pageBytes)
+    if (orderedPages.length !== pageCount) throw new Error('The rasterized pages were incomplete.')
+    for (const [index, pagePath] of paths.entries()) await writeFile(pagePath, orderedPages[index])
+    // A stitched image that could not fit falls back to the numbered pages,
+    // and the reason travels back so the editor can explain the missing file.
+    return { canceled: false, paths, stitchedSkipped: wantsStitched ? raster.skipped : undefined }
   } finally {
     printWindow.destroy()
   }

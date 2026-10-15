@@ -63,40 +63,41 @@ app.whenReady().then(async () => {
     destinations.push(path.join(folder, 'deck.png'))
     const result = await exportPng(win, source, { scale: 2, stitched: true })
     assert.equal(result.canceled, false)
-    assert.deepEqual(result.paths.map(file => path.basename(file)), ['deck-1.png', 'deck-2.png'], 'sibling files are numbered beside the destination')
+    assert.deepEqual(result.paths, [], 'a stitched export is one document, not the numbered pages')
     assert.equal(result.stitchedPath, path.join(folder, 'deck-long.png'))
-    const pageHeights = []
-    for (const file of result.paths) {
-      const { width, height } = pngSize(file)
-      expectNear(width, 1191, file)
-      expectNear(height, 1684, file)
-      pageHeights.push(height)
-    }
+    assert.ok(!fs.existsSync(path.join(folder, 'deck-1.png')), 'stitched export must not write page files')
+    assert.ok(!fs.existsSync(path.join(folder, 'deck-2.png')), 'stitched export must not write page files')
     const stitched = pngSize(result.stitchedPath)
     expectNear(stitched.width, 1191, result.stitchedPath)
-    expectNear(stitched.height, pageHeights[0] + pageHeights[1], result.stitchedPath)
+    expectNear(stitched.height, 2 * 1684, result.stitchedPath)
 
-    // Lower resolution lands on the A4 point size, and pages-only exports skip
-    // the stitched file entirely.
+    // Without the stitched image the export is the numbered page files, at the
+    // A4 point size when the scale is 1x.
     destinations.push(path.join(folder, 'small.png'))
     const small = await exportPng(win, source, { scale: 1, stitched: false })
     assert.equal(small.canceled, false)
     assert.deepEqual(small.paths.map(file => path.basename(file)), ['small-1.png', 'small-2.png'])
     assert.equal(small.stitchedPath, undefined)
     assert.ok(!fs.existsSync(path.join(folder, 'small-long.png')), 'pages-only export must not write a stitched image')
+    for (const file of small.paths) {
+      const { width, height } = pngSize(file)
+      expectNear(width, 596, file)
+      expectNear(height, 842, file)
+    }
 
-    // A single page is its own stitched image, so none is written.
+    // A single stitched page is still one document.
     await edit(win, onePager)
     await ready(win, 'Only content.')
     const singleSource = await js(win, `document.querySelector('.cm-content').cmTile.view.state.doc.toString()`)
     destinations.push(path.join(folder, 'solo.png'))
     const single = await exportPng(win, singleSource, { scale: 2, stitched: true })
     assert.equal(single.canceled, false)
-    assert.deepEqual(single.paths.map(file => path.basename(file)), ['solo-1.png'])
-    assert.equal(single.stitchedPath, undefined)
-    assert.ok(!fs.existsSync(path.join(folder, 'solo-long.png')), 'single-page export must not duplicate the page as a stitched image')
+    assert.deepEqual(single.paths, [])
+    assert.equal(single.stitchedPath, path.join(folder, 'solo-long.png'))
+    assert.ok(!fs.existsSync(path.join(folder, 'solo-1.png')), 'single-page stitched export must not write page files')
+    expectNear(pngSize(single.stitchedPath).height, 1684, single.stitchedPath)
 
-    console.log('PNG export passed (sibling files, stitched long image, scale factor, single page)')
+    console.log('PNG export passed (stitched single document, numbered siblings, scale factor)')
   } catch (error) { console.error(error); process.exitCode = 1 }
   finally { win.destroy(); app.exit(process.exitCode || 0) }
 })

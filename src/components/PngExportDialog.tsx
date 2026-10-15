@@ -8,12 +8,11 @@ const SCALES = [
 ]
 
 /**
- * Options for the PNG export: a resolution for the page images and whether to
- * add the stitched long image that joins every page top to bottom.
+ * Options for the PNG export: a resolution and the output shape — numbered
+ * page files beside the chosen destination, or one stitched long image that
+ * joins every page top to bottom.
  */
-export function PngExportDialog({ pageCount, suggestedName, onSubmit, onClose }: {
-  pageCount: number
-  suggestedName: string
+export function PngExportDialog({ onSubmit, onClose }: {
   onSubmit: (options: { scale: number; stitched: boolean }) => void
   onClose: () => void
 }) {
@@ -25,13 +24,12 @@ export function PngExportDialog({ pageCount, suggestedName, onSubmit, onClose }:
   return <dialog ref={ref} className="png-export-dialog folio-dialog" aria-labelledby="png-export-title" onCancel={event => { event.preventDefault(); onClose() }}>
     <form onSubmit={event => { event.preventDefault(); onSubmit({ scale, stitched }) }}>
       <h2 id="png-export-title">{tr('Export PNG images')}</h2>
-      <p>{tr('Pages are saved as numbered files beside the location you choose, rasterized from the finished PDF so they match it exactly.')}</p>
+      <p>{tr('Exports numbered page files beside the location you choose, rasterized from the finished PDF so they match it exactly.')}</p>
       <fieldset className="png-export-scale">
         <legend>{tr('Resolution')}</legend>
         {SCALES.map(({ value, label }) => <label key={value}><input type="radio" name="png-scale" checked={scale === value} onChange={() => setScale(value)} /> {tr(label)}</label>)}
       </fieldset>
-      <label className="png-export-stitched"><input type="checkbox" checked={stitched} onChange={event => setStitched(event.target.checked)} /> {tr('Also save a stitched long image joining every page')}</label>
-      {stitched && pageCount > 1 && <p className="png-export-names">{suggestedName}-1.png … {suggestedName}-{pageCount}.png + {suggestedName}-long.png</p>}
+      <label className="png-export-stitched"><input type="checkbox" checked={stitched} onChange={event => setStitched(event.target.checked)} /> {tr('Join every page into one stitched long image')}</label>
       <div className="folio-dialog-actions"><button type="submit" className="dialog-primary">{tr('Export')}</button><button type="button" onClick={onClose}>{tr('Cancel')}</button></div>
     </form>
   </dialog>

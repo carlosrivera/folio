@@ -356,13 +356,23 @@ export default function App() {
     try {
       const result = await window.folio.exportPng(markdown, suggestedFileName(title), currentTheme, undefined, path ?? undefined, currentStyles, { scale, stitched })
       if (!result.canceled) {
-        const count = result.paths.length
         const note = result.stitchedSkipped ? ` — ${result.stitchedSkipped}` : ''
-        showToast(`Exported ${count} page image${count === 1 ? '' : 's'}${result.stitchedPath ? ' and the stitched long image' : ''}${note}`, {
-          duration: 5000,
-          actionLabel: `Open ${fileName(result.paths[0])}`,
-          action: () => launchFile(result.paths[0]),
-        })
+        const stitchedPath = result.stitchedPath
+        const firstPage = result.paths[0]
+        if (stitchedPath) {
+          showToast(`Exported the stitched long image${note}`, {
+            duration: 5000,
+            actionLabel: `Open ${fileName(stitchedPath)}`,
+            action: () => launchFile(stitchedPath),
+          })
+        } else if (firstPage) {
+          const count = result.paths.length
+          showToast(`Exported ${count} page image${count === 1 ? '' : 's'}${note}`, {
+            duration: 5000,
+            actionLabel: `Open ${fileName(firstPage)}`,
+            action: () => launchFile(firstPage),
+          })
+        }
       }
     } catch (error) {
       showToast(error instanceof Error ? error.message : 'Could not export the images')
@@ -838,7 +848,7 @@ export default function App() {
         </div>
       </Workspace>
       <footer className="editor-status"><span role="status">{tr(action === 'saving' ? 'Saving…' : saveError ? 'Save failed · use Save to retry' : diskChange ? 'External changes · save paused' : dirty ? 'Unsaved changes' : path ? 'Saved' : 'Not saved to a file')}{autosave && path && !diskChange ? ` · ${tr('Autosave on')}` : ''}</span><span>{wordCount.toLocaleString()} {tr('words')}</span><span>Ln {cursor.line}, Col {cursor.column}</span></footer>
-      {pngExportOpen && <PngExportDialog pageCount={pageCount} suggestedName={suggestedFileName(title)}
+      {pngExportOpen && <PngExportDialog
         onSubmit={({ scale, stitched }) => { setPngExportOpen(false); void exportPngDocument(scale, stitched) }}
         onClose={() => { setPngExportOpen(false); editorViewRef.current?.focus() }} />}
       {insertion && <InsertDialog kind={insertion.kind} initialLabel={insertion.label} initialFile={insertion.file} initialSource={insertion.source} initialCaption={insertion.caption} initialWidth={insertion.width} editing={insertion.editing} onSubmit={submitInsertion} onClose={() => { setInsertion(null); editorViewRef.current?.focus() }} />}
