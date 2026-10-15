@@ -3291,6 +3291,14 @@ dialog.folio-new-dialog::backdrop { background: rgba(12, 14, 14, .62); }
 .scientific-document .document-body .katex-block { margin: 4mm 0; font-size: 1em; }
 .scientific-document .document-body table { font-size: 9pt; }
 .scientific-document .document-body blockquote p { text-align: left; }
+/* Journal-style main text: everything after the abstract and keywords flows
+   in two balanced columns; wide artefacts span both columns like a paper's
+   full-width figures and tables. */
+.scientific-document .document-body { column-count: 2; column-gap: 7mm; }
+.scientific-document .document-body figure,
+.scientific-document .document-body table { column-span: all; }
+.scientific-document .document-body h2,
+.scientific-document .document-body h3 { break-after: avoid; }
 .scientific-document .footnotes { font-size: 8pt; }
 .document-properties textarea { width: 100%; min-width: 0; padding: 7px 9px; border: 1px solid var(--ui-control-border); border-radius: 5px; background: var(--ui-control-bg); color: var(--ui-text); font: inherit; resize: vertical; }
 
