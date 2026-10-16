@@ -159,8 +159,9 @@ const themes = [
           <span>Swipe to explore</span>
           <span class="hero-scroll-track" aria-hidden="true"><span class="hero-scroll-thumb" id="hero-scroll-thumb"></span></span>
         </div>
-        <div class="container window-container" id="hero-window-scroller" role="region" aria-label="Folio editor and document preview" tabindex="0">
-        <div class="app-window" id="app-window">
+        <div class="hero-window-stage">
+          <div class="container window-container" id="hero-window-scroller" role="region" aria-label="Folio editor and document preview" tabindex="0">
+          <div class="app-window" id="app-window">
           <!-- macOS Native Titlebar -->
           <div class="app-titlebar">
             <div class="titlebar-left">
@@ -430,6 +431,7 @@ const themes = [
             </div>
           </div>
         </div>
+      </div>
       </div>
       </div>
     </section>
@@ -911,9 +913,17 @@ const themes = [
       else heroScroller!.removeAttribute('aria-describedby')
       heroScrollThumb!.style.width = `${thumbWidth * 100}%`
       heroScrollThumb!.style.left = `${offset * 100}%`
-      heroWindow!.style.setProperty('--hero-tilt', `${remaining * (compact ? 5 : 10)}deg`)
-      heroWindow!.style.setProperty('--hero-scale', String(1 - remaining * (compact ? 0.025 : 0.08)))
-      heroWindow!.style.setProperty('--hero-lift', `${remaining * (compact ? 8 : 24)}px`)
+      if (compact) {
+        heroWindow!.style.transform = 'none'
+        heroWindow!.style.removeProperty('--hero-tilt')
+        heroWindow!.style.removeProperty('--hero-scale')
+        heroWindow!.style.removeProperty('--hero-lift')
+      } else {
+        heroWindow!.style.transform = ''
+        heroWindow!.style.setProperty('--hero-tilt', `${remaining * 10}deg`)
+        heroWindow!.style.setProperty('--hero-scale', String(1 - remaining * 0.08))
+        heroWindow!.style.setProperty('--hero-lift', `${remaining * 24}px`)
+      }
     }
 
     function scheduleHeroUpdate() {
@@ -927,7 +937,7 @@ const themes = [
     new ResizeObserver(scheduleHeroUpdate).observe(heroScroller)
     const heroObserver = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting
-      heroWindow.classList.toggle('is-animating', visible && !reducedMotion.matches)
+      heroWindow.classList.toggle('is-animating', visible && !reducedMotion.matches && !compact)
       if (visible) scheduleHeroUpdate()
     }, { rootMargin: '120px' })
     heroObserver.observe(heroShowcase)
@@ -1325,6 +1335,7 @@ const themes = [
     font-size: 1.05rem;
     font-weight: 600;
     text-decoration: none;
+    white-space: nowrap;
     transition: background 0.15s ease, color 0.15s ease;
   }
 
@@ -1343,6 +1354,8 @@ const themes = [
     letter-spacing: 0.03em;
     padding: 3px 9px;
     border-radius: 999px;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .cta-dropdown-btn {
@@ -1353,10 +1366,11 @@ const themes = [
     background: var(--accent);
     color: var(--accent-fg, #ffffff);
     border: none;
-    border-left: 1px solid rgba(127, 127, 127, 0.32);
+    border-left: 1px solid rgba(255, 255, 255, 0.25);
     border-top-right-radius: 999px;
     border-bottom-right-radius: 999px;
     cursor: pointer;
+    flex-shrink: 0;
     transition: background 0.15s ease, color 0.15s ease;
   }
 
@@ -1380,7 +1394,7 @@ const themes = [
     left: 50%;
     transform: translateX(-50%) translateY(6px);
     width: 320px;
-    max-width: 90vw;
+    max-width: calc(100vw - 32px);
     background: var(--surface, #ffffff);
     border: 1px solid var(--border);
     border-radius: 16px;
@@ -1544,6 +1558,11 @@ const themes = [
     margin: 0 auto;
   }
 
+  /* Window Stage: Wraps scroller and anchors scroll edge fade overlays */
+  .hero-window-stage {
+    position: relative;
+  }
+
   .hero-scroll-hint { display: none; }
 
   .window-container {
@@ -1583,39 +1602,87 @@ const themes = [
   .app-window.is-animating { will-change: transform; }
 
   @media (max-width: 1059px) {
-    .window-container { padding-inline: var(--gutter); }
-    .app-window { transform-origin: left 35%; }
+    .window-container {
+      padding: 0 var(--gutter) 40px;
+    }
+    .app-window {
+      transform: none !important;
+      will-change: auto !important;
+      transform-origin: left 35%;
+    }
+    .app-window.is-animating {
+      will-change: auto;
+    }
     .hero-scroll-hint {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
-      padding: 0 var(--gutter) 4px;
+      height: 24px;
+      line-height: 24px;
+      padding: 0 var(--gutter);
+      margin-bottom: 12px;
       color: var(--text-2);
       font-size: 0.75rem;
       font-weight: 500;
+      box-sizing: border-box;
     }
     .hero-window-showcase[data-scrollable="false"] .hero-scroll-hint { display: none; }
     .hero-swipe-icon { color: var(--accent); animation: hero-swipe 1.8s ease-in-out 3; }
     .has-explored .hero-swipe-icon { animation: none; }
     .hero-scroll-track { position: relative; width: 64px; height: 3px; border-radius: 99px; background: var(--border); overflow: hidden; }
     .hero-scroll-thumb { position: absolute; top: 0; bottom: 0; left: 0; width: 30%; border-radius: inherit; background: var(--accent); }
-    .hero-window-showcase::before,
-    .hero-window-showcase::after {
+
+    /* Dark frosted edge blur overlays, precisely aligned with app-window */
+    .hero-window-stage::before,
+    .hero-window-stage::after {
       content: '';
       position: absolute;
-      z-index: 2;
-      top: 44px;
-      bottom: 60px;
-      width: 32px;
+      z-index: 10;
+      top: 0;
+      bottom: 40px;
+      width: 48px;
       pointer-events: none;
       opacity: 0;
-      transition: opacity 0.2s ease;
+      transition: opacity 0.25s ease;
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
     }
-    .hero-window-showcase::before { left: 0; background: linear-gradient(to right, var(--bg), transparent); }
-    .hero-window-showcase::after { right: 0; background: linear-gradient(to left, var(--bg), transparent); }
-    .hero-window-showcase[data-scroll-left="true"]::before,
-    .hero-window-showcase[data-scroll-right="true"]::after { opacity: 1; }
+    .hero-window-stage::before {
+      left: 0;
+      background: linear-gradient(to right, rgba(14, 15, 18, 0.94) 0%, rgba(14, 15, 18, 0.5) 50%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, black 0%, rgba(0, 0, 0, 0.3) 65%, transparent 100%);
+      mask-image: linear-gradient(to right, black 0%, rgba(0, 0, 0, 0.3) 65%, transparent 100%);
+    }
+    .hero-window-stage::after {
+      right: 0;
+      background: linear-gradient(to left, rgba(14, 15, 18, 0.94) 0%, rgba(14, 15, 18, 0.5) 50%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to left, black 0%, rgba(0, 0, 0, 0.3) 65%, transparent 100%);
+      mask-image: linear-gradient(to left, black 0%, rgba(0, 0, 0, 0.3) 65%, transparent 100%);
+    }
+    .hero-window-showcase[data-scroll-left="true"] .hero-window-stage::before,
+    .hero-window-showcase[data-scroll-right="true"] .hero-window-stage::after {
+      opacity: 1;
+    }
+
+    /* On mobile/touch viewports, wrap text and disable interactions on the editor mockup
+       so all horizontal swipe gestures pass straight to the parent scroller (#hero-window-scroller) */
+    .editor-pane {
+      pointer-events: none;
+      touch-action: pan-x pan-y;
+      user-select: none;
+    }
+    .editor-subbar {
+      pointer-events: none;
+    }
+    .cm-content {
+      overflow-x: hidden;
+    }
+    .cm-line {
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
   }
 
   @keyframes hero-swipe {
@@ -1627,8 +1694,8 @@ const themes = [
   @media (prefers-reduced-motion: reduce) {
     .app-window { transform: none; will-change: auto; }
     .hero-swipe-icon { animation: none; }
-    .hero-window-showcase::before,
-    .hero-window-showcase::after { transition: none; }
+    .hero-window-stage::before,
+    .hero-window-stage::after { transition: none; }
   }
 
   /* Titlebar */
@@ -2009,7 +2076,7 @@ const themes = [
     font-family: "JetBrains Mono", monospace;
     font-size: 11px;
     line-height: 19px;
-    overflow-y: auto;
+    overflow: auto;
     color: #d4d4d8;
   }
 
@@ -2056,6 +2123,7 @@ const themes = [
     background: #090a0c;
     padding: 28px 24px;
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -2674,6 +2742,31 @@ const themes = [
     .ai-features-grid {
       grid-template-columns: 1fr;
       gap: 1.8rem;
+    }
+
+    /* Mobile CTA button: sleek single-line pill, perfectly proportioned like desktop */
+    .split-cta-container {
+      max-width: 100%;
+      box-shadow: 0 4px 16px rgba(210, 92, 58, 0.24);
+    }
+
+    .cta-pill-main {
+      padding: 12px 16px 12px 20px;
+      font-size: 0.96rem;
+      gap: 8px;
+    }
+
+    .cta-pill-main svg {
+      width: 17px;
+      height: 17px;
+    }
+
+    .cta-arch-badge {
+      display: none;
+    }
+
+    .cta-dropdown-btn {
+      padding: 0 14px;
     }
   }
 
